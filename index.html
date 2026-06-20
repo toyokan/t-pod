@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <!-- 静的タイトルは汎用。読み込み後に data.json の eventInfo.title で上書きされる -->
+  <!-- 静的タイトルは汎用。読み込み後に events/<id>.json の eventInfo.title で上書きされる -->
   <title>プログラム / タイムテーブル</title>
   <meta name="description" content="教育イベント・研究会向けタイムテーブル PWA" />
   <meta name="apple-mobile-web-app-title" content="タイムテーブル" />
@@ -35,7 +35,7 @@
           },
         },
       },
-      // 会場テーマカラー等は data.json から動的に組み立てるため、クラスを safelist で保持
+      // 会場テーマカラー等は events/<id>.json から動的に組み立てるため、クラスを safelist で保持
       safelist: [
         "bg-blue-100", "text-blue-700", "bg-blue-500", "border-blue-300",
         "bg-emerald-100", "text-emerald-700", "bg-emerald-500", "border-emerald-300",
@@ -173,7 +173,7 @@
     "use strict";
 
     // ---- 会場テーマカラー辞書 ----
-    // data.json の rooms[].color が指すキー。クラスは <head> の safelist で保持。
+    // events/<id>.json の rooms[].color が指すキー。クラスは <head> の safelist で保持。
     // chip=ラベル, dot=タイムライン上の点, border=カード左罫線。
     const COLOR = {
       blue:    { chip: "bg-blue-100 text-blue-700",       dot: "bg-blue-500",    border: "border-blue-300" },
@@ -184,7 +184,7 @@
     };
     const NEUTRAL = { chip: "bg-slate-100 text-slate-600", dot: "bg-slate-300", border: "border-slate-200" };
 
-    // 会場ラベル → カラー（data.json の rooms から動的に構築。未定義はグレー扱い）
+    // 会場ラベル → カラー（events/<id>.json の rooms から動的に構築。未定義はグレー扱い）
     let ROOM_COLOR = {};
     const roomColor = (label) => COLOR[ROOM_COLOR[label]] || NEUTRAL;
 
@@ -223,6 +223,12 @@
     const escapeHtml = (s) =>
       String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    // "2026-08-04" → 月日の表記（sep="月"→"8月4日" / sep="/"→"8/4"。先頭ゼロを除去）
+    const fmtMD = (d, sep = "月") => {
+      const [, m, day] = String(d || "").split("-");
+      if (!m || !day) return "";
+      return sep === "月" ? `${+m}月${+day}日` : `${+m}${sep}${+day}`;
+    };
 
     // ---- 起動 ----
     // URL の ?id=<イベントID> を取得（不正値・パストラバーサルは除去）
@@ -238,6 +244,8 @@
       document.getElementById("bottomNav").classList.toggle("hidden", !isEvent);
       $("fab").classList.toggle("hidden", !isEvent);
       $("view-list").classList.toggle("hidden", isEvent);
+      // 一覧モードではプログラム表示を隠す（イベントモードでは直後の setTab が表示制御）
+      $("view-program").classList.toggle("hidden", !isEvent);
       // 一覧モードではボトムナビ分の余白を詰める
       document.querySelector("main").classList.toggle("pb-28", isEvent);
       document.querySelector("main").classList.toggle("pb-8", !isEvent);
@@ -341,9 +349,9 @@
           "flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition " +
             (isActive ? "bg-white text-brand-700 shadow-sm" : "bg-white/15 text-white hover:bg-white/25"),
           escapeHtml(d.label) +
-            (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(d.date.slice(5))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "")
+            (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "")
         );
-        btn.onclick = () => { activeDateId = d.id; renderDateTabs(); renderTimetable(); };
+        btn.onclick = () => { activeDateId = d.id; renderDateTabs(); };
         tabs.appendChild(btn);
       });
       renderTimetable();
@@ -357,7 +365,7 @@
       // この日の見出し（◯日目 8月4日(火) 10:00〜16:15）
       const dayObj = ((DATA.eventInfo && DATA.eventInfo.dates) || []).find((d) => d.id === activeDateId);
       if (dayObj) {
-        const md = dayObj.date ? dayObj.date.slice(5).replace("-", "月") + "日" : "";
+        const md = fmtMD(dayObj.date);
         $("dayMeta").textContent =
           `${dayObj.label || ""}　${md}${dayObj.weekday ? "(" + dayObj.weekday + ")" : ""}` +
           (dayObj.time ? `　${dayObj.time}` : "");
@@ -417,8 +425,12 @@
     function renderMaterials() {
       const venue = (DATA.eventInfo && DATA.eventInfo.venue) || {};
       const map = $("venueMap");
-      if (venue.mapImage) { map.src = venue.mapImage; map.classList.remove("hidden"); }
-      else map.classList.add("hidden");
+      if (venue.mapImage) {
+        map.src = venue.mapImage;
+        map.classList.remove("hidden");
+        // 画像取得失敗時は崩さず非表示（注記テキストは残す）
+        map.onerror = () => map.classList.add("hidden");
+      } else map.classList.add("hidden");
       $("venueNote").textContent = venue.mapNote || "";
 
       $("resourceLinks").innerHTML = "";
@@ -459,17 +471,24 @@
         card.href = b.url || "#";
         card.target = "_blank";
         card.rel = "noopener";
-        const cover = b.cover
-          ? `<img src="${escapeHtml(b.cover)}" alt="" class="w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200" />`
-          : `<div class="w-16 h-24 flex-shrink-0 rounded-lg bg-brand-50 text-brand-400 flex items-center justify-center">${icon("book", "w-7 h-7")}</div>`;
+        const placeholder = `<div class="w-16 h-24 flex-shrink-0 rounded-lg bg-brand-50 text-brand-400 flex items-center justify-center">${icon("book", "w-7 h-7")}</div>`;
         card.innerHTML =
-          cover +
+          (b.cover ? "" : placeholder) +
           `<div class="min-w-0">` +
           `<div class="text-sm font-bold text-slate-800 leading-snug">${escapeHtml(b.title)}</div>` +
           (b.author ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(b.author)}</div>` : "") +
           (b.publisher ? `<div class="text-[11px] text-slate-400">${escapeHtml(b.publisher)}</div>` : "") +
           (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
           `</div>`;
+        // 表紙画像は要素で生成し、取得失敗時は本アイコンのプレースホルダに差し替える
+        if (b.cover) {
+          const img = el("img", "w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
+          img.src = b.cover;
+          img.alt = "";
+          img.loading = "lazy";
+          img.addEventListener("error", () => { img.outerHTML = placeholder; });
+          card.insertAdjacentElement("afterbegin", img);
+        }
         list.appendChild(card);
       });
     }

@@ -1,14 +1,14 @@
 {
   "name": "研究会・イベント タイムテーブル",
   "short_name": "タイムテーブル",
-  "description": "教育イベント・研究会向けのタイムテーブル PWA。プログラム・配布資料・関連書籍をスマホで閲覧できます。コンテンツは data.json で差し替えます。",
+  "description": "教育イベント・研究会向けのタイムテーブル PWA。プログラム・配布資料・関連書籍をスマホで閲覧できます。コンテンツはイベントJSON（events/<id>.json）で差し替えます。",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f8fafc",
-  "theme_color": "#2563eb",
+  "theme_color": "#4f46e5",
   "icons": [
     {
       "src": "assets/icon.svg",
