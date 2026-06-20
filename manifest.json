@@ -1,0 +1,26 @@
+{
+  "name": "算数 春の祭典 タイムテーブル",
+  "short_name": "春の祭典",
+  "description": "教育イベント・研究会向けのタイムテーブル PWA。プログラム・配布資料・関連書籍をスマホで閲覧できます。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

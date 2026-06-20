@@ -1,0 +1,163 @@
+{
+  "eventInfo": {
+    "title": "算数 春の祭典 2026",
+    "subtitle": "算数授業づくり研究会",
+    "tagline": "子どもが夢中になる算数授業を、みんなで。",
+    "dates": [
+      { "id": "day1", "label": "1日目", "date": "2026-03-28", "weekday": "土" },
+      { "id": "day2", "label": "2日目", "date": "2026-03-29", "weekday": "日" }
+    ],
+    "notices": [
+      {
+        "title": "受付開始時刻のご案内",
+        "body": "受付は各日 9:15 より、1階エントランスにて開始します。ネームカードをお受け取りのうえ、各会場へお進みください。",
+        "level": "important"
+      },
+      {
+        "title": "Wi-Fi のご利用について",
+        "body": "会場内では無料Wi-Fi（SSID: SANSU-FES / パスワード: spring2026）をご利用いただけます。混雑時は接続しづらい場合があります。本アプリはオフラインでも閲覧できます。",
+        "level": "info"
+      },
+      {
+        "title": "配布資料はオンラインで",
+        "body": "当日の配布資料はすべて「資料」タブからダウンロードいただけます。紙の配布は行いませんので、各自の端末でご覧ください。",
+        "level": "info"
+      }
+    ],
+    "forms": [
+      { "label": "事後アンケート（参加者全員）", "description": "本日の感想をお寄せください（所要3分）", "url": "https://forms.gle/example-survey" },
+      { "label": "見本（サンプル教材）請求フォーム", "description": "ご紹介した教材の見本をお送りします", "url": "https://forms.gle/example-sample" },
+      { "label": "次回研究会の案内希望", "description": "次回開催のご案内をメールでお届けします", "url": "https://forms.gle/example-newsletter" }
+    ],
+    "venue": {
+      "mapImage": "assets/venue-map.svg",
+      "mapNote": "会場は3階建てです。第1会場は2F大ホール、第2会場・第3会場は3Fの研修室となります。エレベーターは中央階段横にございます。",
+      "resourceLinks": [
+        { "label": "本日の配布資料一式（PDF）", "description": "全分科会の資料をまとめたフォルダ", "url": "https://drive.google.com/drive/folders/example-all" },
+        { "label": "ワークシート（印刷用）", "description": "ご自由に印刷してご活用ください", "url": "https://drive.google.com/drive/folders/example-worksheet" },
+        { "label": "登壇者プロフィール集", "description": "本日の登壇者のご紹介", "url": "https://drive.google.com/drive/folders/example-speakers" }
+      ]
+    }
+  },
+  "rooms": [
+    { "id": "roomA", "name": "第1会場", "subtitle": "2F 大ホール", "color": "blue" },
+    { "id": "roomB", "name": "第2会場", "subtitle": "3F 研修室1", "color": "green" },
+    { "id": "roomC", "name": "第3会場", "subtitle": "3F 研修室2", "color": "orange" }
+  ],
+  "sessions": [
+    {
+      "id": "s101", "dateId": "day1", "start": "09:30", "end": "10:00", "roomId": "roomA",
+      "title": "オープニング・開会のあいさつ", "speaker": "実行委員会",
+      "description": "本日のねらいと進行のご案内。算数授業づくり研究会の趣旨についてお話しします。",
+      "materialUrl": "", "status": []
+    },
+    {
+      "id": "s102", "dateId": "day1", "start": "10:10", "end": "11:00", "roomId": "roomA",
+      "title": "基調提案：問いが生まれる導入のしかけ", "speaker": "青山 尚司",
+      "description": "子どもが思わず考えたくなる導入とは何か。具体的な授業場面の映像をもとに、問いの生み出し方を提案します。",
+      "materialUrl": "https://drive.google.com/file/d/example-s102", "status": ["material"]
+    },
+    {
+      "id": "s103", "dateId": "day1", "start": "10:10", "end": "11:00", "roomId": "roomB",
+      "title": "分科会A：数と計算の指導", "speaker": "森本 隆史",
+      "description": "繰り上がりのある加法を題材に、操作と式をつなぐ指導の工夫を扱います。",
+      "materialUrl": "https://drive.google.com/file/d/example-s103", "status": ["material", "few"]
+    },
+    {
+      "id": "s104", "dateId": "day1", "start": "10:10", "end": "11:00", "roomId": "roomC",
+      "title": "分科会B：図形の見方を育てる", "speaker": "藤本 邦昭",
+      "description": "図形領域で「見方・考え方」をどう働かせるか。低学年からの系統を整理します。",
+      "materialUrl": "", "status": ["full"]
+    },
+    {
+      "id": "s105", "dateId": "day1", "start": "11:15", "end": "12:05", "roomId": "roomB",
+      "title": "分科会C：データの活用入門", "speaker": "中村 美穂",
+      "description": "新領域「データの活用」を、子どもの生活に結びつけて扱う授業づくりを考えます。",
+      "materialUrl": "https://drive.google.com/file/d/example-s105", "status": ["material"]
+    },
+    {
+      "id": "s106", "dateId": "day1", "start": "11:15", "end": "12:05", "roomId": "roomC",
+      "title": "分科会D：ICTを活かした授業", "speaker": "高橋 健太",
+      "description": "1人1台端末を算数の対話にどう生かすか。実践事例を共有します。",
+      "materialUrl": "https://drive.google.com/file/d/example-s106", "status": []
+    },
+    {
+      "id": "s107", "dateId": "day1", "start": "13:10", "end": "14:30", "roomId": "roomA",
+      "title": "公開授業：5年「割合」", "speaker": "青山 尚司",
+      "description": "実際の授業を会場で公開します。授業後に協議の時間を設けます。",
+      "materialUrl": "https://drive.google.com/file/d/example-s107", "status": ["full", "material"]
+    },
+    {
+      "id": "s108", "dateId": "day1", "start": "14:45", "end": "16:00", "roomId": "roomA",
+      "title": "パネルディスカッション：これからの算数授業", "speaker": "青山 尚司・森本 隆史・藤本 邦昭",
+      "description": "登壇者によるパネル討論。フロアからのご質問も受け付けます。",
+      "materialUrl": "", "status": []
+    },
+    {
+      "id": "s201", "dateId": "day2", "start": "09:30", "end": "10:20", "roomId": "roomA",
+      "title": "2日目オープニング・実践報告", "speaker": "森本 隆史",
+      "description": "前日の振り返りと、各地の実践報告をご紹介します。",
+      "materialUrl": "https://drive.google.com/file/d/example-s201", "status": ["material"]
+    },
+    {
+      "id": "s202", "dateId": "day2", "start": "10:30", "end": "11:20", "roomId": "roomB",
+      "title": "ワークショップ：教材研究の進め方", "speaker": "藤本 邦昭",
+      "description": "参加型のワークショップです。実際に教材分析を体験していただきます。",
+      "materialUrl": "https://drive.google.com/file/d/example-s202", "status": ["material", "few"]
+    },
+    {
+      "id": "s203", "dateId": "day2", "start": "10:30", "end": "11:20", "roomId": "roomC",
+      "title": "ワークショップ：評価とフィードバック", "speaker": "中村 美穂",
+      "description": "子どもの学びをどう見取り、どう返すか。具体例で考えます。",
+      "materialUrl": "", "status": []
+    },
+    {
+      "id": "s204", "dateId": "day2", "start": "11:30", "end": "12:00", "roomId": "roomA",
+      "title": "クロージング・閉会のあいさつ", "speaker": "実行委員会",
+      "description": "2日間のまとめと次回のご案内。アンケートへのご協力をお願いします。",
+      "materialUrl": "", "status": []
+    }
+  ],
+  "books": [
+    {
+      "title": "問いが生まれる算数授業のつくり方",
+      "author": "青山 尚司",
+      "publisher": "春の祭典出版",
+      "cover": "",
+      "description": "子どもの「なぜ?」を引き出す導入と発問の具体例を豊富に収録。",
+      "url": "https://example.com/book/aoyama-1"
+    },
+    {
+      "title": "数と計算の指導 ベーシック",
+      "author": "森本 隆史",
+      "publisher": "算数教育ライブラリ",
+      "cover": "",
+      "description": "計算指導の系統を、操作・図・式のつながりで丁寧に解説。",
+      "url": "https://example.com/book/morimoto-1"
+    },
+    {
+      "title": "図形の見方・考え方を育てる授業",
+      "author": "藤本 邦昭",
+      "publisher": "春の祭典出版",
+      "cover": "",
+      "description": "低学年から高学年までの図形指導の系統と実践事例集。",
+      "url": "https://example.com/book/fujimoto-1"
+    },
+    {
+      "title": "データの活用 はじめの一歩",
+      "author": "中村 美穂",
+      "publisher": "算数教育ライブラリ",
+      "cover": "",
+      "description": "新領域「データの活用」を生活と結ぶ授業アイデア集。",
+      "url": "https://example.com/book/nakamura-1"
+    },
+    {
+      "title": "1人1台端末ではじめる算数の対話",
+      "author": "高橋 健太",
+      "publisher": "ICT授業研究会",
+      "cover": "",
+      "description": "ICTを算数の学び合いに生かす実践をステップで紹介。",
+      "url": "https://example.com/book/takahashi-1"
+    }
+  ]
+}

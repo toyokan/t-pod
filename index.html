@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>算数 春の祭典 タイムテーブル</title>
+  <meta name="description" content="教育イベント・研究会向けタイムテーブル PWA" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+  <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // ルームのテーマカラーで使うクラスを Tailwind に認識させる（safelist）
+    tailwind.config = {
+      safelist: [
+        "bg-blue-500", "bg-blue-50", "border-blue-500", "text-blue-700", "bg-blue-100",
+        "bg-green-500", "bg-green-50", "border-green-500", "text-green-700", "bg-green-100",
+        "bg-orange-500", "bg-orange-50", "border-orange-500", "text-orange-700", "bg-orange-100",
+        "bg-purple-500", "bg-purple-50", "border-purple-500", "text-purple-700", "bg-purple-100",
+        "bg-red-500", "bg-red-50", "border-red-500", "text-red-700", "bg-red-100",
+      ],
+    };
+  </script>
+  <style>
+    /* セーフエリア（ノッチ端末）対応 */
+    .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
+    /* タイムテーブルの横スクロール時にスクロールバーを控えめに */
+    .scroll-x { -webkit-overflow-scrolling: touch; }
+    body { font-family: 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', system-ui, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- ===== Sticky ヘッダー ===== -->
+  <header class="sticky top-0 z-30 bg-blue-600 text-white shadow-md">
+    <div class="px-4 pt-3 pb-2 flex items-center justify-between">
+      <div>
+        <h1 id="eventTitle" class="text-lg font-bold leading-tight">読み込み中…</h1>
+        <p id="eventSubtitle" class="text-xs text-blue-100"></p>
+      </div>
+    </div>
+    <!-- 日付切替タブ（プログラム表示に連動） -->
+    <nav id="dateTabs" class="flex gap-1 px-3 pb-2 overflow-x-auto scroll-x" aria-label="開催日"></nav>
+  </header>
+
+  <!-- ===== メインコンテンツ ===== -->
+  <main class="max-w-3xl mx-auto px-3 pt-4 pb-28">
+
+    <!-- 読み込みエラー表示 -->
+    <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-lg p-4 text-sm">
+      データの読み込みに失敗しました。通信環境をご確認のうえ、ページを再読み込みしてください。
+    </div>
+
+    <!-- (1) プログラム -->
+    <section id="view-program" class="view">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-base font-bold text-slate-700">プログラム</h2>
+        <button id="legendBtn" class="text-xs text-blue-600 underline">凡例</button>
+      </div>
+      <div id="legend" class="hidden mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 bg-white border border-slate-200 rounded-lg p-3">
+        <span>🈵 満席</span>
+        <span>⚠️ 残席わずか</span>
+        <span>📄 資料配布あり</span>
+      </div>
+      <div id="timetable" class="overflow-x-auto scroll-x"></div>
+    </section>
+
+    <!-- (2) 資料 -->
+    <section id="view-materials" class="view hidden space-y-5">
+      <h2 class="text-base font-bold text-slate-700">資料・会場案内</h2>
+
+      <div>
+        <h3 class="text-sm font-semibold text-slate-600 mb-2">会場マップ</h3>
+        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+          <img id="venueMap" alt="会場マップ" class="w-full" />
+          <p id="venueNote" class="text-xs text-slate-600 p-3 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold text-slate-600 mb-2">配布資料</h3>
+        <div id="resourceLinks" class="space-y-2"></div>
+      </div>
+
+      <div>
+        <h3 class="text-sm font-semibold text-slate-600 mb-2">アンケート・各種フォーム</h3>
+        <div id="formLinks" class="space-y-2"></div>
+      </div>
+    </section>
+
+    <!-- (3) 書籍 -->
+    <section id="view-books" class="view hidden">
+      <h2 class="text-base font-bold text-slate-700 mb-3">関連書籍・グッズ</h2>
+      <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+    </section>
+  </main>
+
+  <!-- ===== FAB（お知らせ） ===== -->
+  <button id="fab" aria-label="お知らせを見る"
+    class="fixed right-4 bottom-24 z-30 w-14 h-14 rounded-full bg-amber-500 text-white shadow-lg flex items-center justify-center text-2xl active:scale-95 transition">
+    🔔
+    <span id="fabBadge" class="hidden absolute -top-1 -right-1 bg-red-600 text-xs w-5 h-5 rounded-full items-center justify-center font-bold"></span>
+  </button>
+
+  <!-- ===== ボトムナビ（3タブ） ===== -->
+  <nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200 pb-safe">
+    <div class="max-w-3xl mx-auto grid grid-cols-3">
+      <button data-tab="program" class="navbtn flex flex-col items-center py-2 text-xs gap-0.5">
+        <span class="text-xl">🗓️</span><span>プログラム</span>
+      </button>
+      <button data-tab="materials" class="navbtn flex flex-col items-center py-2 text-xs gap-0.5">
+        <span class="text-xl">📂</span><span>資料</span>
+      </button>
+      <button data-tab="books" class="navbtn flex flex-col items-center py-2 text-xs gap-0.5">
+        <span class="text-xl">📚</span><span>書籍</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===== 汎用モーダル ===== -->
+  <div id="modal" class="hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center">
+    <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-xl">
+      <div class="sticky top-0 bg-white flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <h3 id="modalTitle" class="font-bold text-slate-800"></h3>
+        <button id="modalClose" aria-label="閉じる" class="text-slate-400 text-2xl leading-none px-2">×</button>
+      </div>
+      <div id="modalBody" class="p-4 text-sm text-slate-700 space-y-3"></div>
+    </div>
+  </div>
+
+  <script>
+    "use strict";
+
+    // ---- ルームカラー辞書（Tailwind purge 回避のためクラスをハードコード） ----
+    const COLOR = {
+      blue:   { bar: "bg-blue-500",   chip: "bg-blue-100 text-blue-700",     block: "bg-blue-50 border-blue-500" },
+      green:  { bar: "bg-green-500",  chip: "bg-green-100 text-green-700",   block: "bg-green-50 border-green-500" },
+      orange: { bar: "bg-orange-500", chip: "bg-orange-100 text-orange-700", block: "bg-orange-50 border-orange-500" },
+      purple: { bar: "bg-purple-500", chip: "bg-purple-100 text-purple-700", block: "bg-purple-50 border-purple-500" },
+      red:    { bar: "bg-red-500",    chip: "bg-red-100 text-red-700",       block: "bg-red-50 border-red-500" },
+    };
+    const colorOf = (key) => COLOR[key] || COLOR.blue;
+
+    const STATUS_ICON = { full: "🈵", few: "⚠️", material: "📄" };
+
+    // ---- 状態 ----
+    let DATA = null;
+    let activeDateId = null;
+    let activeTab = "program";
+
+    // ---- ユーティリティ ----
+    const $ = (id) => document.getElementById(id);
+    const el = (tag, cls, html) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (html != null) e.innerHTML = html;
+      return e;
+    };
+    const escapeHtml = (s) =>
+      String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const toMinutes = (t) => {
+      const [h, m] = String(t).split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    // ---- 起動 ----
+    async function init() {
+      try {
+        const res = await fetch("./data.json", { cache: "no-cache" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        DATA = await res.json();
+        renderAll();
+      } catch (err) {
+        console.error(err);
+        $("errorBox").classList.remove("hidden");
+      }
+      registerSW();
+    }
+
+    function renderAll() {
+      const info = DATA.eventInfo || {};
+      $("eventTitle").textContent = info.title || "イベント";
+      $("eventSubtitle").textContent = info.subtitle || "";
+      document.title = info.title || document.title;
+
+      renderDateTabs();
+      renderMaterials();
+      renderBooks();
+      renderNoticeBadge();
+      // 初期表示
+      setTab("program");
+    }
+
+    // ---- 日付タブ ----
+    function renderDateTabs() {
+      const tabs = $("dateTabs");
+      tabs.innerHTML = "";
+      const dates = (DATA.eventInfo && DATA.eventInfo.dates) || [];
+      if (!activeDateId && dates.length) activeDateId = dates[0].id;
+
+      dates.forEach((d) => {
+        const isActive = d.id === activeDateId;
+        const btn = el(
+          "button",
+          "flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition " +
+            (isActive ? "bg-white text-blue-700" : "bg-blue-500/40 text-white"),
+          escapeHtml(d.label) +
+            (d.date ? `<span class="ml-1 text-xs opacity-80">${escapeHtml(d.date.slice(5))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "")
+        );
+        btn.onclick = () => { activeDateId = d.id; renderDateTabs(); renderTimetable(); };
+        tabs.appendChild(btn);
+      });
+      renderTimetable();
+    }
+
+    // ---- タイムテーブル（CSS Grid: 縦=時間 / 横=ルーム） ----
+    function renderTimetable() {
+      const wrap = $("timetable");
+      wrap.innerHTML = "";
+      const rooms = DATA.rooms || [];
+      const sessions = (DATA.sessions || []).filter((s) => s.dateId === activeDateId);
+
+      if (!sessions.length) {
+        wrap.appendChild(el("p", "text-sm text-slate-500 py-8 text-center", "この日のプログラムはまだ登録されていません。"));
+        return;
+      }
+
+      // 時間範囲を算出（10分=1行）
+      const STEP = 10;
+      const startMin = Math.min(...sessions.map((s) => toMinutes(s.start)));
+      const endMin = Math.max(...sessions.map((s) => toMinutes(s.end)));
+      const rowCount = Math.ceil((endMin - startMin) / STEP);
+
+      const grid = el("div", "grid relative");
+      // 1列目=時間軸(56px) + ルーム列
+      grid.style.gridTemplateColumns = `56px repeat(${rooms.length}, minmax(120px, 1fr))`;
+      grid.style.gridTemplateRows = `auto repeat(${rowCount}, 22px)`;
+
+      // ヘッダー行：左上の空白 + ルーム名
+      const corner = el("div", "sticky top-0 z-10 bg-slate-50");
+      corner.style.gridColumn = "1"; corner.style.gridRow = "1";
+      grid.appendChild(corner);
+
+      rooms.forEach((room, i) => {
+        const c = colorOf(room.color);
+        const head = el(
+          "div",
+          "sticky top-0 z-10 px-2 py-1.5 text-center border-b-2 " + c.block,
+          `<div class="text-xs font-bold">${escapeHtml(room.name)}</div>` +
+            (room.subtitle ? `<div class="text-[10px] text-slate-500">${escapeHtml(room.subtitle)}</div>` : "")
+        );
+        head.style.gridColumn = String(i + 2);
+        head.style.gridRow = "1";
+        grid.appendChild(head);
+      });
+
+      // 時間軸（1時間ごとにラベル）+ 背景の罫線
+      for (let r = 0; r < rowCount; r++) {
+        const min = startMin + r * STEP;
+        if (min % 60 === 0) {
+          const label = el("div", "text-[11px] text-slate-400 text-right pr-1 -mt-2");
+          label.textContent = `${String(Math.floor(min / 60)).padStart(2, "0")}:00`;
+          label.style.gridColumn = "1";
+          label.style.gridRow = String(r + 2);
+          grid.appendChild(label);
+        }
+        // 罫線（全ルーム列にまたがる薄線）
+        const line = el("div", "border-t " + (min % 60 === 0 ? "border-slate-200" : "border-slate-100"));
+        line.style.gridColumn = `2 / span ${rooms.length}`;
+        line.style.gridRow = String(r + 2);
+        grid.appendChild(line);
+      }
+
+      // セッションブロック配置
+      sessions.forEach((s) => {
+        const roomIdx = rooms.findIndex((r) => r.id === s.roomId);
+        if (roomIdx < 0) return;
+        const c = colorOf((rooms[roomIdx] || {}).color);
+        const rowStart = Math.round((toMinutes(s.start) - startMin) / STEP) + 2;
+        const rowSpan = Math.max(1, Math.round((toMinutes(s.end) - toMinutes(s.start)) / STEP));
+
+        const statusIcons = (s.status || []).map((k) => STATUS_ICON[k] || "").join(" ");
+        const block = el(
+          "button",
+          "m-0.5 p-1.5 rounded-md border-l-4 text-left overflow-hidden active:opacity-80 transition " + c.block,
+          `<div class="text-[11px] font-bold leading-snug line-clamp-2">${escapeHtml(s.title)}</div>` +
+            `<div class="text-[10px] text-slate-600 mt-0.5">${escapeHtml(s.start)}–${escapeHtml(s.end)}</div>` +
+            (s.speaker ? `<div class="text-[10px] text-slate-500 truncate">${escapeHtml(s.speaker)}</div>` : "") +
+            (statusIcons ? `<div class="text-[11px] mt-0.5">${statusIcons}</div>` : "")
+        );
+        block.style.gridColumn = String(roomIdx + 2);
+        block.style.gridRow = `${rowStart} / span ${rowSpan}`;
+        block.onclick = () => openSessionModal(s, rooms[roomIdx]);
+        grid.appendChild(block);
+      });
+
+      wrap.appendChild(grid);
+    }
+
+    function openSessionModal(s, room) {
+      const c = colorOf((room || {}).color);
+      const statusText = (s.status || [])
+        .map((k) => ({ full: "満席", few: "残席わずか", material: "資料配布あり" }[k]))
+        .filter(Boolean)
+        .join(" / ");
+      let body =
+        `<div class="inline-block text-xs px-2 py-0.5 rounded-full ${c.chip}">${escapeHtml((room || {}).name || "")}</div>` +
+        `<p class="text-sm font-medium">🕒 ${escapeHtml(s.start)} – ${escapeHtml(s.end)}</p>` +
+        (s.speaker ? `<p class="text-sm">👤 ${escapeHtml(s.speaker)}</p>` : "") +
+        (statusText ? `<p class="text-sm text-amber-700">ℹ️ ${escapeHtml(statusText)}</p>` : "") +
+        (s.description ? `<p class="leading-relaxed">${escapeHtml(s.description)}</p>` : "");
+      if (s.materialUrl) {
+        body += `<a href="${escapeHtml(s.materialUrl)}" target="_blank" rel="noopener"
+          class="block text-center bg-blue-600 text-white rounded-lg py-2 font-medium mt-2">📄 資料を開く</a>`;
+      }
+      openModal(s.title, body);
+    }
+
+    // ---- 資料タブ ----
+    function renderMaterials() {
+      const venue = (DATA.eventInfo && DATA.eventInfo.venue) || {};
+      const map = $("venueMap");
+      if (venue.mapImage) { map.src = venue.mapImage; map.classList.remove("hidden"); }
+      else map.classList.add("hidden");
+      $("venueNote").textContent = venue.mapNote || "";
+
+      $("resourceLinks").innerHTML = "";
+      (venue.resourceLinks || []).forEach((r) =>
+        $("resourceLinks").appendChild(linkCard(r, "📄"))
+      );
+
+      $("formLinks").innerHTML = "";
+      ((DATA.eventInfo && DATA.eventInfo.forms) || []).forEach((f) =>
+        $("formLinks").appendChild(linkCard(f, "📝"))
+      );
+    }
+
+    function linkCard(item, icon) {
+      const a = el(
+        "a",
+        "flex items-center gap-3 bg-white border border-slate-200 rounded-lg p-3 active:bg-slate-50 transition"
+      );
+      a.href = item.url || "#";
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.innerHTML =
+        `<span class="text-xl">${icon}</span>` +
+        `<span class="flex-1 min-w-0">` +
+        `<span class="block text-sm font-medium text-slate-800">${escapeHtml(item.label)}</span>` +
+        (item.description ? `<span class="block text-xs text-slate-500">${escapeHtml(item.description)}</span>` : "") +
+        `</span><span class="text-slate-400">›</span>`;
+      return a;
+    }
+
+    // ---- 書籍タブ ----
+    function renderBooks() {
+      const list = $("bookList");
+      list.innerHTML = "";
+      (DATA.books || []).forEach((b) => {
+        const card = el("a", "flex gap-3 bg-white border border-slate-200 rounded-lg p-3 active:bg-slate-50 transition");
+        card.href = b.url || "#";
+        card.target = "_blank";
+        card.rel = "noopener";
+        const cover = b.cover
+          ? `<img src="${escapeHtml(b.cover)}" alt="" class="w-16 h-24 object-cover rounded flex-shrink-0" />`
+          : `<div class="w-16 h-24 flex-shrink-0 rounded bg-blue-100 text-blue-700 flex items-center justify-center text-2xl">📕</div>`;
+        card.innerHTML =
+          cover +
+          `<div class="min-w-0">` +
+          `<div class="text-sm font-bold text-slate-800 leading-snug">${escapeHtml(b.title)}</div>` +
+          (b.author ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(b.author)}</div>` : "") +
+          (b.publisher ? `<div class="text-[11px] text-slate-400">${escapeHtml(b.publisher)}</div>` : "") +
+          (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
+          `</div>`;
+        list.appendChild(card);
+      });
+    }
+
+    // ---- お知らせ（FAB） ----
+    function renderNoticeBadge() {
+      const notices = (DATA.eventInfo && DATA.eventInfo.notices) || [];
+      const badge = $("fabBadge");
+      if (notices.length) {
+        badge.textContent = String(notices.length);
+        badge.classList.remove("hidden");
+        badge.classList.add("flex");
+      }
+    }
+
+    function openNotices() {
+      const info = DATA.eventInfo || {};
+      const notices = info.notices || [];
+      let body = "";
+      if (info.tagline) body += `<p class="text-sm text-slate-500 italic">${escapeHtml(info.tagline)}</p>`;
+      if (!notices.length) body += `<p>現在お知らせはありません。</p>`;
+      notices.forEach((n) => {
+        const important = n.level === "important";
+        body +=
+          `<div class="rounded-lg p-3 ${important ? "bg-amber-50 border border-amber-300" : "bg-slate-50 border border-slate-200"}">` +
+          `<div class="font-semibold text-sm ${important ? "text-amber-800" : "text-slate-700"}">${important ? "❗ " : ""}${escapeHtml(n.title)}</div>` +
+          `<div class="text-sm text-slate-600 mt-1 leading-relaxed">${escapeHtml(n.body)}</div></div>`;
+      });
+      openModal("お知らせ", body);
+    }
+
+    // ---- モーダル ----
+    function openModal(title, html) {
+      $("modalTitle").textContent = title;
+      $("modalBody").innerHTML = html;
+      $("modal").classList.remove("hidden");
+    }
+    function closeModal() { $("modal").classList.add("hidden"); }
+
+    // ---- タブ切替 ----
+    function setTab(tab) {
+      activeTab = tab;
+      ["program", "materials", "books"].forEach((t) => {
+        $("view-" + t).classList.toggle("hidden", t !== tab);
+      });
+      document.querySelectorAll(".navbtn").forEach((b) => {
+        const on = b.dataset.tab === tab;
+        b.classList.toggle("text-blue-600", on);
+        b.classList.toggle("font-bold", on);
+        b.classList.toggle("text-slate-500", !on);
+      });
+      // 日付タブはプログラムでのみ意味を持つ（表示は常に出してOK）
+      window.scrollTo({ top: 0 });
+    }
+
+    // ---- Service Worker 登録 ----
+    function registerSW() {
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW登録失敗", e));
+        });
+      }
+    }
+
+    // ---- イベント結線 ----
+    document.querySelectorAll(".navbtn").forEach((b) =>
+      b.addEventListener("click", () => setTab(b.dataset.tab))
+    );
+    $("fab").addEventListener("click", openNotices);
+    $("modalClose").addEventListener("click", closeModal);
+    $("modalBackdrop").addEventListener("click", closeModal);
+    $("legendBtn").addEventListener("click", () => $("legend").classList.toggle("hidden"));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+    init();
+  </script>
+</body>
+</html>
