@@ -5,12 +5,12 @@
  *  - install 時にアプリシェルをプリキャッシュ（オフライン初回表示用）
  *  - fetch 時は「ネットワーク優先」。取得できればキャッシュを更新して返す。
  *    通信失敗時はキャッシュから返す（会場の不安定な通信や完全オフラインに対応）。
- *  - data.json も Network First のため、オンライン時は常に最新が表示される。
+ *  - 各 events/<id>.json も Network First のため、オンライン時は常に最新が表示される。
  *
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const CACHE_NAME = `sansu-fes-${CACHE_VERSION}`;
 
 // 相対パスでプリキャッシュ（GitHub Pages のサブパス配信に対応）
