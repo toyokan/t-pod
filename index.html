@@ -10,7 +10,7 @@
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#4f46e5" />
+  <meta name="theme-color" content="#f59e0b" />
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
   <link rel="apple-touch-icon" href="assets/icon.svg" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -22,16 +22,16 @@
     tailwind.config = {
       theme: {
         extend: {
-          // ブランドカラー（アクセント）= indigo
+          // ブランドカラー（アクセント）= オレンジ寄りの黄色（amber）
           colors: {
             brand: {
-              50: "#eef2ff", 100: "#e0e7ff", 200: "#c7d2fe", 300: "#a5b4fc",
-              400: "#818cf8", 500: "#6366f1", 600: "#4f46e5", 700: "#4338ca", 800: "#3730a3",
+              50: "#fffbeb", 100: "#fef3c7", 200: "#fde68a", 300: "#fcd34d",
+              400: "#fbbf24", 500: "#f59e0b", 600: "#e69500", 700: "#b45309", 800: "#92400e",
             },
           },
           boxShadow: {
             card: "0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06)",
-            fab: "0 8px 24px -6px rgb(79 70 229 / 0.5)",
+            fab: "0 8px 24px -6px rgb(230 149 0 / 0.5)",
           },
         },
       },
@@ -42,8 +42,8 @@
         "bg-amber-100", "text-amber-700", "bg-amber-500", "border-amber-300",
         "bg-violet-100", "text-violet-700", "bg-violet-500", "border-violet-300",
         "bg-rose-100", "text-rose-700", "bg-rose-500", "border-rose-300",
-        "bg-slate-100", "text-slate-600", "bg-slate-300",
-        "bg-brand-500", "text-brand-700",
+        "bg-slate-100", "text-slate-600", "bg-slate-300", "bg-slate-200",
+        "bg-brand-100", "bg-brand-500", "text-brand-700", "text-white", "text-slate-400",
       ],
     };
   </script>
@@ -66,13 +66,11 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
   <!-- ===== Sticky ヘッダー ===== -->
-  <header class="sticky top-0 z-30 bg-gradient-to-br from-brand-700 via-brand-600 to-blue-600 text-white shadow-lg">
-    <div class="max-w-3xl mx-auto px-4 pt-3.5 pb-2.5">
-      <h1 id="eventTitle" class="text-lg font-bold leading-tight tracking-tight">読み込み中…</h1>
-      <p id="eventSubtitle" class="text-xs text-white/70 mt-0.5"></p>
+  <header class="sticky top-0 z-30 bg-gradient-to-br from-brand-500 via-brand-500 to-brand-600 text-white shadow-lg">
+    <div class="max-w-3xl mx-auto px-4 pt-4 pb-3.5">
+      <h1 id="eventTitle" class="text-3xl font-extrabold leading-none tracking-tight drop-shadow-sm">読み込み中…</h1>
+      <p id="eventSubtitle" class="text-sm font-semibold text-white/90 mt-1.5 tracking-wide"></p>
     </div>
-    <!-- 日付切替タブ（プログラム表示に連動） -->
-    <nav id="dateTabs" class="max-w-3xl mx-auto flex gap-1.5 px-3 pb-2.5 overflow-x-auto scroll-x" aria-label="開催日"></nav>
   </header>
 
   <!-- ===== メインコンテンツ ===== -->
@@ -92,7 +90,9 @@
 
     <!-- (1) プログラム -->
     <section id="view-program" class="view">
-      <div id="themeBanner" class="hidden mb-4 bg-gradient-to-br from-brand-50 to-blue-50 border border-brand-100 rounded-xl p-3.5">
+      <!-- 日付切替タブ（タイムテーブル表示内の要素） -->
+      <nav id="dateTabs" class="flex gap-1.5 mb-4 overflow-x-auto scroll-x" aria-label="開催日"></nav>
+      <div id="themeBanner" class="hidden mb-4 bg-gradient-to-br from-brand-50 to-amber-50 border border-brand-100 rounded-xl p-3.5">
         <div class="text-[11px] text-brand-500 font-bold tracking-wide uppercase">テーマ</div>
         <div id="themeText" class="text-sm font-bold text-brand-800 leading-snug mt-0.5"></div>
       </div>
@@ -138,19 +138,25 @@
   </button>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
-  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur border-t border-slate-200/80 pb-safe">
-    <div class="max-w-3xl mx-auto grid grid-cols-3">
-      <button data-tab="program" class="navbtn flex flex-col items-center gap-1 pt-2 pb-1 text-[11px] font-medium">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>
-        <span>プログラム</span>
+  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
+    <div class="max-w-3xl mx-auto grid grid-cols-3 px-2 pt-1.5">
+      <button data-tab="program" class="navbtn flex justify-center" aria-label="TIMETABLE">
+        <span class="navpill flex flex-col items-center gap-1 px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          <span>TIMETABLE</span>
+        </span>
       </button>
-      <button data-tab="materials" class="navbtn flex flex-col items-center gap-1 pt-2 pb-1 text-[11px] font-medium">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H21a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>
-        <span>資料</span>
+      <button data-tab="materials" class="navbtn flex justify-center" aria-label="FILES">
+        <span class="navpill flex flex-col items-center gap-1 px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+          <span>FILES</span>
+        </span>
       </button>
-      <button data-tab="books" class="navbtn flex flex-col items-center gap-1 pt-2 pb-1 text-[11px] font-medium">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
-        <span>書籍</span>
+      <button data-tab="books" class="navbtn flex justify-center" aria-label="BOOKS">
+        <span class="navpill flex flex-col items-center gap-1 px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+          <span>BOOKS</span>
+        </span>
       </button>
     </div>
   </nav>
@@ -311,8 +317,8 @@
 
     function renderAll() {
       const info = DATA.eventInfo || {};
-      $("eventTitle").textContent = info.title || "イベント";
-      $("eventSubtitle").textContent = info.subtitle || "";
+      $("eventTitle").textContent = info.logoMain || info.title || "イベント";
+      $("eventSubtitle").textContent = info.logoSub || info.subtitle || "";
       document.title = info.title || document.title;
       const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
       if (appleTitle && info.title) appleTitle.setAttribute("content", info.title);
@@ -347,7 +353,7 @@
         const btn = el(
           "button",
           "flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition " +
-            (isActive ? "bg-white text-brand-700 shadow-sm" : "bg-white/15 text-white hover:bg-white/25"),
+            (isActive ? "bg-brand-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"),
           escapeHtml(d.label) +
             (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "")
         );
@@ -510,7 +516,7 @@
       let body = "";
       // イベント概要
       body +=
-        `<div class="bg-gradient-to-br from-brand-50 to-blue-50 border border-brand-100 rounded-xl p-4">` +
+        `<div class="bg-gradient-to-br from-brand-50 to-amber-50 border border-brand-100 rounded-xl p-4">` +
         `<div class="text-base font-bold text-brand-800 leading-snug">${escapeHtml(info.title || "")}</div>` +
         (info.tagline ? `<div class="text-xs text-brand-600 mt-0.5">${escapeHtml(info.tagline)}</div>` : "") +
         (info.theme ? `<div class="text-sm text-brand-700 mt-2 font-medium">テーマ：${escapeHtml(info.theme)}</div>` : "") +
@@ -546,8 +552,12 @@
       });
       document.querySelectorAll(".navbtn").forEach((b) => {
         const on = b.dataset.tab === tab;
-        b.classList.toggle("text-brand-600", on);
-        b.classList.toggle("text-slate-400", !on);
+        const pill = b.querySelector(".navpill");
+        if (pill) {
+          pill.classList.toggle("bg-brand-100", on);
+          pill.classList.toggle("text-brand-700", on);
+          pill.classList.toggle("text-slate-400", !on);
+        }
       });
       // 日付タブはプログラムでのみ意味を持つ（表示は常に出してOK）
       window.scrollTo({ top: 0 });
