@@ -10,14 +10,14 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const CACHE_NAME = `sansu-fes-${CACHE_VERSION}`;
 
 // 相対パスでプリキャッシュ（GitHub Pages のサブパス配信に対応）
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./data.json",
+  "./events.json",
   "./manifest.json",
   "./assets/icon.svg",
   "./assets/favicon.svg",
