@@ -66,8 +66,8 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
   <!-- ===== Sticky ヘッダー ===== -->
-  <header class="sticky top-0 z-30 bg-gradient-to-br from-brand-500 via-brand-500 to-brand-600 text-white shadow-lg">
-    <div class="max-w-3xl mx-auto px-4 pt-4 pb-3.5">
+  <header class="sticky top-0 z-30 max-w-2xl mx-auto bg-gradient-to-br from-brand-500 via-brand-500 to-brand-600 text-white shadow-lg rounded-b-2xl">
+    <div class="px-4 pt-4 pb-3.5 text-center">
       <h1 id="eventTitle" class="text-3xl font-extrabold leading-none tracking-tight drop-shadow-sm">読み込み中…</h1>
       <p id="eventSubtitle" class="text-sm font-semibold text-white/90 mt-1.5 tracking-wide"></p>
     </div>
@@ -138,8 +138,8 @@
   </button>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
-  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
-    <div class="max-w-3xl mx-auto grid grid-cols-3 px-2 pt-1.5">
+  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
+    <div class="grid grid-cols-3 px-2 pt-1.5">
       <button data-tab="program" class="navbtn flex justify-center" aria-label="TIMETABLE">
         <span class="navpill flex flex-col items-center gap-1 px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
