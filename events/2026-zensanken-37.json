@@ -30,7 +30,7 @@
     "forms": [
       { "label": "事後アンケート（参加者全員）", "description": "本大会の感想をお寄せください", "url": "https://forms.gle/example-survey" },
       { "label": "参加お申し込み", "description": "お申し込み時のメールに最新案内をお送りします", "url": "https://forms.gle/example-apply" },
-      { "label": "次回大会の案内希望", "description": "次回開催のご案内をメールでお届けします", "url": "https://forms.gle/example-newsletter" }
+      { "label": "次回の案内希望", "description": "次回開催や新刊書籍のご案内をLINEでお届けします", "url": "https://lin.ee/UelDzS1" }
     ],
     "venue": {
       "mapImage": "assets/venue-map.svg",
