@@ -1,163 +1,161 @@
 {
   "eventInfo": {
-    "title": "算数 春の祭典 2026",
-    "subtitle": "算数授業づくり研究会",
-    "tagline": "子どもが夢中になる算数授業を、みんなで。",
+    "title": "第37回 全国算数授業研究大会",
+    "subtitle": "筑波大学附属小学校",
+    "theme": "探究がはじまる！算数で育てたい子どもの「見る目」",
+    "venueName": "筑波大学附属小学校",
+    "dateRange": "令和8年8月4日(火)・5日(水)",
+    "tagline": "全国算数授業研究会",
     "dates": [
-      { "id": "day1", "label": "1日目", "date": "2026-03-28", "weekday": "土" },
-      { "id": "day2", "label": "2日目", "date": "2026-03-29", "weekday": "日" }
+      { "id": "day1", "label": "1日目", "date": "2026-08-04", "weekday": "火", "time": "10:00〜16:15" },
+      { "id": "day2", "label": "2日目", "date": "2026-08-05", "weekday": "水", "time": "8:50〜16:00" }
     ],
     "notices": [
       {
-        "title": "受付開始時刻のご案内",
-        "body": "受付は各日 9:15 より、1階エントランスにて開始します。ネームカードをお受け取りのうえ、各会場へお進みください。",
+        "title": "ご来場にあたって（体調管理のお願い）",
+        "body": "発熱・咽頭痛・咳・頭痛・関節痛・下痢・倦怠感などの症状がある方は、参加を見合わせください。会場では随時の体温チェック・手指消毒・換気など感染予防対策へのご協力をお願いします。マスクの着脱は状況に応じて各自ご判断ください。",
         "level": "important"
       },
       {
-        "title": "Wi-Fi のご利用について",
-        "body": "会場内では無料Wi-Fi（SSID: SANSU-FES / パスワード: spring2026）をご利用いただけます。混雑時は接続しづらい場合があります。本アプリはオフラインでも閲覧できます。",
+        "title": "開催中止の可能性について",
+        "body": "荒天や感染症等の不測の事態により、研究会自体を中止する場合があります。その際は全国算数授業研究会ホームページ（https://zensanken.jimdo.com/）でお知らせし、お申し込み時のメールアドレスにご案内をお送りします。",
         "level": "info"
       },
       {
-        "title": "配布資料はオンラインで",
-        "body": "当日の配布資料はすべて「資料」タブからダウンロードいただけます。紙の配布は行いませんので、各自の端末でご覧ください。",
+        "title": "テーマ実践書籍の特別販売",
+        "body": "大会テーマに合わせた実践書籍を会場で特別販売します。ぜひお立ち寄りください。",
         "level": "info"
       }
     ],
     "forms": [
-      { "label": "事後アンケート（参加者全員）", "description": "本日の感想をお寄せください（所要3分）", "url": "https://forms.gle/example-survey" },
-      { "label": "見本（サンプル教材）請求フォーム", "description": "ご紹介した教材の見本をお送りします", "url": "https://forms.gle/example-sample" },
-      { "label": "次回研究会の案内希望", "description": "次回開催のご案内をメールでお届けします", "url": "https://forms.gle/example-newsletter" }
+      { "label": "事後アンケート（参加者全員）", "description": "本大会の感想をお寄せください", "url": "https://forms.gle/example-survey" },
+      { "label": "参加お申し込み", "description": "お申し込み時のメールに最新案内をお送りします", "url": "https://forms.gle/example-apply" },
+      { "label": "次回大会の案内希望", "description": "次回開催のご案内をメールでお届けします", "url": "https://forms.gle/example-newsletter" }
     ],
     "venue": {
       "mapImage": "assets/venue-map.svg",
-      "mapNote": "会場は3階建てです。第1会場は2F大ホール、第2会場・第3会場は3Fの研修室となります。エレベーターは中央階段横にございます。",
+      "mapNote": "会場は筑波大学附属小学校です。公開授業はA〜D会場（各教室）で行います。詳しい会場割りは当日の掲示・配布物をご確認ください。",
       "resourceLinks": [
-        { "label": "本日の配布資料一式（PDF）", "description": "全分科会の資料をまとめたフォルダ", "url": "https://drive.google.com/drive/folders/example-all" },
-        { "label": "ワークシート（印刷用）", "description": "ご自由に印刷してご活用ください", "url": "https://drive.google.com/drive/folders/example-worksheet" },
-        { "label": "登壇者プロフィール集", "description": "本日の登壇者のご紹介", "url": "https://drive.google.com/drive/folders/example-speakers" }
+        { "label": "当日資料一式（PDF）", "description": "全提案・公開授業の資料フォルダ", "url": "https://drive.google.com/drive/folders/example-all" },
+        { "label": "全国算数授業研究会 ホームページ", "description": "最新情報・お知らせはこちら", "url": "https://zensanken.jimdo.com/" }
       ]
     }
   },
   "rooms": [
-    { "id": "roomA", "name": "第1会場", "subtitle": "2F 大ホール", "color": "blue" },
-    { "id": "roomB", "name": "第2会場", "subtitle": "3F 研修室1", "color": "green" },
-    { "id": "roomC", "name": "第3会場", "subtitle": "3F 研修室2", "color": "orange" }
+    { "id": "A会場", "name": "A会場", "color": "blue" },
+    { "id": "B会場", "name": "B会場", "color": "green" },
+    { "id": "C会場", "name": "C会場", "color": "orange" },
+    { "id": "D会場", "name": "D会場", "color": "purple" }
   ],
   "sessions": [
+    { "id": "d1-01", "dateId": "day1", "start": "9:30", "end": "", "category": "受付", "items": [] },
+    { "id": "d1-02", "dateId": "day1", "start": "10:00", "end": "10:10", "category": "会長挨拶・諸連絡", "items": [] },
     {
-      "id": "s101", "dateId": "day1", "start": "09:30", "end": "10:00", "roomId": "roomA",
-      "title": "オープニング・開会のあいさつ", "speaker": "実行委員会",
-      "description": "本日のねらいと進行のご案内。算数授業づくり研究会の趣旨についてお話しします。",
-      "materialUrl": "", "status": []
+      "id": "d1-03", "dateId": "day1", "start": "10:10", "end": "10:40", "category": "基調提案",
+      "items": [
+        { "title": "テーマ「子どもを探究へと導く算数の『見る目』」", "meta": ["提案者：青山尚司（筑波大学附属小）"] }
+      ]
     },
     {
-      "id": "s102", "dateId": "day1", "start": "10:10", "end": "11:00", "roomId": "roomA",
-      "title": "基調提案：問いが生まれる導入のしかけ", "speaker": "青山 尚司",
-      "description": "子どもが思わず考えたくなる導入とは何か。具体的な授業場面の映像をもとに、問いの生み出し方を提案します。",
-      "materialUrl": "https://drive.google.com/file/d/example-s102", "status": ["material"]
+      "id": "d1-04", "dateId": "day1", "start": "10:50", "end": "11:35", "category": "公開授業1",
+      "items": [
+        { "title": "4年「変わり方調べ」", "meta": ["授業者：森本隆史（筑波大学附属小）", "児童：筑波大学附属小"] }
+      ]
     },
     {
-      "id": "s103", "dateId": "day1", "start": "10:10", "end": "11:00", "roomId": "roomB",
-      "title": "分科会A：数と計算の指導", "speaker": "森本 隆史",
-      "description": "繰り上がりのある加法を題材に、操作と式をつなぐ指導の工夫を扱います。",
-      "materialUrl": "https://drive.google.com/file/d/example-s103", "status": ["material", "few"]
+      "id": "d1-05", "dateId": "day1", "start": "11:40", "end": "12:25", "category": "パネルディスカッション",
+      "items": [
+        { "meta": ["司会：三田美乃里（名古屋市立愛知小）", "パネリスト：平川 賢（千葉・昭和学園小）", "髙井淳史（東京・練馬区立上石神井小）"] }
+      ]
+    },
+    { "id": "d1-06", "dateId": "day1", "start": "12:30", "end": "13:30", "category": "昼食", "items": [] },
+    {
+      "id": "d1-07", "dateId": "day1", "start": "13:30", "end": "14:15", "category": "公開授業2",
+      "items": [
+        { "room": "A会場", "title": "2年「たし算とひき算の筆算」（発展）", "meta": ["授業者：沼川卓也（盛岡市立緑が丘小）", "児童：盛岡市立緑が丘小"] }
+      ]
     },
     {
-      "id": "s104", "dateId": "day1", "start": "10:10", "end": "11:00", "roomId": "roomC",
-      "title": "分科会B：図形の見方を育てる", "speaker": "藤本 邦昭",
-      "description": "図形領域で「見方・考え方」をどう働かせるか。低学年からの系統を整理します。",
-      "materialUrl": "", "status": ["full"]
+      "id": "d1-08", "dateId": "day1", "start": "14:20", "end": "15:05", "category": "パネルディスカッション",
+      "items": [
+        { "room": "B会場", "title": "2年「かけ算」", "meta": ["授業者：岡本貴裕（山口・周南市立大内南小）", "児童：筑波大学附属小"] },
+        { "room": "C会場", "title": "3年「分数」", "meta": ["授業者：堀田徹志（滋賀・草津市立笠縫東小）", "児童：筑波大学附属小"] },
+        { "room": "D会場", "title": "6年「比と比例」", "meta": ["授業者：尾形祐樹（東京学芸大学附属小金井小）", "児童：東京学芸大学附属小金井小"] }
+      ]
     },
     {
-      "id": "s105", "dateId": "day1", "start": "11:15", "end": "12:05", "roomId": "roomB",
-      "title": "分科会C：データの活用入門", "speaker": "中村 美穂",
-      "description": "新領域「データの活用」を、子どもの生活に結びつけて扱う授業づくりを考えます。",
-      "materialUrl": "https://drive.google.com/file/d/example-s105", "status": ["material"]
+      "id": "d1-09", "dateId": "day1", "start": "15:20", "end": "16:15", "category": "シンポジウム",
+      "items": [
+        { "title": "テーマ「子どもの見る目とは？」", "meta": ["司会：永田美奈子（雙葉小）", "討論者：久保田健功（兵庫・西宮市立上ヶ原小）", "瀬尾駿介（広島・三次市立みらさか小）"] }
+      ]
+    },
+    { "id": "d1-10", "dateId": "day1", "start": "16:15", "end": "", "category": "事務連絡", "items": [] },
+    { "id": "d1-11", "dateId": "day1", "start": "", "end": "", "category": "理事・幹事会", "items": [] },
+
+    { "id": "d2-01", "dateId": "day2", "start": "8:30", "end": "", "category": "受付", "items": [] },
+    {
+      "id": "d2-02", "dateId": "day2", "start": "9:00", "end": "9:45", "category": "公開授業3",
+      "items": [
+        { "room": "A会場", "title": "2年「かけ算」", "meta": ["授業者：小泉 友（東京学芸大学附属小金井小）", "児童：東京学芸大学附属小金井小"] }
+      ]
     },
     {
-      "id": "s106", "dateId": "day1", "start": "11:15", "end": "12:05", "roomId": "roomC",
-      "title": "分科会D：ICTを活かした授業", "speaker": "高橋 健太",
-      "description": "1人1台端末を算数の対話にどう生かすか。実践事例を共有します。",
-      "materialUrl": "https://drive.google.com/file/d/example-s106", "status": []
+      "id": "d2-03", "dateId": "day2", "start": "9:55", "end": "10:40", "category": "パネルディスカッション",
+      "items": [
+        { "room": "B会場", "title": "4年「変わり方調べ」", "meta": ["授業者：重松優子（国立学園小）", "児童：国立学園小"] },
+        { "room": "C会場", "title": "5年「単位量あたりの大きさ」", "meta": ["授業者：山田剛史（東京学芸大学附属竹早小）", "児童：東京学芸大学附属竹早小"] }
+      ]
     },
     {
-      "id": "s107", "dateId": "day1", "start": "13:10", "end": "14:30", "roomId": "roomA",
-      "title": "公開授業：5年「割合」", "speaker": "青山 尚司",
-      "description": "実際の授業を会場で公開します。授業後に協議の時間を設けます。",
-      "materialUrl": "https://drive.google.com/file/d/example-s107", "status": ["full", "material"]
+      "id": "d2-04", "dateId": "day2", "start": "10:50", "end": "12:00", "category": "ワークショップ",
+      "note": "全国算数授業研究会の理事・幹事がテーマに沿った発信をします。同じテーマの内容を30分×2本おこないます。2会場でご覧になれます。",
+      "items": [
+        { "title": "発問で「見る目」を育てる", "meta": ["田中英浩（東京・筑波大学附属小）"] },
+        { "title": "見る目を育てる算数授業", "meta": ["尾崎伸宏（東京・成蹊小）"] },
+        { "title": "教材研究の仕方で「見る目」を育てる", "meta": ["桑原麻里（東京・国立学園小）"] },
+        { "title": "数学的に見るよさを感じられる愉しい授業づくり", "meta": ["中村光晴（北海道・札幌市立屯田南小）"] },
+        { "title": "算数のおもしろさを見つけ、分かち合う集団づくり", "meta": ["河合裕史（東京・明星小）"] },
+        { "title": "遊びながら学びを深める", "meta": ["根津重直（東京・暁星国際小）"] },
+        { "title": "感性を育む算数授業", "meta": ["松田翔伍（愛知・愛知教育大学附属名古屋小）"] },
+        { "title": "面積、体積を実感する教具の紹介", "meta": ["宮澤幸一（長野・長野市立通明小）"] },
+        { "title": "新たな問いを生み出す子どもの目を育む", "meta": ["山本良一（島根・雲南市立木次小）"] },
+        { "title": "「たい・かも・かあ」であふれる算数授業", "meta": ["髙木美和（福岡・赤村立赤小）"] }
+      ]
     },
     {
-      "id": "s108", "dateId": "day1", "start": "14:45", "end": "16:00", "roomId": "roomA",
-      "title": "パネルディスカッション：これからの算数授業", "speaker": "青山 尚司・森本 隆史・藤本 邦昭",
-      "description": "登壇者によるパネル討論。フロアからのご質問も受け付けます。",
-      "materialUrl": "", "status": []
+      "id": "d2-05", "dateId": "day2", "start": "12:00", "end": "13:20", "category": "昼休憩（Q＆A講座）",
+      "items": [
+        { "meta": ["12:30〜13:00　Q＆A講座"] }
+      ]
     },
     {
-      "id": "s201", "dateId": "day2", "start": "09:30", "end": "10:20", "roomId": "roomA",
-      "title": "2日目オープニング・実践報告", "speaker": "森本 隆史",
-      "description": "前日の振り返りと、各地の実践報告をご紹介します。",
-      "materialUrl": "https://drive.google.com/file/d/example-s201", "status": ["material"]
+      "id": "d2-06", "dateId": "day2", "start": "13:20", "end": "14:05", "category": "公開授業4",
+      "items": [
+        { "title": "5年「分数のたし算」", "meta": ["授業者：大野 桂（筑波大学附属小）", "児童：筑波大学附属小"] }
+      ]
     },
     {
-      "id": "s202", "dateId": "day2", "start": "10:30", "end": "11:20", "roomId": "roomB",
-      "title": "ワークショップ：教材研究の進め方", "speaker": "藤本 邦昭",
-      "description": "参加型のワークショップです。実際に教材分析を体験していただきます。",
-      "materialUrl": "https://drive.google.com/file/d/example-s202", "status": ["material", "few"]
+      "id": "d2-07", "dateId": "day2", "start": "14:10", "end": "14:55", "category": "パネルディスカッション",
+      "items": [
+        { "meta": ["司会：藤本邦昭（熊本市教育センター）", "パネリスト：盛山隆雄（明星小）", "中田寿幸（筑波大学附属小）"] }
+      ]
     },
     {
-      "id": "s203", "dateId": "day2", "start": "10:30", "end": "11:20", "roomId": "roomC",
-      "title": "ワークショップ：評価とフィードバック", "speaker": "中村 美穂",
-      "description": "子どもの学びをどう見取り、どう返すか。具体例で考えます。",
-      "materialUrl": "", "status": []
+      "id": "d2-08", "dateId": "day2", "start": "15:10", "end": "16:00", "category": "講演",
+      "items": [
+        { "title": "テーマ「子どもの見る目を育てる」", "meta": ["演者：尾崎正彦（国立学園小）"] }
+      ]
     },
-    {
-      "id": "s204", "dateId": "day2", "start": "11:30", "end": "12:00", "roomId": "roomA",
-      "title": "クロージング・閉会のあいさつ", "speaker": "実行委員会",
-      "description": "2日間のまとめと次回のご案内。アンケートへのご協力をお願いします。",
-      "materialUrl": "", "status": []
-    }
+    { "id": "d2-09", "dateId": "day2", "start": "16:00", "end": "", "category": "閉会行事", "items": [] }
   ],
   "books": [
     {
-      "title": "問いが生まれる算数授業のつくり方",
-      "author": "青山 尚司",
-      "publisher": "春の祭典出版",
+      "title": "子どもを探究へと導く算数の「見る目」",
+      "author": "全国算数授業研究会 編",
+      "publisher": "大会テーマ書籍",
       "cover": "",
-      "description": "子どもの「なぜ?」を引き出す導入と発問の具体例を豊富に収録。",
-      "url": "https://example.com/book/aoyama-1"
-    },
-    {
-      "title": "数と計算の指導 ベーシック",
-      "author": "森本 隆史",
-      "publisher": "算数教育ライブラリ",
-      "cover": "",
-      "description": "計算指導の系統を、操作・図・式のつながりで丁寧に解説。",
-      "url": "https://example.com/book/morimoto-1"
-    },
-    {
-      "title": "図形の見方・考え方を育てる授業",
-      "author": "藤本 邦昭",
-      "publisher": "春の祭典出版",
-      "cover": "",
-      "description": "低学年から高学年までの図形指導の系統と実践事例集。",
-      "url": "https://example.com/book/fujimoto-1"
-    },
-    {
-      "title": "データの活用 はじめの一歩",
-      "author": "中村 美穂",
-      "publisher": "算数教育ライブラリ",
-      "cover": "",
-      "description": "新領域「データの活用」を生活と結ぶ授業アイデア集。",
-      "url": "https://example.com/book/nakamura-1"
-    },
-    {
-      "title": "1人1台端末ではじめる算数の対話",
-      "author": "高橋 健太",
-      "publisher": "ICT授業研究会",
-      "cover": "",
-      "description": "ICTを算数の学び合いに生かす実践をステップで紹介。",
-      "url": "https://example.com/book/takahashi-1"
+      "description": "大会テーマに合わせた実践書籍。会場にて特別販売します。",
+      "url": "https://zensanken.jimdo.com/"
     }
   ]
 }

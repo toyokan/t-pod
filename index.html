@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>全国算数授業研究会 タイムテーブル</title>
+  <!-- 静的タイトルは汎用。読み込み後に data.json の eventInfo.title で上書きされる -->
+  <title>プログラム / タイムテーブル</title>
   <meta name="description" content="教育イベント・研究会向けタイムテーブル PWA" />
+  <meta name="apple-mobile-web-app-title" content="タイムテーブル" />
 
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
@@ -60,16 +62,12 @@
 
     <!-- (1) プログラム -->
     <section id="view-program" class="view">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="text-base font-bold text-slate-700">プログラム</h2>
-        <button id="legendBtn" class="text-xs text-blue-600 underline">凡例</button>
+      <div id="themeBanner" class="hidden mb-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div class="text-[11px] text-blue-500 font-semibold">テーマ</div>
+        <div id="themeText" class="text-sm font-bold text-blue-800 leading-snug"></div>
       </div>
-      <div id="legend" class="hidden mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600 bg-white border border-slate-200 rounded-lg p-3">
-        <span>🈵 満席</span>
-        <span>⚠️ 残席わずか</span>
-        <span>📄 資料配布あり</span>
-      </div>
-      <div id="timetable" class="overflow-x-auto scroll-x"></div>
+      <div id="dayMeta" class="text-xs font-medium text-slate-500 mb-3"></div>
+      <div id="timetable"></div>
     </section>
 
     <!-- (2) 資料 -->
@@ -149,7 +147,13 @@
     };
     const colorOf = (key) => COLOR[key] || COLOR.blue;
 
-    const STATUS_ICON = { full: "🈵", few: "⚠️", material: "📄" };
+    // 会場ラベル → カラー（data.json の rooms から動的に構築。未定義はグレー扱い）
+    let ROOM_COLOR = {};
+    const roomColor = (label) => COLOR[ROOM_COLOR[label]] || { chip: "bg-slate-100 text-slate-600" };
+
+    // 内容（カテゴリ）の見出し色：運営系は控えめ、授業・提案系は強調
+    const catColor = (cat) =>
+      /受付|昼食|昼休憩|閉会|事務|理事|挨拶|諸連絡/.test(cat || "") ? "text-slate-500" : "text-blue-700";
 
     // ---- 状態 ----
     let DATA = null;
@@ -167,10 +171,6 @@
     const escapeHtml = (s) =>
       String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const toMinutes = (t) => {
-      const [h, m] = String(t).split(":").map(Number);
-      return h * 60 + m;
-    };
 
     // ---- 起動 ----
     async function init() {
@@ -191,6 +191,18 @@
       $("eventTitle").textContent = info.title || "イベント";
       $("eventSubtitle").textContent = info.subtitle || "";
       document.title = info.title || document.title;
+      const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+      if (appleTitle && info.title) appleTitle.setAttribute("content", info.title);
+
+      // 会場カラー辞書を構築
+      ROOM_COLOR = {};
+      (DATA.rooms || []).forEach((r) => { ROOM_COLOR[r.id] = r.color; ROOM_COLOR[r.name] = r.color; });
+
+      // テーマのバナー
+      if (info.theme) {
+        $("themeText").textContent = info.theme;
+        $("themeBanner").classList.remove("hidden");
+      }
 
       renderDateTabs();
       renderMaterials();
@@ -222,107 +234,60 @@
       renderTimetable();
     }
 
-    // ---- タイムテーブル（CSS Grid: 縦=時間 / 横=ルーム） ----
+    // ---- タイムテーブル（縦型タイムライン: 時間 → 内容 → 詳細） ----
     function renderTimetable() {
       const wrap = $("timetable");
       wrap.innerHTML = "";
-      const rooms = DATA.rooms || [];
-      const sessions = (DATA.sessions || []).filter((s) => s.dateId === activeDateId);
 
+      // この日の見出し（◯日目 8月4日(火) 10:00〜16:15）
+      const dayObj = ((DATA.eventInfo && DATA.eventInfo.dates) || []).find((d) => d.id === activeDateId);
+      if (dayObj) {
+        const md = dayObj.date ? dayObj.date.slice(5).replace("-", "月") + "日" : "";
+        $("dayMeta").textContent =
+          `${dayObj.label || ""}　${md}${dayObj.weekday ? "(" + dayObj.weekday + ")" : ""}` +
+          (dayObj.time ? `　${dayObj.time}` : "");
+      } else {
+        $("dayMeta").textContent = "";
+      }
+
+      const sessions = (DATA.sessions || []).filter((s) => s.dateId === activeDateId);
       if (!sessions.length) {
         wrap.appendChild(el("p", "text-sm text-slate-500 py-8 text-center", "この日のプログラムはまだ登録されていません。"));
         return;
       }
 
-      // 時間範囲を算出（10分=1行）
-      const STEP = 10;
-      const startMin = Math.min(...sessions.map((s) => toMinutes(s.start)));
-      const endMin = Math.max(...sessions.map((s) => toMinutes(s.end)));
-      const rowCount = Math.ceil((endMin - startMin) / STEP);
-
-      const grid = el("div", "grid relative");
-      // 1列目=時間軸(56px) + ルーム列
-      grid.style.gridTemplateColumns = `56px repeat(${rooms.length}, minmax(120px, 1fr))`;
-      grid.style.gridTemplateRows = `auto repeat(${rowCount}, 22px)`;
-
-      // ヘッダー行：左上の空白 + ルーム名
-      const corner = el("div", "sticky top-0 z-10 bg-slate-50");
-      corner.style.gridColumn = "1"; corner.style.gridRow = "1";
-      grid.appendChild(corner);
-
-      rooms.forEach((room, i) => {
-        const c = colorOf(room.color);
-        const head = el(
-          "div",
-          "sticky top-0 z-10 px-2 py-1.5 text-center border-b-2 " + c.block,
-          `<div class="text-xs font-bold">${escapeHtml(room.name)}</div>` +
-            (room.subtitle ? `<div class="text-[10px] text-slate-500">${escapeHtml(room.subtitle)}</div>` : "")
-        );
-        head.style.gridColumn = String(i + 2);
-        head.style.gridRow = "1";
-        grid.appendChild(head);
-      });
-
-      // 時間軸（1時間ごとにラベル）+ 背景の罫線
-      for (let r = 0; r < rowCount; r++) {
-        const min = startMin + r * STEP;
-        if (min % 60 === 0) {
-          const label = el("div", "text-[11px] text-slate-400 text-right pr-1 -mt-2");
-          label.textContent = `${String(Math.floor(min / 60)).padStart(2, "0")}:00`;
-          label.style.gridColumn = "1";
-          label.style.gridRow = String(r + 2);
-          grid.appendChild(label);
-        }
-        // 罫線（全ルーム列にまたがる薄線）
-        const line = el("div", "border-t " + (min % 60 === 0 ? "border-slate-200" : "border-slate-100"));
-        line.style.gridColumn = `2 / span ${rooms.length}`;
-        line.style.gridRow = String(r + 2);
-        grid.appendChild(line);
-      }
-
-      // セッションブロック配置
+      const list = el("div", "space-y-2");
       sessions.forEach((s) => {
-        const roomIdx = rooms.findIndex((r) => r.id === s.roomId);
-        if (roomIdx < 0) return;
-        const c = colorOf((rooms[roomIdx] || {}).color);
-        const rowStart = Math.round((toMinutes(s.start) - startMin) / STEP) + 2;
-        const rowSpan = Math.max(1, Math.round((toMinutes(s.end) - toMinutes(s.start)) / STEP));
+        const row = el("div", "flex gap-2");
 
-        const statusIcons = (s.status || []).map((k) => STATUS_ICON[k] || "").join(" ");
-        const block = el(
-          "button",
-          "m-0.5 p-1.5 rounded-md border-l-4 text-left overflow-hidden active:opacity-80 transition " + c.block,
-          `<div class="text-[11px] font-bold leading-snug line-clamp-2">${escapeHtml(s.title)}</div>` +
-            `<div class="text-[10px] text-slate-600 mt-0.5">${escapeHtml(s.start)}–${escapeHtml(s.end)}</div>` +
-            (s.speaker ? `<div class="text-[10px] text-slate-500 truncate">${escapeHtml(s.speaker)}</div>` : "") +
-            (statusIcons ? `<div class="text-[11px] mt-0.5">${statusIcons}</div>` : "")
-        );
-        block.style.gridColumn = String(roomIdx + 2);
-        block.style.gridRow = `${rowStart} / span ${rowSpan}`;
-        block.onclick = () => openSessionModal(s, rooms[roomIdx]);
-        grid.appendChild(block);
+        // 時間カラム
+        const time = el("div", "flex-shrink-0 w-16 text-right pt-2.5");
+        time.innerHTML =
+          `<div class="text-sm font-bold text-slate-700">${escapeHtml(s.start || "")}</div>` +
+          (s.end ? `<div class="text-[11px] text-slate-400 leading-tight">｜${escapeHtml(s.end)}</div>` : "");
+        row.appendChild(time);
+
+        // 内容カード
+        const card = el("div", "flex-1 min-w-0 bg-white border border-slate-200 rounded-lg p-3");
+        let html = `<div class="text-sm font-bold ${catColor(s.category)}">${escapeHtml(s.category || "")}</div>`;
+        if (s.note) html += `<p class="text-xs text-slate-500 mt-1 leading-relaxed">${escapeHtml(s.note)}</p>`;
+        (s.items || []).forEach((it) => {
+          html += `<div class="mt-2 first:mt-1">`;
+          if (it.room) {
+            const c = roomColor(it.room);
+            html += `<span class="inline-block align-middle text-[11px] font-bold px-2 py-0.5 rounded-full mr-1.5 ${c.chip}">${escapeHtml(it.room)}</span>`;
+          }
+          if (it.title) html += `<span class="align-middle text-sm font-medium text-slate-800">${escapeHtml(it.title)}</span>`;
+          (it.meta || []).forEach((m) => {
+            html += `<div class="text-xs text-slate-600 leading-relaxed">${escapeHtml(m)}</div>`;
+          });
+          html += `</div>`;
+        });
+        card.innerHTML = html;
+        row.appendChild(card);
+        list.appendChild(row);
       });
-
-      wrap.appendChild(grid);
-    }
-
-    function openSessionModal(s, room) {
-      const c = colorOf((room || {}).color);
-      const statusText = (s.status || [])
-        .map((k) => ({ full: "満席", few: "残席わずか", material: "資料配布あり" }[k]))
-        .filter(Boolean)
-        .join(" / ");
-      let body =
-        `<div class="inline-block text-xs px-2 py-0.5 rounded-full ${c.chip}">${escapeHtml((room || {}).name || "")}</div>` +
-        `<p class="text-sm font-medium">🕒 ${escapeHtml(s.start)} – ${escapeHtml(s.end)}</p>` +
-        (s.speaker ? `<p class="text-sm">👤 ${escapeHtml(s.speaker)}</p>` : "") +
-        (statusText ? `<p class="text-sm text-amber-700">ℹ️ ${escapeHtml(statusText)}</p>` : "") +
-        (s.description ? `<p class="leading-relaxed">${escapeHtml(s.description)}</p>` : "");
-      if (s.materialUrl) {
-        body += `<a href="${escapeHtml(s.materialUrl)}" target="_blank" rel="noopener"
-          class="block text-center bg-blue-600 text-white rounded-lg py-2 font-medium mt-2">📄 資料を開く</a>`;
-      }
-      openModal(s.title, body);
+      wrap.appendChild(list);
     }
 
     // ---- 資料タブ ----
@@ -400,7 +365,15 @@
       const info = DATA.eventInfo || {};
       const notices = info.notices || [];
       let body = "";
-      if (info.tagline) body += `<p class="text-sm text-slate-500 italic">${escapeHtml(info.tagline)}</p>`;
+      // イベント概要
+      body +=
+        `<div class="bg-blue-50 border border-blue-200 rounded-lg p-3">` +
+        `<div class="text-base font-bold text-blue-800 leading-snug">${escapeHtml(info.title || "")}</div>` +
+        (info.tagline ? `<div class="text-xs text-blue-600 mt-0.5">${escapeHtml(info.tagline)}</div>` : "") +
+        (info.theme ? `<div class="text-sm text-blue-700 mt-2 font-medium">テーマ：${escapeHtml(info.theme)}</div>` : "") +
+        (info.dateRange ? `<div class="text-xs text-slate-600 mt-2">📅 ${escapeHtml(info.dateRange)}</div>` : "") +
+        (info.venueName ? `<div class="text-xs text-slate-600">📍 ${escapeHtml(info.venueName)}</div>` : "") +
+        `</div>`;
       if (!notices.length) body += `<p>現在お知らせはありません。</p>`;
       notices.forEach((n) => {
         const important = n.level === "important";
@@ -409,7 +382,7 @@
           `<div class="font-semibold text-sm ${important ? "text-amber-800" : "text-slate-700"}">${important ? "❗ " : ""}${escapeHtml(n.title)}</div>` +
           `<div class="text-sm text-slate-600 mt-1 leading-relaxed">${escapeHtml(n.body)}</div></div>`;
       });
-      openModal("お知らせ", body);
+      openModal("概要・お知らせ", body);
     }
 
     // ---- モーダル ----
@@ -452,7 +425,6 @@
     $("fab").addEventListener("click", openNotices);
     $("modalClose").addEventListener("click", closeModal);
     $("modalBackdrop").addEventListener("click", closeModal);
-    $("legendBtn").addEventListener("click", () => $("legend").classList.toggle("hidden"));
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
     init();
