@@ -2,21 +2,21 @@
   <rect width="800" height="520" fill="#f8fafc"/>
   <text x="400" y="44" font-size="24" font-weight="700" text-anchor="middle" fill="#0f172a">筑波大学附属小学校 会場マップ（イメージ）</text>
 
-  <rect x="60" y="80" width="330" height="180" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="3"/>
-  <text x="225" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#1e3a8a">A会場</text>
-  <text x="225" y="192" font-size="14" text-anchor="middle" fill="#1e40af">公開授業</text>
+  <rect x="60" y="80" width="330" height="180" rx="14" fill="#e8f0f8" stroke="#4f7fa8" stroke-width="3"/>
+  <text x="225" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#315875">A会場</text>
+  <text x="225" y="192" font-size="14" text-anchor="middle" fill="#4f7fa8">公開授業</text>
 
-  <rect x="410" y="80" width="330" height="180" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="3"/>
-  <text x="575" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#166534">B会場</text>
-  <text x="575" y="192" font-size="14" text-anchor="middle" fill="#15803d">公開授業</text>
+  <rect x="410" y="80" width="330" height="180" rx="14" fill="#e6f2ed" stroke="#4d9275" stroke-width="3"/>
+  <text x="575" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#326650">B会場</text>
+  <text x="575" y="192" font-size="14" text-anchor="middle" fill="#4d9275">公開授業</text>
 
-  <rect x="60" y="280" width="330" height="180" rx="14" fill="#ffedd5" stroke="#ea580c" stroke-width="3"/>
-  <text x="225" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#9a3412">C会場</text>
-  <text x="225" y="392" font-size="14" text-anchor="middle" fill="#c2410c">公開授業</text>
+  <rect x="60" y="280" width="330" height="180" rx="14" fill="#faece8" stroke="#c86f59" stroke-width="3"/>
+  <text x="225" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#914b3a">C会場</text>
+  <text x="225" y="392" font-size="14" text-anchor="middle" fill="#c86f59">公開授業</text>
 
-  <rect x="410" y="280" width="330" height="180" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="3"/>
-  <text x="575" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#6b21a8">D会場</text>
-  <text x="575" y="392" font-size="14" text-anchor="middle" fill="#7e22ce">公開授業</text>
+  <rect x="410" y="280" width="330" height="180" rx="14" fill="#f0ebf5" stroke="#8868a3" stroke-width="3"/>
+  <text x="575" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#5f4775">D会場</text>
+  <text x="575" y="392" font-size="14" text-anchor="middle" fill="#8868a3">公開授業</text>
 
   <text x="400" y="500" font-size="13" text-anchor="middle" fill="#64748b">※ 会場割りは当日の掲示・配布物をご確認ください</text>
 </svg>
