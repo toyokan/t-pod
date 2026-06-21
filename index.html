@@ -681,18 +681,15 @@
     }
     // brandColor 地に logoMain 文字を載せた 512×512 アイコン SVG を生成（中央 ~64% に収める）
     function buildAppIconSvg(bg, label) {
-      const text = String(label || "").slice(0, 4);
-      const chars = [...text];
-      let fontSize, lines;
-      if (chars.length <= 1) { fontSize = 280; lines = [text]; }
-      else if (chars.length === 2) { fontSize = 220; lines = [text]; }
-      else if (chars.length === 3) { fontSize = 150; lines = [text]; }
-      else { fontSize = 150; lines = [chars.slice(0, 2).join(""), chars.slice(2).join("")]; }
-      const lh = fontSize * 1.05;
-      const startY = 256 - ((lines.length - 1) * lh) / 2;
-      const texts = lines.map((ln, i) =>
-        `<text x="256" y="${startY + i * lh}" font-size="${fontSize}" font-weight="800" text-anchor="middle" dominant-baseline="central">${escapeHtml(ln)}</text>`
-      ).join("");
+      // アイコン文字は logoMain の先頭3文字（例: 全算研2026 → 全算研）
+      const chars = [...String(label || "")].slice(0, 3);
+      const text = chars.join("");
+      let fontSize;
+      if (chars.length <= 1) fontSize = 280;
+      else if (chars.length === 2) fontSize = 220;
+      else fontSize = 150;
+      const texts =
+        `<text x="256" y="256" font-size="${fontSize}" font-weight="800" text-anchor="middle" dominant-baseline="central">${escapeHtml(text)}</text>`;
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">`
         + `<rect width="512" height="512" rx="96" fill="${escapeHtml(bg)}"/>`
         + `<g fill="#ffffff" font-family="'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif">${texts}</g>`
@@ -716,12 +713,13 @@
       });
     }
     async function applyAppIdentity(info) {
-      const name = info.logoSub || info.title || "イベント";
-      const shortName = info.logoMain || info.title || name;
-      // タイトル系（アプリ名 = logoSub）
+      // アプリ名（ページ名）= logoMain（例: 全算研2026）
+      const name = info.logoMain || info.title || "イベント";
+      const shortName = name;
+      // タイトル系（アプリ名 = logoMain）
       document.title = name;
       // apple タイトルはイベントモードでは <head> に無い（manifest name を優先させるため）。
-      // 遅延読み取りするブラウザの保険として、無ければ生成して logoSub を入れる。
+      // 遅延読み取りするブラウザの保険として、無ければ生成して logoMain を入れる。
       let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
       if (!appleTitle) {
         appleTitle = document.createElement("meta");
