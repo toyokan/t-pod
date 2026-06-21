@@ -8,7 +8,7 @@
   - イベント一覧: `https://<user>.github.io/t-pod/`
   - 個別イベント: `https://<user>.github.io/t-pod/?id=2026-zensanken-37`
 - 現在登録されているイベント: **第37回 全国算数授業研究大会**（`events/2026-zensanken-37.json`）。
-- 現在のデザイン: **オレンジ（amber 系）テーマ**＋ロゴ調のコンパクトなヘッダー、フッターは **TIMETABLE / FILES / BOOKS** の3タブ。
+- 現在のデザイン: **オレンジ（amber 系）テーマ**＋ロゴ調のコンパクトなヘッダー、フッターは **TIMETABLE / FILES / BOOKS** の3タブ。テーマ色は `eventInfo.brandColor` で**イベント毎に変更可能**（濃淡は自動生成）。
 
 ## マイルストーン（PR単位）
 
@@ -49,6 +49,12 @@
 - **#9**: ヘッダーの幅をさらに縮小（`max-w-2xl` → `max-w-md`）。
 - **#10**: ヘッダーの高さを縮小（縦パディング `pt-4 pb-3.5` → `pt-2.5 pb-2`、ロゴ `text-3xl` → `text-2xl`、サブ `text-sm` → `text-xs`）。
 - 各 PR でシェル変更に合わせ `sw.js` の `CACHE_VERSION` を v6 → v7 → v8 へ順次更新。
+
+### PR #11 — イベント毎ブランドカラー対応＋会場カラーの統一（open）
+- **ブランド色のイベント毎指定**: `brand` パレットを **CSS 変数 `--brand` 基準の `color-mix()`** 化し、メイン1色から `brand-50〜800` を自動生成。`events/<id>.json` の `eventInfo.brandColor`（16進1色）を `applyBrandColor()` が実行時に `--brand` へ適用（`<meta name="theme-color">` も同期、不正値は既定 amber にフォールバック）。既定値は `<style>` の `:root { --brand: #f59e0b }`。
+- ハードコードされていた `amber-*` アクセント（テーマバナー・お知らせ）を `brand-*` に統一。
+- **会場カラーの統一**: 検証により、`tailwind.config` の `venue.*` パレット＋ `bg-venue-*` safelist が**未使用**で、描画する `COLOR` 辞書が safelist 外の標準色を参照していた不整合を発見。`COLOR` 辞書を `venue.*` へ接続（`blue→venue-blue` / `green→venue-green` / `orange→venue-coral` / `purple→venue-violet`）、未使用の `red` を削除。ブランド amber と C会場の色相衝突も解消。
+- `safelist` に `brand-*` クラスを追加。`README.md` / `CLAUDE.md` に色設定の仕様を追記。`sw.js` の `CACHE_VERSION` を v9 に。
 
 ## 残課題 / TODO
 - [ ] **GitHub Pages の有効化**（Settings → Pages → main / root）。
