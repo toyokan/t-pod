@@ -19,6 +19,7 @@
   - 個別 `events/<id>.json` は Network First でオンデマンドにキャッシュ → 閲覧済みイベントはオフラインでも表示。
 - **スタイル**: Tailwind Play CDN。アクセント色は `tailwind.config` の `theme.extend.colors.brand`。基準色は CSS 変数 `--brand`（既定 amber、`<style>` の `:root` で定義）で、`brand-50〜800` は `color-mix()` により自動生成。**イベント毎のブランド色は `events/<id>.json` の `eventInfo.brandColor`（メイン1色の16進）で指定** → `applyBrandColor()` が実行時に `--brand` を上書き（濃淡は自動）。会場/ルームのテーマ色は `index.html` の `COLOR` 辞書（`chip`/`dot`/`border`）が `tailwind.config` の `venue.*` パレット（blue/green/violet/coral）を参照。rooms の色キー `blue/green/orange/purple` を `venue-blue/green/coral/violet` にマッピング。動的生成するクラスは `tailwind.config` の `safelist` に保持（新色は両方に追加）。
 - **アイコン**: 絵文字は使わず **SVG（Lucide系）**。`ICONS` レジストリ + `icon(name, cls)` ヘルパ（`index.html`）。静的箇所（ボトムナビ・FAB・モーダル閉じる）はインラインSVG。
+- **PWA アイデンティティ（イベント毎・実行時生成）**: `applyAppIdentity()`（`index.html`）が、アプリ名＝`logoSub`、アイコン＝`brandColor` 地＋`logoMain` 文字を実行時生成し、`<link rel=manifest>`（data URI）・`apple-touch-icon`（canvas で PNG 化）・`apple-mobile-web-app-title`・`document.title` を差し替える。`logoMain` 未指定イベントは静的 `manifest.json`/`assets/icon.svg` にフォールバック。ホーム画面追加の導線は `setupInstallPrompt()`（Android=`beforeinstallprompt`、iOS=`openModal()` で手順案内）。
 - **描画の安全性**: 文字列は必ず `escapeHtml()`（`index.html`）を通して DOM に入れる。
 - **DOM 生成ヘルパ**: `el(tag, class, html)` と `$(id)`（= `getElementById`）を再利用する。
 
