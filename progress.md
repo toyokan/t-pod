@@ -8,6 +8,7 @@
   - イベント一覧: `https://<user>.github.io/t-pod/`
   - 個別イベント: `https://<user>.github.io/t-pod/?id=2026-zensanken-37`
 - 現在登録されているイベント: **第37回 全国算数授業研究大会**（`events/2026-zensanken-37.json`）。
+- 現在のデザイン: **オレンジ（amber 系）テーマ**＋ロゴ調のコンパクトなヘッダー、フッターは **TIMETABLE / FILES / BOOKS** の3タブ。
 
 ## マイルストーン（PR単位）
 
@@ -35,6 +36,19 @@
 - カラーシステム整理: アクセント色を `brand`（indigo）として `tailwind.config` に定義。会場色を blue/emerald/amber/violet/rose に統一し、`COLOR` 辞書を `chip`/`dot`/`border` に再編。
 - 絵文字を廃止し **SVGアイコン（Lucide系）** に置換（`ICONS` + `icon()` ヘルパ）。ボトムナビ・FAB・リンク・書籍・モーダルなど全面。
 - UI刷新: グラデーションヘッダー、角丸カード＋ソフトシャドウ、タイムラインのドットレール表示、フェードイン演出（`prefers-reduced-motion` 対応）。
+
+### PR #7 — ヘッダー/フッターのリデザイン（merged）
+- テーマカラーを indigo → **オレンジ寄りの黄色（amber 系 `#f59e0b`）** に変更。`tailwind.config` の `brand` パレット1か所差し替えで全体へ波及。`<meta name="theme-color">`・`manifest.json` の `theme_color` も更新。
+- ヘッダーを**ロゴ調**に変更。ロゴ文言は `eventInfo.logoMain`/`logoSub` で **JSON 駆動化**（未指定時は `title`/`subtitle` にフォールバック、`document.title` は正式名 `title` を維持）。
+- **日付切替タブをヘッダーからタイムテーブル表示内（`view-program`）へ移動**。白背景向けに配色変更。
+- フッターを **TIMETABLE / FILES / BOOKS の3タブ**に刷新（内部 `data-tab`・view ID は流用）。アクティブはピル形状（薄オレンジ背景＋濃オレンジ）、非アクティブはグレー。
+- シェル変更に伴い `sw.js` の `CACHE_VERSION` を v5 に。
+
+### PR #8〜#10 — ヘッダーの微調整（merged）
+- **#8**: ヘッダー文字をセンター揃え。ヘッダー/フッターの最大幅を `max-w-3xl` → `max-w-2xl` に縮小・中央寄せ。ヘッダー下端を `rounded-b-2xl` に。
+- **#9**: ヘッダーの幅をさらに縮小（`max-w-2xl` → `max-w-md`）。
+- **#10**: ヘッダーの高さを縮小（縦パディング `pt-4 pb-3.5` → `pt-2.5 pb-2`、ロゴ `text-3xl` → `text-2xl`、サブ `text-sm` → `text-xs`）。
+- 各 PR でシェル変更に合わせ `sw.js` の `CACHE_VERSION` を v6 → v7 → v8 へ順次更新。
 
 ## 残課題 / TODO
 - [ ] **GitHub Pages の有効化**（Settings → Pages → main / root）。
