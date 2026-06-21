@@ -1,0 +1,26 @@
+{
+  "name": "全国算数授業研究大会2026",
+  "short_name": "全国算数授業研究大会2026",
+  "description": "第37回 全国算数授業研究大会のプログラム・配布資料・関連書籍",
+  "lang": "ja",
+  "start_url": "../?id=2026-zensanken-37",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "../assets/icon-2026-zensanken-37.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/icon-2026-zensanken-37.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

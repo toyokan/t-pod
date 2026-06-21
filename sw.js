@@ -10,7 +10,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v11";
+const CACHE_VERSION = "v12";
 const CACHE_NAME = `sansu-fes-${CACHE_VERSION}`;
 
 // 相対パスでプリキャッシュ（GitHub Pages のサブパス配信に対応）
@@ -20,6 +20,7 @@ const APP_SHELL = [
   "./events.json",
   "./manifest.json",
   "./assets/icon.svg",
+  "./assets/icon-2026-zensanken-37.svg",
   "./assets/favicon.svg",
   "./assets/venue-map.svg",
   "https://cdn.tailwindcss.com",

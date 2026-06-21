@@ -715,9 +715,18 @@
       if (apple && png512) apple.setAttribute("href", png512);
       const fav = document.querySelector('link[rel="icon"]');
       if (fav) fav.setAttribute("href", svgUri);
-      // 動的マニフェスト（data URI で差し替え）
+
+      const link = document.querySelector('link[rel="manifest"]');
+      if (!link) return;
+      // (1) 実体マニフェストの指定があれば最優先で参照（最も確実・iOS でも安定）
+      if (/^events\/[A-Za-z0-9_-]+\.webmanifest$/.test(info.manifestPath || "")) {
+        link.setAttribute("href", info.manifestPath);
+        return;
+      }
+      // (2) 無ければ data URI で動的生成（start_url/scope は絶対 URL 化して有効にする）
       const id = getEventId();
-      const startUrl = id ? `./?id=${encodeURIComponent(id)}` : "./";
+      const startUrl = new URL(id ? `./?id=${encodeURIComponent(id)}` : "./", location.href).href;
+      const scope = new URL("./", location.href).href;
       const icons = [];
       if (png192) icons.push({ src: png192, sizes: "192x192", type: "image/png", purpose: "any" });
       if (png512) icons.push({ src: png512, sizes: "512x512", type: "image/png", purpose: "any" });
@@ -726,13 +735,12 @@
         name, short_name: shortName,
         description: info.theme || name,
         lang: "ja",
-        id: startUrl, start_url: startUrl, scope: "./",
+        id: startUrl, start_url: startUrl, scope,
         display: "standalone", orientation: "portrait",
         background_color: "#f8fafc", theme_color: bg,
         icons,
       };
-      const link = document.querySelector('link[rel="manifest"]');
-      if (link) link.setAttribute("href", "data:application/manifest+json;charset=utf-8," + encodeURIComponent(JSON.stringify(manifest)));
+      link.setAttribute("href", "data:application/manifest+json;charset=utf-8," + encodeURIComponent(JSON.stringify(manifest)));
     }
 
     // ---- ホーム画面に追加の導線 ----
