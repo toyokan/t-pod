@@ -12,7 +12,7 @@
 
   <rect x="60" y="280" width="330" height="180" rx="14" fill="#faece8" stroke="#c86f59" stroke-width="3"/>
   <text x="225" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#914b3a">１体</text>
-  <text x="225" y="392" font-size="14" text-anchor="middle" fill="#c86f59">第１体育館</text>
+  <text x="225" y="392" font-size="14" text-anchor="middle" fill="#c86f59">１階･第１体育館</text>
 
   <rect x="410" y="280" width="330" height="180" rx="14" fill="#f0ebf5" stroke="#8868a3" stroke-width="3"/>
   <text x="575" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#5f4775">１音</text>
