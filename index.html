@@ -260,6 +260,32 @@
     </div>
   </div>
 
+  <!-- ===== LINE 友だち追加ポップアップ（初回・イベントページのみ） ===== -->
+  <div id="linePopup" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+    <div id="linePopupBackdrop" class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl animate-in">
+      <button id="linePopupClose" aria-label="閉じる" class="absolute top-3 right-3 z-10 text-slate-400 hover:text-slate-600 rounded-lg p-1 transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="px-6 pt-8 pb-6 text-center">
+        <div class="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-md" style="background:#06C755">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-9 h-9" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        </div>
+        <h3 class="mt-4 text-lg font-bold text-slate-800">最新情報を LINE でお届け</h3>
+        <p class="mt-2 text-sm text-slate-600 leading-relaxed">新刊・イベントのご案内を LINE でお送りします。よろしければ友だち追加をお願いします。</p>
+        <div class="mt-6 space-y-2.5">
+          <a id="linePopupCta" href="#" target="_blank" rel="noopener"
+             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white shadow-sm active:scale-[.99] transition"
+             style="background:#06C755">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+            友だち追加する
+          </a>
+          <button id="linePopupLater" class="w-full py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 transition">あとで</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     "use strict";
 
@@ -307,6 +333,7 @@
       share: '<path d="M12 2v13"/><path d="m8 6 4-4 4 4"/><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/>',
       plusSquare: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M12 8v8M8 12h8"/>',
       close: '<path d="M18 6 6 18M6 6l12 12"/>',
+      line: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
     };
     function icon(name, cls = "w-5 h-5") {
       return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -368,6 +395,7 @@
           DATA = await res.json();
           setMode("event");
           renderAll();
+          showLinePromo();
         } else {
           // ---- 一覧モード ----
           const res = await fetch("events.json", { cache: "no-cache" });
@@ -774,6 +802,20 @@
       /iphone|ipad|ipod/i.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
     const INSTALL_DISMISS_KEY = "t-pod:install-dismissed";
+
+    // ---- LINE 友だち追加ポップアップ（東洋館出版社 公式・全イベント共通） ----
+    const LINE_PROMO_URL = "https://page.line.me/bsi8018g";
+    const LINE_DISMISS_KEY = "t-pod:line-promo-dismissed";
+    function dismissLinePromo() {
+      if ($("linePopup").classList.contains("hidden")) return;
+      $("linePopup").classList.add("hidden");
+      try { localStorage.setItem(LINE_DISMISS_KEY, "1"); } catch (e) {}
+    }
+    function showLinePromo() {
+      if (!getEventId()) return;                       // イベントページのみ
+      try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}  // 初回のみ
+      setTimeout(() => $("linePopup").classList.remove("hidden"), 900);
+    }
     function showInstallBanner() {
       if (!getEventId() || isStandalone()) return;
       try { if (localStorage.getItem(INSTALL_DISMISS_KEY)) return; } catch (e) {}
@@ -820,7 +862,14 @@
     $("fab").addEventListener("click", openNotices);
     $("modalClose").addEventListener("click", closeModal);
     $("modalBackdrop").addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeModal(); dismissLinePromo(); } });
+
+    // ---- LINE ポップアップ結線 ----
+    $("linePopupCta").setAttribute("href", LINE_PROMO_URL);
+    $("linePopupCta").addEventListener("click", dismissLinePromo);
+    $("linePopupClose").addEventListener("click", dismissLinePromo);
+    $("linePopupLater").addEventListener("click", dismissLinePromo);
+    $("linePopupBackdrop").addEventListener("click", dismissLinePromo);
 
     init();
   </script>
