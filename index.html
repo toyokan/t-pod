@@ -94,9 +94,11 @@
   safelist: [
     "bg-venue-blue-100", "text-venue-blue-700",
     "bg-venue-blue-500", "border-venue-blue-300",
+    "bg-venue-blue-700", "border-venue-blue-500",
 
     "bg-venue-green-100", "text-venue-green-700",
     "bg-venue-green-500", "border-venue-green-300",
+    "bg-venue-green-700", "border-venue-green-500",
 
     "bg-venue-violet-100", "text-venue-violet-700",
     "bg-venue-violet-500", "border-venue-violet-300",
@@ -292,11 +294,15 @@
     // ---- 会場テーマカラー辞書 ----
     // events/<id>.json の rooms[].color が指すキー。クラスは <head> の safelist で保持。
     // chip=ラベル, dot=タイムライン上の点, border=カード左罫線。
+    // 建物ごとに色相を揃え、同建物内の部屋は「濃（Deep=塗りつぶし）／淡（ソフト）」で区別する。
+    // 例: 建物A=青系（講堂=blueDeep / 第1体育館=blue）、別棟=緑系（第1音楽室=greenDeep / 第2音楽室=green）。
     const COLOR = {
-      blue:   { chip: "bg-venue-blue-100 text-venue-blue-700",     dot: "bg-venue-blue-500",   border: "border-venue-blue-300" },
-      green:  { chip: "bg-venue-green-100 text-venue-green-700",   dot: "bg-venue-green-500",  border: "border-venue-green-300" },
-      orange: { chip: "bg-venue-coral-100 text-venue-coral-700",   dot: "bg-venue-coral-500",  border: "border-venue-coral-300" },
-      purple: { chip: "bg-venue-violet-100 text-venue-violet-700", dot: "bg-venue-violet-500", border: "border-venue-violet-300" },
+      blue:     { chip: "bg-venue-blue-100 text-venue-blue-700",   dot: "bg-venue-blue-500",   border: "border-venue-blue-300" },
+      blueDeep: { chip: "bg-venue-blue-700 text-white",            dot: "bg-venue-blue-700",   border: "border-venue-blue-500" },
+      green:     { chip: "bg-venue-green-100 text-venue-green-700", dot: "bg-venue-green-500",  border: "border-venue-green-300" },
+      greenDeep: { chip: "bg-venue-green-700 text-white",          dot: "bg-venue-green-700",  border: "border-venue-green-500" },
+      orange:   { chip: "bg-venue-coral-100 text-venue-coral-700",   dot: "bg-venue-coral-500",   border: "border-venue-coral-300" },
+      purple:   { chip: "bg-venue-violet-100 text-venue-violet-700", dot: "bg-venue-violet-500", border: "border-venue-violet-300" },
     };
     const NEUTRAL = { chip: "bg-slate-100 text-slate-600", dot: "bg-slate-300", border: "border-slate-200" };
 
