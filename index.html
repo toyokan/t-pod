@@ -280,7 +280,7 @@
              class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white shadow-sm active:scale-[.99] transition"
              style="background:#06C755">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-            友だち追加する
+            東洋館出版社公式LINEを追加する
           </a>
           <button id="linePopupLater" class="w-full py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 transition">あとで</button>
         </div>
@@ -819,6 +819,7 @@
     }
     function showLinePromo() {
       if (!getEventId()) return;                       // イベントページのみ
+      if (DATA?.eventInfo?.linePromo === false) return; // JSONでオプトアウト
       try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}  // 初回のみ
       setTimeout(() => $("linePopup").classList.remove("hidden"), 900);
     }

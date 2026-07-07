@@ -10,6 +10,7 @@
     "venueName": "筑波大学附属小学校",
     "dateRange": "令和8年8月4日(火)・5日(水)",
     "tagline": "全国算数授業研究会",
+    "linePromo": false,
     "dates": [
       { "id": "day1", "label": "1日目", "date": "2026-08-04", "weekday": "火", "time": "10:00〜16:15" },
       { "id": "day2", "label": "2日目", "date": "2026-08-05", "weekday": "水", "time": "8:50〜16:00" }
