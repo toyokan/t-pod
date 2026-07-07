@@ -37,5 +37,6 @@ Excel から JSON を生成するときの規則。**構造の正は既存の `e
 
 ### 仕上げ
 - 生成後に妥当性チェック: `python3 -m json.tool events/<id>.json`。
+- **会場マップ（イベント別）**: 会場はイベント毎に異なる。会場図があれば `assets/venue-map-<id>.svg`（または `.png`/`.jpg`）として置き `eventInfo.venue.mapImage` に相対パス指定、または外部公開URL（Google Drive 等）を指定。無ければ `mapImage` を省略し `mapNote` のみで運用（画像は非表示になる）。
 - PWA アプリ名を安定させるため、必要なら `events/<id>.webmanifest` を作成し、`eventInfo.manifestPath` に指定（既存イベント参照）。
 - 注意（CLAUDE.md より）: **過去の `events/<id>.json` は削除しない**。`index.html` に固有文言を書かない。配布資料の実ファイルは置かず外部リンクを記載。

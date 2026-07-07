@@ -56,6 +56,11 @@
 - **会場カラーの統一**: 検証により、`tailwind.config` の `venue.*` パレット＋ `bg-venue-*` safelist が**未使用**で、描画する `COLOR` 辞書が safelist 外の標準色を参照していた不整合を発見。`COLOR` 辞書を `venue.*` へ接続（`blue→venue-blue` / `green→venue-green` / `orange→venue-coral` / `purple→venue-violet`）、未使用の `red` を削除。ブランド amber と C会場の色相衝突も解消。
 - `safelist` に `brand-*` クラスを追加。`README.md` / `CLAUDE.md` に色設定の仕様を追記。`sw.js` の `CACHE_VERSION` を v9 に。
 
+### 会場マップのイベント別命名対応
+- 会場はイベント毎に異なるため、会場マップもイベント単位で差し替えられるよう運用を整理。**仕組み自体は既存**（`eventInfo.venue.mapImage` を `renderMaterials()` が読み込み。パス/外部URL両対応、未指定時は画像非表示で `mapNote` のみ）。
+- 汎用名 `assets/venue-map.svg`（中身は筑波大附属小専用）を、アイコン（`icon-<id>.svg`）と同じイベント別命名 `assets/venue-map-2026-zensanken-37.svg` に **git mv でリネーム**。`events/2026-zensanken-37.json` の `mapImage` を新パスに更新。
+- `CLAUDE.md`／`README.md`／`template/README.md` に「イベント別会場マップの命名・運用ルール」を追記。`index.html`・`sw.js` は不変（シェル変更なしのため `CACHE_VERSION` 更新不要）。
+
 ## 残課題 / TODO
 - [ ] **GitHub Pages の有効化**（Settings → Pages → main / root）。
 - [ ] **判読困難だった氏名・所属の確認**（画像から転記したもの）:
@@ -64,5 +69,5 @@
   - 修正は `events/2026-zensanken-37.json` の該当箇所のみ。
 - [ ] （任意）QRコード生成の仕組み。
 - [ ] （任意）書籍データの拡充（実際の販売書籍リスト）。
-- [ ] （任意）会場マップ画像（`assets/venue-map.svg`）の本番図面への差し替え。
+- [ ] （任意）会場マップ画像（`assets/venue-map-2026-zensanken-37.svg`）の本番図面への差し替え。
 - [ ] （任意）PWAアイコン（`assets/icon.svg`）の本番デザインへの差し替え。

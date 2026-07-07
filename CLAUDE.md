@@ -36,7 +36,11 @@
 ## 新しいイベントの追加手順（コードは触らない）
 1. `events/<新id>.json` を作成（既存を複製して中身を書き換え／企画書テキストから生成）。`<新id>` は半角英数・ハイフン・アンダースコアのみ。
 2. `events.json` の `events[]` に1エントリ追記（`id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate`）。
-3. チラシの QR に `?id=<新id>` を設定。
+3. **会場マップ（イベント別・任意）**: `eventInfo.venue.mapImage` で指定。会場はイベント毎に異なるため以下を使い分ける。
+   - リポジトリ内の図: `assets/venue-map-<id>.svg`（または `.png` / `.jpg`）として置き、`mapImage` に相対パス指定（アイコンの `icon-<id>.svg` と同じイベント別命名で統一）。
+   - 外部リンク: 会場図の写真等は `mapImage` に公開URL（Google Drive 等）を直接指定でも可。
+   - マップ不要なイベントは `mapImage` を省略（`mapNote` テキストのみ表示、取得失敗時も画像だけ非表示で崩れない）。
+4. チラシの QR に `?id=<新id>` を設定。
 
 ## ローカル確認
 `file://` 直開きは不可（fetch / Service Worker が動かない）。静的サーバを使う。
