@@ -3,20 +3,20 @@
   <text x="400" y="44" font-size="24" font-weight="700" text-anchor="middle" fill="#0f172a">筑波大学附属小学校 会場マップ（イメージ）</text>
 
   <rect x="60" y="80" width="330" height="180" rx="14" fill="#e8f0f8" stroke="#4f7fa8" stroke-width="3"/>
-  <text x="225" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#315875">A会場</text>
-  <text x="225" y="192" font-size="14" text-anchor="middle" fill="#4f7fa8">公開授業</text>
+  <text x="225" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#315875">講堂</text>
+  <text x="225" y="192" font-size="14" text-anchor="middle" fill="#4f7fa8">３階･講堂</text>
 
   <rect x="410" y="80" width="330" height="180" rx="14" fill="#e6f2ed" stroke="#4d9275" stroke-width="3"/>
-  <text x="575" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#326650">B会場</text>
-  <text x="575" y="192" font-size="14" text-anchor="middle" fill="#4d9275">公開授業</text>
+  <text x="575" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#326650">２音</text>
+  <text x="575" y="192" font-size="14" text-anchor="middle" fill="#4d9275">別棟２階･第２音楽室</text>
 
   <rect x="60" y="280" width="330" height="180" rx="14" fill="#faece8" stroke="#c86f59" stroke-width="3"/>
-  <text x="225" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#914b3a">C会場</text>
-  <text x="225" y="392" font-size="14" text-anchor="middle" fill="#c86f59">公開授業</text>
+  <text x="225" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#914b3a">１体</text>
+  <text x="225" y="392" font-size="14" text-anchor="middle" fill="#c86f59">第１体育館</text>
 
   <rect x="410" y="280" width="330" height="180" rx="14" fill="#f0ebf5" stroke="#8868a3" stroke-width="3"/>
-  <text x="575" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#5f4775">D会場</text>
-  <text x="575" y="392" font-size="14" text-anchor="middle" fill="#8868a3">公開授業</text>
+  <text x="575" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#5f4775">１音</text>
+  <text x="575" y="392" font-size="14" text-anchor="middle" fill="#8868a3">別棟･第１音楽室</text>
 
   <text x="400" y="500" font-size="13" text-anchor="middle" fill="#64748b">※ 会場割りは当日の掲示・配布物をご確認ください</text>
 </svg>
