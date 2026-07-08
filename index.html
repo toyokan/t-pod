@@ -116,8 +116,9 @@
 };
   </script>
   <style>
-    /* ブランド基準色（既定 amber）。events/<id>.json の brandColor で実行時に上書き */
-    :root { --brand: #f59e0b; }
+    /* ブランド基準色（既定＝東洋館イメージカラーのゴールド。一覧ページの基調色）。
+       events/<id>.json の brandColor で実行時に上書き */
+    :root { --brand: #ffd900; }
     /* セーフエリア（ノッチ端末）対応 */
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
     .scroll-x { -webkit-overflow-scrolling: touch; }
@@ -438,6 +439,8 @@
         const card = el("a", "group relative block bg-white border border-slate-200/80 rounded-xl p-4 pl-5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition animate-in overflow-hidden");
         card.href = "?id=" + encodeURIComponent(ev.id);
         card.style.animationDelay = idx * 40 + "ms";
+        // 各カードはイベント個別のブランド色でアクセント（brand-* が --brand を参照して再計算）
+        if (isHexColor(ev.brandColor)) card.style.setProperty("--brand", ev.brandColor.trim());
         card.innerHTML =
           `<span class="absolute left-0 inset-y-0 w-1.5 bg-brand-500"></span>` +
           `<div class="text-sm font-bold text-slate-800 leading-snug pr-6">${escapeHtml(ev.title || ev.id)}</div>` +
