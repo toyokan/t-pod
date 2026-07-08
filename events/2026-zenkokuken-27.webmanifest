@@ -1,0 +1,26 @@
+{
+  "name": "全国研2026",
+  "short_name": "全国研2026",
+  "description": "第27回 全国国語授業研究大会のプログラム・配布資料・関連書籍",
+  "lang": "ja",
+  "start_url": "../?id=2026-zenkokuken-27",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#00a7d8",
+  "icons": [
+    {
+      "src": "../assets/icon-2026-zenkokuken-27.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/icon-2026-zenkokuken-27.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
