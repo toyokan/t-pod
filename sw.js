@@ -10,19 +10,19 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v20";
+const CACHE_VERSION = "v21";
 const CACHE_NAME = `sansu-fes-${CACHE_VERSION}`;
 
 // 相対パスでプリキャッシュ（GitHub Pages のサブパス配信に対応）
+// イベント別アセット（icon-<id>.svg / venue-map-<id>.svg / events/<id>.json）は
+// fetch ハンドラの Network First で初回閲覧時にオンデマンドキャッシュされるため列挙しない。
 const APP_SHELL = [
   "./",
   "./index.html",
   "./events.json",
   "./manifest.json",
   "./assets/icon.svg",
-  "./assets/icon-2026-zensanken-37.svg",
   "./assets/favicon.svg",
-  "./assets/venue-map.svg",
   "https://cdn.tailwindcss.com",
 ];
 

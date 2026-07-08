@@ -121,6 +121,8 @@
     :root { --brand: #ffd900; }
     /* セーフエリア（ノッチ端末）対応 */
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
+    .pt-safe { padding-top: env(safe-area-inset-top); }
+    .fab-safe { bottom: 6rem; bottom: calc(6rem + env(safe-area-inset-bottom)); }
     .scroll-x { -webkit-overflow-scrolling: touch; }
     html { scroll-behavior: smooth; }
     body {
@@ -131,18 +133,26 @@
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
-    @media (prefers-reduced-motion: reduce) { .animate-in { animation: none; } html { scroll-behavior: auto; } }
+    @media (prefers-reduced-motion: reduce) { .animate-in, .animate-pulse { animation: none; } html { scroll-behavior: auto; } }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
   <!-- ===== Sticky ヘッダー ===== -->
-  <header class="sticky top-0 z-30 max-w-md mx-auto bg-gradient-to-br from-brand-500 via-brand-500 to-brand-600 text-white shadow-lg rounded-b-2xl">
+  <header class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe bg-gradient-to-br from-brand-500 via-brand-500 to-brand-600 text-white shadow-lg rounded-b-2xl">
     <div class="px-4 pt-2.5 pb-2 text-center">
       <h1 id="eventTitle" class="text-2xl font-extrabold leading-none tracking-tight drop-shadow-sm">読み込み中…</h1>
       <p id="eventSubtitle" class="text-xs font-semibold text-white/90 mt-1 tracking-wide"></p>
     </div>
   </header>
+
+  <!-- ===== オフライン表示バナー（通信断のとき表示） ===== -->
+  <div id="offlineBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
+    <div class="flex items-center gap-2 bg-slate-800 text-white/90 text-xs font-medium rounded-lg px-3 py-2">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0" aria-hidden="true"><path d="M12 20h.01"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/></svg>
+      <span>オフライン — 保存済みの情報を表示しています</span>
+    </div>
+  </div>
 
   <!-- ===== ホーム画面に追加バナー（既定 hidden。イベントモードかつ未インストール時のみ表示） ===== -->
   <div id="installBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
@@ -162,12 +172,20 @@
   </div>
 
   <!-- ===== メインコンテンツ ===== -->
-  <main class="max-w-3xl mx-auto px-3 pt-4 pb-28">
+  <main class="max-w-2xl mx-auto px-3 pt-4 pb-28">
 
     <!-- 読み込みエラー表示 -->
     <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-lg p-4 text-sm">
       <p>データの読み込みに失敗しました。通信環境をご確認のうえ、ページを再読み込みしてください。</p>
       <a href="./" class="inline-block mt-2 text-brand-600 font-medium underline">イベント一覧へ戻る</a>
+    </div>
+
+    <!-- 読み込み中スケルトン（データ取得完了で非表示） -->
+    <div id="skeleton" aria-hidden="true" class="space-y-3 animate-pulse">
+      <div class="h-8 w-2/3 bg-slate-200/80 rounded-full"></div>
+      <div class="h-24 bg-slate-200/80 rounded-xl"></div>
+      <div class="h-24 bg-slate-200/70 rounded-xl"></div>
+      <div class="h-24 bg-slate-200/60 rounded-xl"></div>
     </div>
 
     <!-- (0) イベント一覧（?id 無しのとき表示） -->
@@ -220,7 +238,7 @@
 
   <!-- ===== FAB（お知らせ） ===== -->
   <button id="fab" aria-label="お知らせを見る"
-    class="fixed right-4 bottom-24 z-30 w-14 h-14 rounded-2xl bg-brand-600 text-white shadow-fab flex items-center justify-center active:scale-95 transition">
+    class="fixed right-4 fab-safe z-30 w-14 h-14 rounded-2xl bg-brand-600 text-white shadow-fab flex items-center justify-center active:scale-95 transition">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
     <span id="fabBadge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[11px] min-w-[20px] h-5 px-1 rounded-full items-center justify-center font-bold ring-2 ring-white"></span>
   </button>
@@ -250,7 +268,7 @@
   </nav>
 
   <!-- ===== 汎用モーダル ===== -->
-  <div id="modal" class="hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center">
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" class="hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center">
     <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
     <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl animate-in">
       <div class="sticky top-0 bg-white/95 backdrop-blur flex items-center justify-between px-4 py-3 border-b border-slate-100">
@@ -351,6 +369,22 @@
     let activeDateId = null;
     let activeTab = "program";
 
+    // ---- 「現在時刻」追従の状態 ----
+    let didAutoScroll = false;   // 進行中セッションへの自動スクロールは初回描画のみ
+    let nowTimer = null;         // 1分毎のハイライト更新タイマー（多重登録防止）
+    let currentRows = [];        // 表示中タイムテーブルの行要素
+    let currentSessions = [];    // 表示中タイムテーブルのセッション
+    let currentDayObj = null;    // 表示中の日付オブジェクト
+
+    // "9:30" / "09:30" → 分（不正値は null）
+    const toMin = (t) => {
+      const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
+      return m ? +m[1] * 60 + +m[2] : null;
+    };
+    // ローカル日付を "YYYY-MM-DD" で取得
+    const localDateStr = (d = new Date()) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
     // ---- ユーティリティ ----
     const $ = (id) => document.getElementById(id);
     const el = (tag, cls, html) => {
@@ -415,6 +449,8 @@
         console.error(err);
         setMode("list");
         $("errorBox").classList.remove("hidden");
+      } finally {
+        $("skeleton").classList.add("hidden");
       }
     }
 
@@ -484,23 +520,27 @@
       const tabs = $("dateTabs");
       tabs.innerHTML = "";
       const dates = (DATA.eventInfo && DATA.eventInfo.dates) || [];
+      const todayStr = localDateStr();
       if (!activeDateId && dates.length) {
         // 開催中（当日）ならその日のタブを既定表示。該当なしは初日。
-        const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
         const todayObj = dates.find((d) => d.date === todayStr);
         activeDateId = (todayObj || dates[0]).id;
       }
 
       dates.forEach((d) => {
         const isActive = d.id === activeDateId;
+        const isToday = d.date === todayStr;
         const btn = el(
           "button",
           "flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition " +
             (isActive ? "bg-brand-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"),
           escapeHtml(d.label) +
-            (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "")
+            (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
+            // 開催当日のタブに目印のドット
+            (isToday ? `<span class="inline-block align-middle w-1.5 h-1.5 rounded-full bg-current ml-1.5 opacity-90" aria-hidden="true"></span>` : "")
         );
+        btn.type = "button";
+        btn.setAttribute("aria-pressed", String(isActive));
         btn.onclick = () => { activeDateId = d.id; renderDateTabs(); };
         tabs.appendChild(btn);
       });
@@ -527,24 +567,6 @@
       if (!sessions.length) {
         wrap.appendChild(el("p", "text-sm text-slate-500 py-8 text-center", "この日のプログラムはまだ登録されていません。"));
         return;
-      }
-
-      // 当日なら「進行中／直近」のセッション行を判定（現在時刻へ自動スクロール用）
-      let nowRowIdx = -1;
-      if (dayObj && dayObj.date) {
-        const now = new Date();
-        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-        if (dayObj.date === todayStr) {
-          const nowMin = now.getHours() * 60 + now.getMinutes();
-          const toMin = (t) => {
-            const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
-            return m ? +m[1] * 60 + +m[2] : null;
-          };
-          sessions.forEach((s, i) => {
-            const st = toMin(s.start);
-            if (st !== null && st <= nowMin) nowRowIdx = i;
-          });
-        }
       }
 
       const list = el("div", "space-y-3");
@@ -590,10 +612,58 @@
       });
       wrap.appendChild(list);
 
-      // 当日のみ：現在進行中／直近のセッションまでスクロールし、印を付ける
-      if (nowRowIdx >= 0 && rows[nowRowIdx]) {
-        const target = rows[nowRowIdx];
-        target.querySelector(".shadow-card")?.classList.add("ring-2", "ring-brand-500");
+      // 「現在」ハイライトを適用（当日のみ）。自動スクロールは初回描画時のみ。
+      currentRows = rows;
+      currentSessions = sessions;
+      currentDayObj = dayObj || null;
+      updateNowMarker(true);
+      // 1分毎にハイライトを追従更新（タイマーは1本だけ）
+      if (!nowTimer) nowTimer = setInterval(() => updateNowMarker(false), 60000);
+    }
+
+    // 当日なら「進行中／直近」のセッション行 index を返す（それ以外は -1）
+    function findNowIdx(sessions, dayObj) {
+      if (!dayObj || dayObj.date !== localDateStr()) return -1;
+      const now = new Date();
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      let idx = -1;
+      sessions.forEach((s, i) => {
+        const st = toMin(s.start);
+        if (st !== null && st <= nowMin) idx = i;
+      });
+      return idx;
+    }
+
+    // 表示中タイムテーブルの「現在」ハイライトと進行中バッジを付け直す（再描画なし）
+    function updateNowMarker(allowScroll) {
+      if (!currentRows.length) return;
+      const idx = findNowIdx(currentSessions, currentDayObj);
+      currentRows.forEach((row, i) => {
+        const card = row.querySelector(".shadow-card");
+        if (!card) return;
+        const badge = card.querySelector(".now-badge");
+        if (i === idx) {
+          card.classList.add("ring-2", "ring-brand-500");
+          // 進行中（end 経過後は「直近」扱いなのでバッジは進行中の間だけ）
+          const endMin = toMin(currentSessions[i].end);
+          const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+          const ongoing = endMin === null || nowMin < endMin;
+          if (ongoing && !badge) {
+            card.insertAdjacentHTML(
+              "afterbegin",
+              `<div class="now-badge flex items-center gap-1.5 text-[11px] font-bold text-brand-600 mb-1"><span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>進行中</div>`
+            );
+          } else if (!ongoing && badge) {
+            badge.remove();
+          }
+        } else {
+          card.classList.remove("ring-2", "ring-brand-500");
+          if (badge) badge.remove();
+        }
+      });
+      if (allowScroll && !didAutoScroll && idx >= 0 && currentRows[idx]) {
+        didAutoScroll = true;
+        const target = currentRows[idx];
         requestAnimationFrame(() => target.scrollIntoView({ behavior: "smooth", block: "center" }));
       }
     }
@@ -648,9 +718,11 @@
         card.href = b.url || "#";
         card.target = "_blank";
         card.rel = "noopener";
+        // cover は空白のみの値（" " 等）を無効扱いにする
+        const cover = typeof b.cover === "string" ? b.cover.trim() : "";
         const placeholder = `<div class="w-16 h-24 flex-shrink-0 rounded-lg bg-brand-50 text-brand-400 flex items-center justify-center">${icon("book", "w-7 h-7")}</div>`;
         card.innerHTML =
-          (b.cover ? "" : placeholder) +
+          (cover ? "" : placeholder) +
           `<div class="min-w-0">` +
           `<div class="text-sm font-bold text-slate-800 leading-snug">${escapeHtml(b.title)}</div>` +
           (b.author ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(b.author)}</div>` : "") +
@@ -658,9 +730,9 @@
           (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
           `</div>`;
         // 表紙画像は要素で生成し、取得失敗時は本アイコンのプレースホルダに差し替える
-        if (b.cover) {
+        if (cover) {
           const img = el("img", "w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
-          img.src = b.cover;
+          img.src = cover;
           img.alt = "";
           img.loading = "lazy";
           img.addEventListener("error", () => { img.outerHTML = placeholder; });
@@ -708,12 +780,20 @@
     }
 
     // ---- モーダル ----
+    let lastFocused = null; // モーダルを開く直前のフォーカス位置（閉じたら復帰）
     function openModal(title, html) {
       $("modalTitle").textContent = title;
       $("modalBody").innerHTML = html;
+      lastFocused = document.activeElement;
       $("modal").classList.remove("hidden");
+      $("modalClose").focus();
     }
-    function closeModal() { $("modal").classList.add("hidden"); }
+    function closeModal() {
+      if ($("modal").classList.contains("hidden")) return;
+      $("modal").classList.add("hidden");
+      if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+      lastFocused = null;
+    }
 
     // ---- タブ切替 ----
     function setTab(tab) {
@@ -723,6 +803,8 @@
       });
       document.querySelectorAll(".navbtn").forEach((b) => {
         const on = b.dataset.tab === tab;
+        if (on) b.setAttribute("aria-current", "page");
+        else b.removeAttribute("aria-current");
         const pill = b.querySelector(".navpill");
         if (pill) {
           pill.classList.toggle("bg-brand-100", on);
@@ -906,6 +988,17 @@
     $("modalClose").addEventListener("click", closeModal);
     $("modalBackdrop").addEventListener("click", closeModal);
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeModal(); dismissLinePromo(); } });
+
+    // タブ復帰時に「現在」ハイライトを即時更新（スリープ中の時間経過に追従）
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) updateNowMarker(false); });
+
+    // ---- オフライン表示バナー ----
+    function updateOnlineStatus() {
+      $("offlineBanner").classList.toggle("hidden", navigator.onLine !== false);
+    }
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    updateOnlineStatus();
 
     // ---- LINE ポップアップ結線 ----
     $("linePopupCta").setAttribute("href", LINE_PROMO_URL);
