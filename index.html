@@ -93,6 +93,9 @@
     },
   },
 
+  // タッチ端末で hover スタイルが押下後に残留（sticky hover）するのを防ぐ
+  future: { hoverOnlyWhenSupported: true },
+
   safelist: [
     "bg-venue-blue-100", "text-venue-blue-700",
     "bg-venue-blue-500", "border-venue-blue-300",
@@ -125,8 +128,18 @@
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
     .pt-safe { padding-top: env(safe-area-inset-top); }
     .fab-safe { bottom: 6rem; bottom: calc(6rem + env(safe-area-inset-bottom)); }
-    .scroll-x { -webkit-overflow-scrolling: touch; }
+    .scroll-x { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .scroll-x::-webkit-scrollbar { display: none; }
     html { scroll-behavior: smooth; }
+    /* タッチ操作の最適化: ダブルタップズーム遅延と既定タップハイライトを無効化し、
+       押下フィードバックは active:scale 等で明示的に付与する */
+    a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+    /* キーボード操作時のフォーカスリング（マウス/タッチでは非表示） */
+    :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+    /* ページ端でのスクロール連鎖・バウンス抑制（Pull-to-Refresh は維持） */
+    body { overscroll-behavior-y: contain; }
+    /* モーダル表示中は背面スクロールを固定 */
+    body.modal-open { overflow: hidden; }
     body {
       font-family: 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
@@ -166,9 +179,9 @@
         <div class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
         <div class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
       </div>
-      <button id="installBtn" class="flex-shrink-0 text-xs font-bold text-white bg-brand-600 rounded-lg px-3 py-1.5 active:scale-95 transition">追加</button>
-      <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-1 active:scale-95 transition">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      <button id="installBtn" class="flex-shrink-0 text-xs font-bold text-white bg-brand-600 rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
+      <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-2.5 -m-1 active:scale-95 transition">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
   </div>
@@ -248,20 +261,20 @@
   <!-- ===== ボトムナビ（3タブ） ===== -->
   <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
     <div class="grid grid-cols-3 px-2 pt-1.5">
-      <button data-tab="program" class="navbtn flex justify-center" aria-label="TIMETABLE">
-        <span class="navpill flex flex-col items-center gap-1 px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition">
+      <button data-tab="program" class="navbtn group flex justify-center" aria-label="TIMETABLE">
+        <span class="navpill flex flex-col items-center gap-1 min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           <span>TIMETABLE</span>
         </span>
       </button>
-      <button data-tab="materials" class="navbtn flex justify-center" aria-label="FILES">
-        <span class="navpill flex flex-col items-center gap-1 px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition">
+      <button data-tab="materials" class="navbtn group flex justify-center" aria-label="FILES">
+        <span class="navpill flex flex-col items-center gap-1 min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
           <span>FILES</span>
         </span>
       </button>
-      <button data-tab="books" class="navbtn flex justify-center" aria-label="BOOKS">
-        <span class="navpill flex flex-col items-center gap-1 px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition">
+      <button data-tab="books" class="navbtn group flex justify-center" aria-label="BOOKS">
+        <span class="navpill flex flex-col items-center gap-1 min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
           <span>BOOKS</span>
         </span>
@@ -272,10 +285,10 @@
   <!-- ===== 汎用モーダル ===== -->
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" class="hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center">
     <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
-    <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl animate-in">
+    <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto overscroll-contain shadow-2xl animate-in">
       <div class="sticky top-0 bg-white/95 backdrop-blur flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <h3 id="modalTitle" class="font-bold text-slate-800"></h3>
-        <button id="modalClose" aria-label="閉じる" class="text-slate-400 hover:text-slate-600 rounded-lg p-1 -mr-1 transition">
+        <button id="modalClose" aria-label="閉じる" class="text-slate-400 hover:text-slate-600 rounded-lg p-2.5 -my-1.5 -mr-2 active:scale-95 transition">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -287,7 +300,7 @@
   <div id="linePopup" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
     <div id="linePopupBackdrop" class="absolute inset-0 bg-black/50"></div>
     <div class="relative bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl animate-in">
-      <button id="linePopupClose" aria-label="閉じる" class="absolute top-3 right-3 z-10 text-slate-400 hover:text-slate-600 rounded-lg p-1 transition">
+      <button id="linePopupClose" aria-label="閉じる" class="absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-600 rounded-lg p-2.5 active:scale-95 transition">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
       <div class="px-6 pt-8 pb-6 text-center">
@@ -534,7 +547,7 @@
         const isToday = d.date === todayStr;
         const btn = el(
           "button",
-          "flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-semibold transition " +
+          "flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition active:scale-95 " +
             (isActive ? "bg-brand-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"),
           escapeHtml(d.label) +
             (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
@@ -790,11 +803,13 @@
       $("modalBody").innerHTML = html;
       lastFocused = document.activeElement;
       $("modal").classList.remove("hidden");
+      document.body.classList.add("modal-open");
       $("modalClose").focus();
     }
     function closeModal() {
       if ($("modal").classList.contains("hidden")) return;
       $("modal").classList.add("hidden");
+      document.body.classList.remove("modal-open");
       if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
       lastFocused = null;
     }
@@ -817,7 +832,8 @@
         }
       });
       // 日付タブはプログラムでのみ意味を持つ（表示は常に出してOK）
-      window.scrollTo({ top: 0 });
+      // タブ切替は「画面の入れ替え」なのでスムーズスクロールさせず即時に先頭へ
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
 
     // ---- Service Worker 登録 ----
@@ -937,13 +953,17 @@
     function dismissLinePromo() {
       if ($("linePopup").classList.contains("hidden")) return;
       $("linePopup").classList.add("hidden");
+      document.body.classList.remove("modal-open");
       try { localStorage.setItem(LINE_DISMISS_KEY, "1"); } catch (e) {}
     }
     function showLinePromo() {
       if (!getEventId()) return;                       // イベントページのみ
       if (DATA?.eventInfo?.linePromo === false) return; // JSONでオプトアウト
       try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}  // 初回のみ
-      setTimeout(() => $("linePopup").classList.remove("hidden"), 900);
+      setTimeout(() => {
+        $("linePopup").classList.remove("hidden");
+        document.body.classList.add("modal-open");
+      }, 900);
     }
     function showInstallBanner() {
       if (!getEventId() || isStandalone()) return;
