@@ -28,8 +28,10 @@
     })();
   </script>
   <meta name="theme-color" content="#f59e0b" />
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
-  <link rel="apple-touch-icon" href="assets/icon.svg" />
+  <!-- 一覧ページ（?id 無し）の既定 favicon は東洋館出版社サイトと同一のものを使用。
+       イベントページでは applyAppIdentity() が logoMain に基づく専用アイコンに動的差し替えする。 -->
+  <link rel="icon" type="image/jpeg" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=32&width=32" />
+  <link rel="apple-touch-icon" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=180&width=180" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
@@ -715,7 +717,9 @@
       list.innerHTML = "";
       (DATA.books || []).forEach((b) => {
         const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition");
-        card.href = b.url || "#";
+        // リンク先は url 優先、無ければ amazon_url にフォールバック（空白のみの値は無効扱い）
+        const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
+        card.href = trimmed(b.url) || trimmed(b.amazon_url) || "#";
         card.target = "_blank";
         card.rel = "noopener";
         // cover は空白のみの値（" " 等）を無効扱いにする

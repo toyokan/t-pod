@@ -471,12 +471,11 @@
   "books": [
     {
       "title": "「読解」から「探究」への国語科授業変革 自律した学び手を育てる授業デザイン",
-      "author": "全国国語授業研究会・筑波大学附属小学校国語部（主催／書籍著者としては未確認）",
+      "author": "全国国語授業研究会・筑波大学附属小学校国語部",
       "publisher": "東洋館出版社",
       "cover": "https://www.toyokan.co.jp/cdn/shop/files/bnr_27kokugojyugyouken.jpg?v=1780287921&width=1200",
-      "description": "第27回全国国語授業研究大会の大会テーマ。会費に大会公式テキスト付と記載あり。単独書籍商品としてのISBN・Amazon URLは未確認。",
-      "url": "https://www.toyokan.co.jp/products/27kokugojyugyouken",
-      "amazon_url": " "
+      "description": "第27回全国国語授業研究大会の大会テーマ。大会公式テキスト。",
+      "url": "https://www.toyokan.co.jp/products/27kokugojyugyouken"
     },
     {
       "title": "主体的な学び手を育てる国語授業 学びがつながる授業づくり",

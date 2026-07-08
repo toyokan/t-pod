@@ -11,7 +11,7 @@
  */
 
 const CACHE_VERSION = "v21";
-const CACHE_NAME = `sansu-fes-${CACHE_VERSION}`;
+const CACHE_NAME = `t-pod-${CACHE_VERSION}`;
 
 // 相対パスでプリキャッシュ（GitHub Pages のサブパス配信に対応）
 // イベント別アセット（icon-<id>.svg / venue-map-<id>.svg / events/<id>.json）は
@@ -22,7 +22,6 @@ const APP_SHELL = [
   "./events.json",
   "./manifest.json",
   "./assets/icon.svg",
-  "./assets/favicon.svg",
   "https://cdn.tailwindcss.com",
 ];
 
@@ -45,7 +44,8 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith("sansu-fes-") && key !== CACHE_NAME)
+            // 旧版キャッシュを削除（旧接頭辞 sansu-fes- は移行時のゴミ掃除）
+            .filter((key) => (key.startsWith("t-pod-") || key.startsWith("sansu-fes-")) && key !== CACHE_NAME)
             .map((key) => caches.delete(key))
         )
       )

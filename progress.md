@@ -80,8 +80,26 @@
 - rooms の濃淡入れ替え: 1音 `greenDeep`→`green`（淡）、2音 `green`→`greenDeep`（濃）。
 - 会場マップSVG（`venue-map-2026-zensanken-37.svg`）の配色を TIMETABLE タブの会場色に統一（講堂＝濃青／1体＝淡青／1音＝淡緑／2音＝濃緑）。修正前は1体＝コーラル・1音＝バイオレットで不一致だった。`index.html`・`sw.js` は不変。
 
+### 品質・アクセシビリティ改善 + リポジトリ監査
+- **当日ライブUX**: 「現在」ハイライトが1分毎に自動追従（`updateNowMarker()` + `setInterval`、タブ復帰時は `visibilitychange` で即時更新）。従来は描画時に一度だけ計算され時間経過に追従しなかった。進行中セッションに「進行中」バッジ（パルスドット）を追加。自動スクロールは初回描画のみに変更（従来は日付タブ切替のたびに発火し操作を妨げていた）。当日タブに目印ドットを追加。
+- **ローディング/オフラインUX**: 初期表示にスケルトンローディングを追加（従来は「読み込み中…」テキストのみ）。オフライン時のバナー表示を追加。
+- **safe-area対応**: ヘッダー（`padding-top: env(safe-area-inset-top)`）・FAB（`env(safe-area-inset-bottom)`）がノッチ端末で欠けていたのを修正。
+- **コンテナ幅統一**: ヘッダー`max-w-md`／メイン`max-w-3xl`／ナビ`max-w-2xl`のバラつきを `max-w-2xl` に統一。
+- **アクセシビリティ**: ボトムナビに `aria-current`、日付タブに `aria-pressed`、モーダルに `role="dialog"`/`aria-modal` とフォーカス管理（開閉時のフォーカス移動・復帰）を追加。
+- **書籍cover空白バグ**: `cover: " "`（空白のみ）が truthy 判定されて無駄な画像リクエスト→エラー→プレースホルダ差し替えが発生していたのを trim 判定で修正。`amazon_url` を `url` 未指定時のリンク先フォールバックとして活用（従来は取得のみでリンクに未使用）。
+- **sw.js プリキャッシュ不整合の解消**: `APP_SHELL` が実在しない `assets/venue-map.svg`（毎回404）と特定イベントの `icon-2026-zensanken-37.svg` をハードコードしていたのを削除。イベント別アセットは Network First のオンデマンドキャッシュに委譲し、新イベント追加時に `sw.js` を触る必要をなくした。
+- **キャッシュ名の汎用化**: `CACHE_NAME` が旧「算数フェス」由来の `sansu-fes-*` だったのを `t-pod-*` に変更（汎用シェル方針に合わせる）。activate 時に旧接頭辞も掃除。
+- **データ清掃**: `events/2026-zenkokuken-27.json` books[0] に露出していた編集メモ（「主催／書籍著者としては未確認」等）を削除。両イベントの books の空白のみの `cover`/`amazon_url` を除去。
+- **テンプレ導線の補完**: `template/make_template.py` の rooms 色選択肢に濃色 `blueDeep`/`greenDeep` が欠落していたのを、`index.html` の `COLOR` 辞書（6種）に揃えて追加。
+- シェル変更のため `sw.js` の `CACHE_VERSION` を v20→v21 に更新。
+
+### 一覧ページの favicon を東洋館出版社サイトに統一
+- `index.html` の `<link rel="icon">`/`<link rel="apple-touch-icon">`（静的既定値）を、`www.toyokan.co.jp` と同一の画像（`logo_icon_....jpg`、CDN直接参照）に変更。
+- イベントページの `applyAppIdentity()` によるアイコン実行時生成（PWAホーム画面追加用）は影響を受けず従来通り動作（セレクタで `link[rel="icon"]` を取得して上書きするため）。
+- `assets/favicon.svg` はコードから参照されなくなったため `sw.js` の `APP_SHELL` プリキャッシュ対象からも除外（ファイル自体は予備として残置）。`CACHE_VERSION` は v21 のまま（未デプロイのため据え置き）。
+
 ## 残課題 / TODO
-- [ ] **GitHub Pages の有効化**（Settings → Pages → main / root）。
+- [x] **GitHub Pages の有効化**（Settings → Pages → main / root。CNAME 設置済み・公開中）。
 - [ ] **判読困難だった氏名・所属の確認**（画像から転記したもの）:
   - 2日目ワークショップ案内の登壇者・所属（例: 山本良一／島根・雲南市立木次小、髙木美和／福岡・赤村立赤小 など）。
   - シンポジウム討論者「久保田健功」の表記。

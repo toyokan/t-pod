@@ -116,9 +116,11 @@ def build():
     sub.font = SUBHEAD_FONT
     ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=3)
     r += 1
-    write_headers(ws, r, ["会場名", "色（blue/green/orange/purple）", "（空欄可）"])
+    # 色は index.html の COLOR 辞書と対応（blueDeep/greenDeep は同系色の濃色版。
+    # 同じ建物の部屋は同系色の濃淡で区別すると会場の位置関係が伝わりやすい）
+    write_headers(ws, r, ["会場名", "色（blue/blueDeep/green/greenDeep/orange/purple）", "（空欄可）"])
     r += 1
-    for name, color in [("A会場", "blue"), ("B会場", "green"), ("C会場", "orange"), ("D会場", "purple")]:
+    for name, color in [("A会場", "blueDeep"), ("B会場", "blue"), ("C会場", "green"), ("D会場", "orange")]:
         write_row(ws, r, [name, color, ""])
         r += 1
 
