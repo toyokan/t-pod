@@ -484,7 +484,13 @@
       const tabs = $("dateTabs");
       tabs.innerHTML = "";
       const dates = (DATA.eventInfo && DATA.eventInfo.dates) || [];
-      if (!activeDateId && dates.length) activeDateId = dates[0].id;
+      if (!activeDateId && dates.length) {
+        // 開催中（当日）ならその日のタブを既定表示。該当なしは初日。
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+        const todayObj = dates.find((d) => d.date === todayStr);
+        activeDateId = (todayObj || dates[0]).id;
+      }
 
       dates.forEach((d) => {
         const isActive = d.id === activeDateId;
@@ -523,10 +529,30 @@
         return;
       }
 
+      // 当日なら「進行中／直近」のセッション行を判定（現在時刻へ自動スクロール用）
+      let nowRowIdx = -1;
+      if (dayObj && dayObj.date) {
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+        if (dayObj.date === todayStr) {
+          const nowMin = now.getHours() * 60 + now.getMinutes();
+          const toMin = (t) => {
+            const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
+            return m ? +m[1] * 60 + +m[2] : null;
+          };
+          sessions.forEach((s, i) => {
+            const st = toMin(s.start);
+            if (st !== null && st <= nowMin) nowRowIdx = i;
+          });
+        }
+      }
+
       const list = el("div", "space-y-3");
+      const rows = [];
       sessions.forEach((s, idx) => {
         const row = el("div", "flex gap-3 animate-in");
         row.style.animationDelay = idx * 30 + "ms";
+        rows.push(row);
 
         // 時間カラム
         const time = el("div", "flex-shrink-0 w-12 text-right pt-2");
@@ -563,6 +589,13 @@
         list.appendChild(row);
       });
       wrap.appendChild(list);
+
+      // 当日のみ：現在進行中／直近のセッションまでスクロールし、印を付ける
+      if (nowRowIdx >= 0 && rows[nowRowIdx]) {
+        const target = rows[nowRowIdx];
+        target.querySelector(".shadow-card")?.classList.add("ring-2", "ring-brand-500");
+        requestAnimationFrame(() => target.scrollIntoView({ behavior: "smooth", block: "center" }));
+      }
     }
 
     // ---- 資料タブ ----
