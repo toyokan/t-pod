@@ -63,12 +63,12 @@
       {
         "label": "参加お申し込み（東洋館出版社オンラインショップ）",
         "description": "チラシ掲載の二次元（QR）コードから事前申し込み。受付では5桁の注文番号と氏名を伝える。",
-        "url": "https://www.toyokan.co.jp"
+        "url": "https://www.toyokan.co.jp/products/27kokugojyugyouken"
       },
       {
         "label": "参加お申し込み（Peatix）",
         "description": "チラシ掲載の二次元（QR）コードから事前申し込み。受付では購入済みチケットのQRコードを提示。",
-        "url": "https://peatix.com"
+        "url": "https://27kokugojyugyouken.peatix.com/view"
       }
     ],
     "venue": {
