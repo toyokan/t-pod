@@ -893,12 +893,18 @@
       //   `handleNavigate()` が brandColor で書き換えた HTML が返り、ノッチ色が確定する。
       //   sessionStorage で「セッション内1回だけ」に制限しリロードループを防止。
       const wasUncontrolled = !navigator.serviceWorker.controller;
-      let alreadyReloaded = false;
-      try { alreadyReloaded = sessionStorage.getItem("t-pod:sw-reload") === "1"; } catch (e) {}
+      const hasReloadMark = new URLSearchParams(location.search).has("_r");
+      let alreadyReloaded = hasReloadMark;
+      try { alreadyReloaded = alreadyReloaded || sessionStorage.getItem("t-pod:sw-reload") === "1"; } catch (e) {}
       if (wasUncontrolled && getEventId() && !alreadyReloaded) {
         navigator.serviceWorker.addEventListener("controllerchange", () => {
           try { sessionStorage.setItem("t-pod:sw-reload", "1"); } catch (e) {}
-          location.reload();
+          // 同一 URL の reload では iOS Safari が status bar の theme-color を再読込しない
+          // ことがあるため、キャッシュバスター付きの別 URL へ置換して確実に再パースさせる。
+          // ?id は保持されるので SW（handleNavigate）が theme-color をイベント色へ書き換える。
+          const u = new URL(location.href);
+          u.searchParams.set("_r", "1");
+          location.replace(u.href);
         });
       }
       window.addEventListener("load", () => {

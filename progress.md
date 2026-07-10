@@ -144,6 +144,14 @@
   - **トレードオフ**: 新端末の初回のみ、黄の一瞬 →（〜1秒）自動リロード → イベント色、という遷移になる（LINE/QR から繰り返し開く運用では実用上問題なし）。
 - シェル変更のため `sw.js` の `CACHE_VERSION` を v27→v28 に更新。
 
+### 自動リロードを別 URL 置換に変更（iOS Safari の status bar 色キャッシュ対策）
+- **問題**: 本番 v28 でも iOS Safari では最上部（status bar/ノッチ帯）が黄のまま。この帯は iOS Safari が `theme-color` で塗る領域で、**同一 URL のリロードでは iOS Safari が status bar の `theme-color` を再読込しない**（初回パース値を保持する）ことが原因と推定。SW 書き換え自体は本番でも有効（Chrome の sandboxed iframe で amber/シアンを確認済み）だが、初回リロード後も iOS がキャッシュした黄を保持していた。
+- **対応**: `registerSW()` の自動リロードを、同一 URL の `location.reload()` から**キャッシュバスター付きの別 URL への `location.replace()`**（`?id=… &_r=1`）に変更。別 URL にすることで iOS Safari に確実に再パースさせ、SW 制御下で書き換わった `theme-color`（イベント色）を読ませる。`?id` は保持されるので SW の `handleNavigate()` はそのまま機能。
+  - **ループ防止**: URL に `_r` があれば「リロード済み」とみなし再リダイレクトしない（＋従来の `sessionStorage["t-pod:sw-reload"]` ガードも併用）。
+  - **検証（Chrome）**: 新端末再現（SW 全解除＋キャッシュ削除）→ イベントページを開くと `?id=…&_r=1` へ自動置換され、SW 制御下＋正しい色（全国研 `#00a7d8`）に。`_r` 付き URL では再リダイレクトせず（`_r` は1個のまま）ループ無し。コンソールエラー無し。
+  - **未検証事項（要実機確認）**: iOS Safari が `theme-color` を **URL 単位でキャッシュ**するなら別 URL 化で直る想定。もし **タブ単位でキャッシュ**する挙動なら本対応でも直らず、その場合はイベント別の静的 HTML エントリ（生成物、URL/QR 方針の見直しを伴う）が必要になる。
+- シェル変更のため `sw.js` の `CACHE_VERSION` を v28→v29 に更新。
+
 ## 残課題 / TODO
 - [x] **GitHub Pages の有効化**（Settings → Pages → main / root。CNAME 設置済み・公開中）。
 - [ ] **判読困難だった氏名・所属の確認**（画像から転記したもの）:
