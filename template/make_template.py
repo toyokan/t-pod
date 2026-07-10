@@ -83,6 +83,7 @@ def build():
         ("ブランド色", "#f59e0b", "JSON: brandColor。メイン1色の16進カラー"),
         ("イベントID", "2026-zensanken-37", "ファイル名 events/<id>.json。半角英数・ハイフン・アンダースコアのみ"),
         ("並び順日付", "2026-08-04", "events.json の sortDate。YYYY-MM-DD"),
+        ("LINE追加ポップアップ", "false", "JSON: linePromo。LINE友だち追加を促すポップアップを出すか。true=表示／false・空欄=非表示（既定）。チラシQR等で既にLINEから誘導しているイベントは false"),
         ("会場マップ補足", "会場は筑波大学附属小学校です。詳しい会場割りは当日の掲示・配布物をご確認ください。", "JSON: venue.mapNote（任意）"),
     ]
     r = 3

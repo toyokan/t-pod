@@ -27,7 +27,7 @@
       }
     })();
   </script>
-  <meta name="theme-color" content="#f59e0b" />
+  <meta name="theme-color" content="#ffd900" />
   <!-- 一覧ページ（?id 無し）の既定 favicon は東洋館出版社サイトと同一のものを使用。
        イベントページでは applyAppIdentity() が logoMain に基づく専用アイコンに動的差し替えする。 -->
   <link rel="icon" type="image/jpeg" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=32&width=32" />
@@ -52,6 +52,8 @@
           300: "color-mix(in srgb, var(--brand) 45%, white)",
           400: "color-mix(in srgb, var(--brand) 70%, white)",
           500: "var(--brand)",
+          // brand-500/600 背景上の文字色（輝度に応じて JS が --brand-fg を白/濃色に切替）
+          fg: "var(--brand-fg)",
           600: "color-mix(in srgb, var(--brand) 82%, black)",
           700: "color-mix(in srgb, var(--brand) 62%, black)",
           800: "color-mix(in srgb, var(--brand) 48%, black)",
@@ -116,14 +118,14 @@
     "bg-brand-50", "bg-brand-100", "bg-brand-200", "bg-brand-500", "bg-brand-600",
     "text-brand-500", "text-brand-600", "text-brand-700", "text-brand-800",
     "border-brand-100", "border-brand-200", "border-brand-300",
-    "text-white",
+    "text-white", "text-brand-fg",
   ],
 };
   </script>
   <style>
     /* ブランド基準色（既定＝東洋館イメージカラーのゴールド。一覧ページの基調色）。
        events/<id>.json の brandColor で実行時に上書き */
-    :root { --brand: #ffd900; }
+    :root { --brand: #ffd900; --brand-fg: #ffffff; }
     /* セーフエリア（ノッチ端末）対応 */
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
     .pt-safe { padding-top: env(safe-area-inset-top); }
@@ -145,19 +147,29 @@
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
+    /* スクロール時のヘッダー縮小（縦空間の確保） */
+    #appHeader .hd { transition: padding .15s ease; }
+    #appHeader #eventTitle { transition: font-size .15s ease; }
+    #appHeader.is-compact .hd { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+    #appHeader.is-compact #eventTitle { font-size: 1.125rem; }
+    #appHeader.is-compact #eventSubtitle { display: none; }
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
-    @media (prefers-reduced-motion: reduce) { .animate-in, .animate-pulse { animation: none; } html { scroll-behavior: auto; } }
+    @media (prefers-reduced-motion: reduce) {
+      .animate-in, .animate-pulse { animation: none; }
+      html { scroll-behavior: auto; }
+      #appHeader .hd, #appHeader #eventTitle { transition: none; }
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
   <!-- ===== Sticky ヘッダー ===== -->
-  <header class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe bg-gradient-to-br from-brand-500 via-brand-500 to-brand-600 text-white shadow-lg rounded-b-2xl">
-    <div class="px-4 pt-2.5 pb-2 text-center">
-      <h1 id="eventTitle" class="text-2xl font-extrabold leading-none tracking-tight drop-shadow-sm">読み込み中…</h1>
-      <p id="eventSubtitle" class="text-xs font-semibold text-white/90 mt-1 tracking-wide"></p>
+  <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe bg-gradient-to-b from-brand-500 to-brand-600 text-brand-fg shadow-sm rounded-b-2xl">
+    <div class="hd px-4 pt-2.5 pb-2 text-center">
+      <h1 id="eventTitle" class="text-2xl font-extrabold leading-none tracking-tight">読み込み中…</h1>
+      <p id="eventSubtitle" class="text-xs font-semibold opacity-80 mt-1 tracking-wide"></p>
     </div>
   </header>
 
@@ -172,14 +184,14 @@
   <!-- ===== ホーム画面に追加バナー（既定 hidden。イベントモードかつ未インストール時のみ表示） ===== -->
   <div id="installBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
     <div class="flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2.5 shadow-card">
-      <span class="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-500 text-white flex items-center justify-center">
+      <span class="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-500 text-brand-fg flex items-center justify-center">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       </span>
       <div class="flex-1 min-w-0">
         <div class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
         <div class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
       </div>
-      <button id="installBtn" class="flex-shrink-0 text-xs font-bold text-white bg-brand-600 rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
+      <button id="installBtn" class="flex-shrink-0 text-xs font-bold text-brand-fg bg-brand-600 rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
       <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-2.5 -m-1 active:scale-95 transition">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -253,7 +265,7 @@
 
   <!-- ===== FAB（お知らせ） ===== -->
   <button id="fab" aria-label="お知らせを見る"
-    class="fixed right-4 fab-safe z-30 w-14 h-14 rounded-2xl bg-brand-600 text-white shadow-fab flex items-center justify-center active:scale-95 transition">
+    class="fixed right-4 fab-safe z-30 w-14 h-14 rounded-2xl bg-brand-600 text-brand-fg shadow-fab flex items-center justify-center active:scale-95 transition">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
     <span id="fabBadge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[11px] min-w-[20px] h-5 px-1 rounded-full items-center justify-center font-bold ring-2 ring-white"></span>
   </button>
@@ -347,10 +359,26 @@
     // ---- ブランド色（イベント毎・単色指定。濃淡は color-mix で自動生成） ----
     // 16進カラー（#rgb / #rrggbb / #rrggbbaa）のみ許可。不正値は無視して既定 amber を使用。
     const isHexColor = (c) => typeof c === "string" && /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(c.trim());
+    // hex → sRGB 相対輝度（0=黒〜1=白）。#rgb/#rgba/#rrggbb/#rrggbbaa 対応
+    function relativeLuminance(hex) {
+      let h = hex.trim().slice(1);
+      if (h.length <= 4) h = [...h].map((c) => c + c).join("");
+      const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      return 0.2126 * lin(parseInt(h.slice(0, 2), 16))
+           + 0.7152 * lin(parseInt(h.slice(2, 4), 16))
+           + 0.0722 * lin(parseInt(h.slice(4, 6), 16));
+    }
+    // ブランド色の明るさに応じて、その上に載せる文字色（--brand-fg）を白/濃色に切替
+    function updateBrandFg(color) {
+      if (!isHexColor(color)) return;
+      const fg = relativeLuminance(color) > 0.55 ? "#1e293b" : "#ffffff";
+      document.documentElement.style.setProperty("--brand-fg", fg);
+    }
     function applyBrandColor(color) {
-      if (!isHexColor(color)) return; // 既定（:root の --brand = amber）のまま
+      if (!isHexColor(color)) { updateBrandFg(resolvedBrand()); return; } // 既定 --brand に対して文字色のみ判定
       const c = color.trim();
       document.documentElement.style.setProperty("--brand", c);
+      updateBrandFg(c);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", c);
     }
@@ -440,6 +468,8 @@
     }
 
     async function init() {
+      // 既定ブランド色（一覧ページ等）にも文字色の輝度判定を適用
+      updateBrandFg(resolvedBrand());
       registerSW();
       setupInstallPrompt();
       const id = getEventId();
@@ -459,6 +489,7 @@
           const index = await res.json();
           setMode("list");
           renderEventList(index);
+          showLinePromo();
         }
       } catch (err) {
         console.error(err);
@@ -548,7 +579,7 @@
         const btn = el(
           "button",
           "flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition active:scale-95 " +
-            (isActive ? "bg-brand-500 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"),
+            (isActive ? "bg-brand-500 text-brand-fg shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"),
           escapeHtml(d.label) +
             (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
             // 開催当日のタブに目印のドット
@@ -864,7 +895,7 @@
         `<text x="256" y="256" font-size="${fontSize}" font-weight="800" text-anchor="middle" dominant-baseline="central">${escapeHtml(text)}</text>`;
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">`
         + `<rect width="512" height="512" rx="96" fill="${escapeHtml(bg)}"/>`
-        + `<g fill="#ffffff" font-family="'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif">${texts}</g>`
+        + `<g fill="${escapeHtml(isHexColor(bg) && relativeLuminance(bg) > 0.55 ? "#1e293b" : "#ffffff")}" font-family="'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif">${texts}</g>`
         + `</svg>`;
     }
     const svgToDataUri = (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
@@ -957,14 +988,40 @@
       document.body.classList.remove("modal-open");
       try { localStorage.setItem(LINE_DISMISS_KEY, "1"); } catch (e) {}
     }
+    // タブ切替から呼ばれるフック（showLinePromo が待機中のみ設定される）
+    let linePromoTrigger = null;
+    // LINE 友だち追加ポップアップの表示可否:
+    //  - イベントページ: 既定は非表示。events/<id>.json の eventInfo.linePromo === true のときだけ表示（オプトイン）。
+    //    現行イベントはすべて LINE からの導線でアクセスするため出さない。新規イベントは true を指定すれば出せる。
+    //  - 一覧ページ（?id 無し）: LINE 以外からの流入もあるため、初回のみ表示。
+    // いずれも「閲覧後」に1回だけ・localStorage で初回制御。
     function showLinePromo() {
-      if (!getEventId()) return;                       // イベントページのみ
-      if (DATA?.eventInfo?.linePromo === false) return; // JSONでオプトアウト
+      const isEvent = !!getEventId();
+      if (isEvent && DATA?.eventInfo?.linePromo !== true) return; // イベントはオプトインのみ
       try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}  // 初回のみ
-      setTimeout(() => {
+      let fired = false;
+      const open = () => {
+        // モーダル等の表示中は重ねず、閉じられてから出す
+        if (document.body.classList.contains("modal-open")) { setTimeout(open, 3000); return; }
+        try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
         $("linePopup").classList.remove("hidden");
         document.body.classList.add("modal-open");
-      }, 900);
+      };
+      const trigger = () => {
+        if (fired) return;
+        fired = true;
+        window.removeEventListener("scroll", onScroll);
+        clearTimeout(timer);
+        linePromoTrigger = null;
+        setTimeout(open, 400);
+      };
+      // 「閲覧後」に表示: 一定スクロール・タブ切替・一定時間経過のいずれか早いタイミング。
+      // 一覧ページは縦が短くタブ切替も無いため、しきい値・フォールバックを小さめにする。
+      const scrollNeed = isEvent ? 300 : 120;
+      const onScroll = () => { if (window.scrollY > scrollNeed) trigger(); };
+      const timer = setTimeout(trigger, isEvent ? 30000 : 5000);
+      window.addEventListener("scroll", onScroll, { passive: true });
+      linePromoTrigger = trigger;
     }
     function showInstallBanner() {
       if (!getEventId() || isStandalone()) return;
@@ -1007,8 +1064,24 @@
 
     // ---- イベント結線 ----
     document.querySelectorAll(".navbtn").forEach((b) =>
-      b.addEventListener("click", () => setTab(b.dataset.tab))
+      b.addEventListener("click", () => {
+        setTab(b.dataset.tab);
+        // タブ切替＝コンテンツ閲覧後とみなし、待機中のLINEポップアップを表示
+        if (linePromoTrigger) linePromoTrigger();
+      })
     );
+
+    // ---- スクロール連動のヘッダー縮小 ----
+    (function () {
+      const header = $("appHeader");
+      let compact = false;
+      window.addEventListener("scroll", () => {
+        // 縮小(>48px)と復元(<8px)で閾値を分け、境界でのちらつきを防ぐ
+        const y = window.scrollY;
+        const next = compact ? y > 8 : y > 48;
+        if (next !== compact) { compact = next; header.classList.toggle("is-compact", compact); }
+      }, { passive: true });
+    })();
     $("fab").addEventListener("click", openNotices);
     $("modalClose").addEventListener("click", closeModal);
     $("modalBackdrop").addEventListener("click", closeModal);

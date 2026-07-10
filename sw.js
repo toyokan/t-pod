@@ -10,7 +10,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v23";
+const CACHE_VERSION = "v25";
 const CACHE_NAME = `t-pod-${CACHE_VERSION}`;
 
 // 相対パスでプリキャッシュ（GitHub Pages のサブパス配信に対応）

@@ -8,7 +8,8 @@
   - イベント一覧: `https://<user>.github.io/t-pod/`
   - 個別イベント: `https://<user>.github.io/t-pod/?id=2026-zensanken-37`
 - 現在登録されているイベント: **第37回 全国算数授業研究大会**（`events/2026-zensanken-37.json`、amber `#f59e0b`）／**第27回 全国国語授業研究大会**（`events/2026-zenkokuken-27.json`、シアン `#00a7d8`）／**オール筑波 算数サマーフェスティバル2026**（`events/2026-math-summer-fes.json`、スカイブルー `#0ea5e9`）の3件。
-- 現在のデザイン: ロゴ調のコンパクトなヘッダー、フッターは **TIMETABLE / FILES / BOOKS** の3タブ。テーマ色は `eventInfo.brandColor` で**イベント毎に変更可能**（濃淡は自動生成）。**一覧ページの基調色は東洋館イメージカラーのイエロー `#ffd900`**、一覧の各カードは `events[].brandColor` でイベント固有色に切替。
+- 現在のデザイン: ロゴ調のコンパクトなヘッダー（**スクロールで縮小**）、フッターは **TIMETABLE / FILES / BOOKS** の3タブ。テーマ色は `eventInfo.brandColor` で**イベント毎に変更可能**（濃淡は自動生成、**背景色の輝度に応じて文字色 `--brand-fg` を白/濃紺に自動切替**）。**一覧ページの基調色は東洋館イメージカラーのイエロー `#ffd900`**、一覧の各カードは `events[].brandColor` でイベント固有色に切替。
+- LINE 友だち追加ポップアップは**イベントはオプトイン（`eventInfo.linePromo: true`）／一覧ページは初回のみ**表示（現行3イベントは LINE 経由アクセスのため非表示）。
 
 ## マイルストーン（PR単位）
 
@@ -106,6 +107,18 @@
 - 従来はホーム画面追加時のアプリ名（ヘッダー表示）とアイコン文字が同一の `logoMain` から派生し、アイコンは `logoMain` 先頭3文字固定だった。「ヘッダーは正式名、アイコンは短い略称にしたい」（例: ヘッダー「算数サマー2026」／アイコン「算サマ」）というニーズに対応するため、`eventInfo.iconLabel`（任意）を新設。
 - `index.html` の `applyAppIdentity()` を `info.iconLabel || info.logoMain` でアイコン生成するよう変更（`iconLabel` 未指定時は従来通り `logoMain` 先頭3文字なので既存イベントは無影響）。汎用ロジックのため `template/README.md`／`README.md` にも仕様を追記。
 - `events/2026-math-summer-fes.json` に適用（`logoMain`＝「算数サマー2026」、`iconLabel`＝「算サマ」）。シェル変更のため `sw.js` の `CACHE_VERSION` を v22→v23 に更新。
+
+### デザイン検証と改善（コントラスト自動判定・縮小ヘッダー・LINE導線見直し）
+- **背景色に応じた文字色の自動切替（コントラスト事故の解消）**: 一覧ページの基調色 `#ffd900`（純黄色）の上にヘッダー等が白文字で載り、WCAG 大幅未達で判読困難だった。CSS 変数 `--brand-fg` を新設し、ブランド色の sRGB 相対輝度（`relativeLuminance()`）を JS で判定して、明るい色なら濃紺 `#1e293b`・暗い色なら白を自動選択（`updateBrandFg()`、閾値 0.55）。ヘッダー・FAB・日付タブ active・インストールバナー・実行時生成する PWA アイコン文字の固定 `text-white` を `text-brand-fg` に置換。`tailwind.config` の `brand.fg` と `safelist` に追加。どんな `brandColor`（明暗どちらでも）でも文字が読めるようにした。`<meta name="theme-color">` の既定値も `#f59e0b` → `#ffd900` に是正（`--brand` 既定と一致）。
+- **スクロール連動の縮小ヘッダー＋質感更新**: 濃いグラデ＋`drop-shadow`＋`shadow-lg` の 2018 年頃風マテリアルを、フラット寄り（`shadow-sm`・グラデ控えめ）に更新。スクロール（>48px）でタイトル縮小＋サブタイトル非表示にコンパクト化し、上端付近（<8px）で復元（閾値を分けてちらつき防止、`transition` は `font-size`/`padding` のみ 150ms、`prefers-reduced-motion` では即時切替）。縦空間を確保。
+- **LINE 友だち追加ポップアップの表示条件を再設計**:
+  - 従来: イベント初回訪問の 0.9 秒後に全画面表示（コンテンツ閲覧前の割り込みで離脱要因）。
+  - 変更後（「閲覧後」表示・1回のみ・`localStorage` 制御）:
+    - **イベントページはオプトイン**（`eventInfo.linePromo === true` のときだけ表示）。現行3イベントはすべて LINE 経由でアクセスするため既定の非表示のまま（`linePromo: false`）。新規イベントは `true` を指定すれば表示できる。
+    - **一覧ページ（`?id` 無し）は初回訪問時のみ表示**（LINE 以外からの流入もあるため）。縦が短くタブ切替も無いので、スクロール 120px 超または 5 秒経過で表示（イベントは 300px／30秒）。
+  - 表示タイミングは「一定スクロール・タブ切替・一定時間経過のいずれか早いタイミング」。モーダル表示中は重ねず閉じてから表示。
+- **テンプレート更新**: `template/make_template.py` の基本情報シートに「LINE追加ポップアップ（true/false）」行を追加し `イベント情報入力シート.xlsx` を再生成。`template/README.md` に `linePromo` のオプトイン仕様を追記。
+- シェル変更のため `sw.js` の `CACHE_VERSION` を v23→v24→v25 に更新（コントラスト/ヘッダー対応で v24、LINE 導線見直しで v25）。
 
 ## 残課題 / TODO
 - [x] **GitHub Pages の有効化**（Settings → Pages → main / root。CNAME 設置済み・公開中）。
