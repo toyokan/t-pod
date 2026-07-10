@@ -6,7 +6,7 @@
     "logoSub": "算数サマーフェスティバル2026",
     "iconLabel": "算サマ",
     "brandColor": "#0ea5e9",
-    "theme": "算数の「深い学び」をどう創るか?",
+    "theme": "算数の「深い学び」をどう創るか？　――教師の見つける力、つなぐ力、広げる力",
     "venueName": "筑波大学附属小学校",
     "dateRange": "2026年7月18日(土) 09:30〜7月19日(日) 15:40",
     "tagline": "算数サマーフェスティバル2026",
@@ -16,11 +16,6 @@
       { "id": "day2", "label": "2日目", "date": "2026-07-19", "weekday": "日", "time": "09:00〜15:40" }
     ],
     "notices": [
-      {
-        "title": "大会テーマ",
-        "body": "算数の「深い学び」をどう創るか? ー 教師の見つける力、つなぐ力、広げる力 ー",
-        "level": "info"
-      },
       {
         "title": "大会趣旨",
         "body": "子どもの思考や表現、そして思いが交錯する瞬間に即応する教師の専門性を探る2日間。子どもの「え？どうして？」という本質的な問いを「見つける」、多様な考えを「つなぐ」、そして算数の深い学びを統合的・発展的に「広げる」という三つの力で分析します。ライブ感あふれる授業の中で、深い学びへ誘う教師の対応力を追究します。",
@@ -56,7 +51,7 @@
       { "label": "参加お申し込み", "description": "こくちーずページからお申し込みください。募集期間：2026年5月16日(土) 00:00〜2026年7月17日(金) 23:59", "url": "https://www.kokuchpro.com/event/f38580cc7a70c98301cd38f4155189d2/" }
     ],
     "venue": {
-      "mapNote": "会場は筑波大学附属小学校（東京都文京区大塚3-29-1）です。上履きをご持参ください。詳しい会場割りは当日の案内をご確認ください。",
+      "mapNote": "会場は筑波大学附属小学校（東京都文京区大塚3-29-1）です。上履きをご持参ください。",
       "resourceLinks": [
         { "label": "『算数授業研究』誌 案内", "description": "筑波大学附属小学校算数部が企画編集の雑誌の一覧はこちらからご確認ください。", "url": "https://www.toyokan.co.jp/collections/all/%E7%AE%97%E6%95%B0%E6%8E%88%E6%A5%AD%E7%A0%94%E7%A9%B6?utm_source=ig&utm_medium=social&utm_content=link_in_bio&fbclid=PAZXh0bgNhZW0CMTEAc3J0YwZhcHBfaWQPOTM2NjE5NzQzMzkyNDU5AAGng2i3PlBFvLHWEfuPxLBZFIodkFjo5cwN3OOuUvRP_uzDnwwy1c_Fex7QRDU_aem_sv6SktYu9naxBRe91j-GPw" },
         { "label": "『算数授業研究』誌 定期購読はこちら", "description": "お得な雑誌の定期購読は、こちらからお申し込みいただけます。", "url": "https://www.toyokan.co.jp/pages/subscribe#public5" }
@@ -118,7 +113,6 @@
     { "id": "d2-06", "dateId": "day2", "start": "13:15", "end": "14:15", "category": "協議会④", "items": [] },
     {
       "id": "d2-07", "dateId": "day2", "start": "14:15", "end": "15:00", "category": "講演②",
-      "note": "15:00終了予定（イベント掲載上の終了時刻は15:40）",
       "items": [
         { "title": "準備と即興が生み出す「深い学び」", "meta": ["登壇者：田中 英海"] }
       ]
@@ -251,6 +245,24 @@
       "description": "学力差に左右されず全員の知識を積み上げる、新しい形の問題解決型「ビルドアップ型」算数授業を提案。",
       "url": "https://www.toyokan.co.jp/products/3089",
       "amazon_url": "https://www.amazon.co.jp/dp/4491030898"
-    }
+    },
+        {
+      "title": "教師が知っておきたい 学級づくりの技術と心",
+      "author": "田中 博史／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5993_1.jpg?v=1769392172&width=1200",
+      "description": "学級開きや褒め方・叱り方、子どもの見方、保護者対応など、学級づくりの44の技術と、それを支える教師の心構えを伝える一冊。",
+      "url": "https://www.toyokan.co.jp/products/5993?variant=50566203441385",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491059934"
+    },
+    {
+      "title": "教師として成長したいと思うときに読んでおきたい42の道標 －私が、子どもが、変わったあの瞬間－",
+      "author": "田中 博史／編著、「授業・人」塾／執筆",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/6329_1.jpg?v=1769392191&width=1200",
+      "description": "教師や子どもが変わった瞬間を42の実践やメッセージから紹介し、授業や学級経営に悩む先生の成長を後押しする一冊。",
+      "url": "https://www.toyokan.co.jp/products/6329?variant=50566204457193",
+      "amazon_url": "https://www.amazon.co.jp/dp/449106329X"
+    },
   ]
 }
