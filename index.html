@@ -902,7 +902,8 @@
       // アイコン/マニフェストは logoMain がある時だけ動的生成（無ければ静的のまま）
       if (!info.logoMain) return;
       const bg = resolvedBrand();
-      const svg = buildAppIconSvg(bg, info.logoMain);
+      // アイコン文字は iconLabel があれば優先（logoMain と別表記にしたい場合）、無ければ logoMain 先頭3文字
+      const svg = buildAppIconSvg(bg, info.iconLabel || info.logoMain);
       const svgUri = svgToDataUri(svg);
       const [png512, png192] = await Promise.all([rasterize(svg, 512), rasterize(svg, 192)]);
       const apple = document.querySelector('link[rel="apple-touch-icon"]');
