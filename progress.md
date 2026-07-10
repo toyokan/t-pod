@@ -155,6 +155,15 @@
   - **制約（今後の方針）**: **公開済み URL（`?id=<id>`）は変更しない**方針を確定。したがって `&_r=1` を付与する現行 v29 の別 URL 置換は暫定であり、恒久策としては採らない（URL が汚れる／共有・ブックマーク・履歴に残るため）。URL を変えずにノッチ色を合わせる方法を引き続き検討する。
   - **次に検討する案（URL 不変が前提）**: ①`?id=<id>` のまま Service Worker 側で初回ナビゲーションを確実に横取りする（`clients.claim()` のタイミング／`navigationPreload` 等の見直し）。②`&_r=1` を付けず `history.replaceState` で URL を戻しつつ再パースさせる方法の可否検証。③イベント別の静的 HTML を用意しても**公開 URL は `?id=` のまま**にできる配信（例: リダイレクトではなく SW が `?id=` に対してイベント別 HTML を合成して返す）。いずれも iOS 実機での検証が必須。
 
+### URL 不変のノッチ色対策（セーフエリア上端をブランド色で描画）
+- **方針転換**: iOS Safari 実機では、`theme-color` を SW で書き換えても同一タブのノッチ/ステータスバー色が黄のまま保持されるケースが残ったため、`theme-color` の再読込に依存しない対策へ変更。
+- **対応**:
+  - `registerSW()` から `&_r=1` 付き `location.replace()` を撤去。公開済み URL（`?id=<id>`）を汚さない方針に戻した。
+  - 画面最上部の `env(safe-area-inset-top)` 領域を `--brand` で塗る固定レイヤー `.safe-area-top-bg` を追加。ヘッダー本体は `max-w-2xl`・角丸のまま、ノッチ帯だけは画面端までイベント色で埋める。
+  - `apple-mobile-web-app-status-bar-style` を `black-translucent` に変更し、ホーム画面追加時にも上端の Web コンテンツ色がステータスバー背面に出やすい設定にした。
+- **効果の狙い**: iOS が `theme-color` をタブ単位で保持しても、実際に表示されるセーフエリア背景をアプリ側の CSS 変数で制御する。`applyBrandColor()` が `--brand` を更新するため、イベント JSON 読み込み後にノッチ帯も個別研究会ページの色へ揃う。
+- シェル変更のため `sw.js` の `CACHE_VERSION` を v29→v30 に更新。
+
 ## 残課題 / TODO
 - [x] **GitHub Pages の有効化**（Settings → Pages → main / root。CNAME 設置済み・公開中）。
 - [ ] **判読困難だった氏名・所属の確認**（画像から転記したもの）:

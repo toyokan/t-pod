@@ -30,13 +30,14 @@
         m.content = "タイムテーブル";
         document.head.appendChild(m);
       }
-      // 前回訪問時にキャッシュしたイベントのブランド色を theme-color へ即時反映。
-      // これによりノッチ/ステータスバーの色が（2回目以降は）パース時点でイベント色に揃う。
+      // 前回訪問時にキャッシュしたイベントのブランド色を theme-color と CSS 変数へ即時反映。
+      // これによりノッチ/ステータスバー背面の色が（2回目以降は）パース時点でイベント色に揃う。
       try {
         var cached = id ? localStorage.getItem("t-pod:theme:" + id) : null;
         var meta = document.querySelector('meta[name="theme-color"]');
         if (meta && cached && /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(cached)) {
           meta.setAttribute("content", cached);
+          document.documentElement.style.setProperty("--brand", cached);
         }
       } catch (e) {}
     })();
@@ -46,7 +47,7 @@
   <link rel="icon" type="image/jpeg" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=32&width=32" />
   <link rel="apple-touch-icon" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=180&width=180" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
   <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -140,6 +141,14 @@
        events/<id>.json の brandColor で実行時に上書き */
     :root { --brand: #ffd900; --brand-fg: #ffffff; }
     /* セーフエリア（ノッチ端末）対応 */
+    .safe-area-top-bg {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: env(safe-area-inset-top);
+      background: var(--brand);
+      z-index: 29;
+      pointer-events: none;
+    }
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
     .pt-safe { padding-top: env(safe-area-inset-top); }
     .fab-safe { bottom: 6rem; bottom: calc(6rem + env(safe-area-inset-bottom)); }
@@ -177,6 +186,7 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
+  <div class="safe-area-top-bg" aria-hidden="true"></div>
 
   <!-- ===== Sticky ヘッダー ===== -->
   <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe bg-gradient-to-b from-brand-500 to-brand-600 text-brand-fg shadow-sm rounded-b-2xl">
@@ -885,28 +895,6 @@
     // ---- Service Worker 登録 ----
     function registerSW() {
       if (!("serviceWorker" in navigator)) return;
-      // 初回訪問（＝まだ SW 未制御）でイベントページを開いたときだけ、SW が制御を取得した
-      // 直後に一度リロードして「theme-color を書き換え済みのシェル HTML」を取得する。
-      //   理由: SW 未制御の初回ロードは GitHub Pages の生 HTML（既定 theme-color=黄）が
-      //   そのまま表示される。iOS Safari は theme-color をパース時にしか読まないため、
-      //   ノッチ/ステータスバーが黄のまま固定される。SW 制御後に1回リロードすれば、
-      //   `handleNavigate()` が brandColor で書き換えた HTML が返り、ノッチ色が確定する。
-      //   sessionStorage で「セッション内1回だけ」に制限しリロードループを防止。
-      const wasUncontrolled = !navigator.serviceWorker.controller;
-      const hasReloadMark = new URLSearchParams(location.search).has("_r");
-      let alreadyReloaded = hasReloadMark;
-      try { alreadyReloaded = alreadyReloaded || sessionStorage.getItem("t-pod:sw-reload") === "1"; } catch (e) {}
-      if (wasUncontrolled && getEventId() && !alreadyReloaded) {
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-          try { sessionStorage.setItem("t-pod:sw-reload", "1"); } catch (e) {}
-          // 同一 URL の reload では iOS Safari が status bar の theme-color を再読込しない
-          // ことがあるため、キャッシュバスター付きの別 URL へ置換して確実に再パースさせる。
-          // ?id は保持されるので SW（handleNavigate）が theme-color をイベント色へ書き換える。
-          const u = new URL(location.href);
-          u.searchParams.set("_r", "1");
-          location.replace(u.href);
-        });
-      }
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW登録失敗", e));
       });
