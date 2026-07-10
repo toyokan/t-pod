@@ -884,11 +884,26 @@
 
     // ---- Service Worker 登録 ----
     function registerSW() {
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW登録失敗", e));
+      if (!("serviceWorker" in navigator)) return;
+      // 初回訪問（＝まだ SW 未制御）でイベントページを開いたときだけ、SW が制御を取得した
+      // 直後に一度リロードして「theme-color を書き換え済みのシェル HTML」を取得する。
+      //   理由: SW 未制御の初回ロードは GitHub Pages の生 HTML（既定 theme-color=黄）が
+      //   そのまま表示される。iOS Safari は theme-color をパース時にしか読まないため、
+      //   ノッチ/ステータスバーが黄のまま固定される。SW 制御後に1回リロードすれば、
+      //   `handleNavigate()` が brandColor で書き換えた HTML が返り、ノッチ色が確定する。
+      //   sessionStorage で「セッション内1回だけ」に制限しリロードループを防止。
+      const wasUncontrolled = !navigator.serviceWorker.controller;
+      let alreadyReloaded = false;
+      try { alreadyReloaded = sessionStorage.getItem("t-pod:sw-reload") === "1"; } catch (e) {}
+      if (wasUncontrolled && getEventId() && !alreadyReloaded) {
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          try { sessionStorage.setItem("t-pod:sw-reload", "1"); } catch (e) {}
+          location.reload();
         });
       }
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch((e) => console.warn("SW登録失敗", e));
+      });
     }
 
     // ---- PWA アプリアイデンティティ（イベント毎にアイコン/名前/マニフェストを実行時生成） ----
