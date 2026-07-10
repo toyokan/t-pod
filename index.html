@@ -7,6 +7,11 @@
   <title>プログラム / タイムテーブル</title>
   <meta name="description" content="教育イベント・研究会向けタイムテーブル PWA" />
 
+  <!-- theme-color（ステータスバー/ノッチ部の色）。LINE 等のアプリ内ブラウザはこの値を
+       パース時に一度だけ読み、JS の事後更新を反映しないため、下の inline スクリプトが
+       前回訪問時にキャッシュしたイベント色を「パース時点」で当てる（初回は既定=一覧の黄）。 -->
+  <meta name="theme-color" content="#ffd900" />
+
   <!-- PWA -->
   <!-- マニフェスト/アプリ名はパース時に ?id から確定させる（iOS はホーム画面追加の値を
        パース時の静的タグから読むため、JS の事後差し替えでは間に合わない）。 -->
@@ -25,9 +30,17 @@
         m.content = "タイムテーブル";
         document.head.appendChild(m);
       }
+      // 前回訪問時にキャッシュしたイベントのブランド色を theme-color へ即時反映。
+      // これによりノッチ/ステータスバーの色が（2回目以降は）パース時点でイベント色に揃う。
+      try {
+        var cached = id ? localStorage.getItem("t-pod:theme:" + id) : null;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta && cached && /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(cached)) {
+          meta.setAttribute("content", cached);
+        }
+      } catch (e) {}
     })();
   </script>
-  <meta name="theme-color" content="#ffd900" />
   <!-- 一覧ページ（?id 無し）の既定 favicon は東洋館出版社サイトと同一のものを使用。
        イベントページでは applyAppIdentity() が logoMain に基づく専用アイコンに動的差し替えする。 -->
   <link rel="icon" type="image/jpeg" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=32&width=32" />
@@ -381,6 +394,8 @@
       updateBrandFg(c);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", c);
+      // 次回訪問時にパース時点でノッチ/ステータスバー色を当てられるようキャッシュ
+      try { const id = getEventId(); if (id) localStorage.setItem("t-pod:theme:" + id, c); } catch (e) {}
     }
 
     // 運営系カテゴリ（受付・休憩など）は控えめに、授業・提案系は強調
