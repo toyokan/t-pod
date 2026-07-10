@@ -7,7 +7,7 @@
 - 公開URL（GitHub Pages 有効化後）:
   - イベント一覧: `https://<user>.github.io/t-pod/`
   - 個別イベント: `https://<user>.github.io/t-pod/?id=2026-zensanken-37`
-- 現在登録されているイベント: **第37回 全国算数授業研究大会**（`events/2026-zensanken-37.json`、amber `#f59e0b`）／**第27回 全国国語授業研究大会**（`events/2026-zenkokuken-27.json`、シアン `#00a7d8`）の2件。
+- 現在登録されているイベント: **第37回 全国算数授業研究大会**（`events/2026-zensanken-37.json`、amber `#f59e0b`）／**第27回 全国国語授業研究大会**（`events/2026-zenkokuken-27.json`、シアン `#00a7d8`）／**オール筑波 算数サマーフェスティバル2026**（`events/2026-math-summer-fes.json`、スカイブルー `#0ea5e9`）の3件。
 - 現在のデザイン: ロゴ調のコンパクトなヘッダー、フッターは **TIMETABLE / FILES / BOOKS** の3タブ。テーマ色は `eventInfo.brandColor` で**イベント毎に変更可能**（濃淡は自動生成）。**一覧ページの基調色は東洋館イメージカラーのイエロー `#ffd900`**、一覧の各カードは `events[].brandColor` でイベント固有色に切替。
 
 ## マイルストーン（PR単位）
@@ -97,6 +97,15 @@
 - `index.html` の `<link rel="icon">`/`<link rel="apple-touch-icon">`（静的既定値）を、`www.toyokan.co.jp` と同一の画像（`logo_icon_....jpg`、CDN直接参照）に変更。
 - イベントページの `applyAppIdentity()` によるアイコン実行時生成（PWAホーム画面追加用）は影響を受けず従来通り動作（セレクタで `link[rel="icon"]` を取得して上書きするため）。
 - `assets/favicon.svg` はコードから参照されなくなったため `sw.js` の `APP_SHELL` プリキャッシュ対象からも除外（ファイル自体は予備として残置）。`CACHE_VERSION` は v21 のまま（未デプロイのため据え置き）。
+
+### オール筑波 算数サマーフェスティバル2026の追加
+- Excel入力シート（`イベント情報入力シート_入力済み_2026-math-summer-fes_関連書籍補完.xlsx`）から `events/2026-math-summer-fes.json` を新規生成（eventInfo／sessions 15本／notices 6件／forms／books 14冊）。並行セッションが無いため `rooms: []`。会場マップ画像はシート未指定のため `mapImage` 省略（`mapNote` のみ）。
+- `events.json` に1エントリ追記（計3件）。`manifestPath`（実体マニフェスト）は未作成。
+
+### PWA アイコン文字をヘッダー表示と分離可能に（`iconLabel` 追加）
+- 従来はホーム画面追加時のアプリ名（ヘッダー表示）とアイコン文字が同一の `logoMain` から派生し、アイコンは `logoMain` 先頭3文字固定だった。「ヘッダーは正式名、アイコンは短い略称にしたい」（例: ヘッダー「算数サマー2026」／アイコン「算サマ」）というニーズに対応するため、`eventInfo.iconLabel`（任意）を新設。
+- `index.html` の `applyAppIdentity()` を `info.iconLabel || info.logoMain` でアイコン生成するよう変更（`iconLabel` 未指定時は従来通り `logoMain` 先頭3文字なので既存イベントは無影響）。汎用ロジックのため `template/README.md`／`README.md` にも仕様を追記。
+- `events/2026-math-summer-fes.json` に適用（`logoMain`＝「算数サマー2026」、`iconLabel`＝「算サマ」）。シェル変更のため `sw.js` の `CACHE_VERSION` を v22→v23 に更新。
 
 ## 残課題 / TODO
 - [x] **GitHub Pages の有効化**（Settings → Pages → main / root。CNAME 設置済み・公開中）。

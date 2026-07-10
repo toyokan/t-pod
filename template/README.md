@@ -30,6 +30,7 @@
 Excel から JSON を生成するときの規則。**構造の正は既存の `events/2026-zensanken-37.json`** とする。
 
 - **基本情報** → `eventInfo` の `title`/`subtitle`/`tagline`/`logoMain`/`logoSub`/`theme`/`venueName`/`dateRange`/`brandColor`、`venue.mapNote`。`dates[]`（`id` は day1/day2… を自動採番、`label`/`date`/`weekday`/`time`）、`rooms[]`（`id`=`name`=会場名、`color`）。`events.json` には `id`/`title`/`theme`/`dateRange`/`venueName`/`sortDate`(=並び順日付) を1エントリ追記。
+  - PWA アイコン文字はデフォルトで `logoMain` 先頭3文字。**ヘッダー表示（`logoMain`）とアイコン文字を別にしたい場合**（例: ヘッダー「算数サマー2026」・アイコン「算サマ」）は `eventInfo.iconLabel` を追加で指定する（任意、Excel シートに列は無いため依頼文で指示）。
 - **タイムテーブル** → `sessions[]`。同じ `日付ID`+`開始`+`終了`+`区分`+(会場以外)の並行行は1セッションに束ね、各行を `items[]` の要素にする。`title` と `meta`（セル内改行を `\n` で分割し配列化）を格納。会場列があれば `item.room`。`note` 列はセッションの `note`。演題・登壇者が無い区分（受付/昼食など）は `items: []`。各セッションに `id`（例 d1-01）を採番。
 - **資料リンク** → `種別` で `eventInfo.venue.resourceLinks[]`（資料/ホームページ）と `eventInfo.forms[]`（アンケート/申し込み/案内希望）に振り分け。各要素は `label`/`description`/`url`。
 - **関連書籍** → `books[]`（`title`/`author`/`publisher`/`cover`/`description`/`url`/`amazon_url`）。
