@@ -163,6 +163,7 @@
   - `apple-mobile-web-app-status-bar-style` を `black-translucent` に変更し、ホーム画面追加時にも上端の Web コンテンツ色がステータスバー背面に出やすい設定にした。
 - **効果の狙い**: iOS が `theme-color` をタブ単位で保持しても、実際に表示されるセーフエリア背景をアプリ側の CSS 変数で制御する。`applyBrandColor()` が `--brand` を更新するため、イベント JSON 読み込み後にノッチ帯も個別研究会ページの色へ揃う。
 - シェル変更のため `sw.js` の `CACHE_VERSION` を v29→v30 に更新。
+- **結果（2026-07-10、v30 デプロイ後 iOS Safari 実機で確認）**: **解消を確認**。`theme-color` の再読込に依存せず、セーフエリア上端を独自レイヤーで塗る方式に切り替えたことで、個別イベントページを開くとノッチ/ステータスバー帯がそのイベントのブランド色になった。公開済み URL（`?id=<id>`）も変更なし。長らく残っていたノッチ色問題はこれで**解決とする**。
 
 ## 残課題 / TODO
 - [x] **GitHub Pages の有効化**（Settings → Pages → main / root。CNAME 設置済み・公開中）。
