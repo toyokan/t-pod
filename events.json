@@ -19,6 +19,15 @@
       "venueName": "筑波大学附属小学校",
       "sortDate": "2026-08-04",
       "brandColor": "#f59e0b"
+    },
+    {
+      "id": "2026-math-summer-fes",
+      "title": "オール筑波 算数サマーフェスティバル2026",
+      "theme": "算数の「深い学び」をどう創るか?",
+      "dateRange": "2026年7月18日(土) 09:30〜7月19日(日) 15:40",
+      "venueName": "筑波大学附属小学校",
+      "sortDate": "2026-07-18",
+      "brandColor": "#0ea5e9"
     }
   ]
 }
