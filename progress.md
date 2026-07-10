@@ -128,6 +128,14 @@
 - **既知の制約**: 2 回目以降の訪問は確実に反映。まっさらな端末の**初回訪問のみ**、色を知る前に LINE がバーを読むため一瞬既定の黄になり得る（イベントアプリは LINE から繰り返し開く運用のため実用上ほぼ問題なし）。初回も完全一致させるにはイベント別の実体 HTML か色の静的埋め込みが必要で、「単一汎用シェル」方針とのトレードオフ。
 - シェル変更のため `sw.js` の `CACHE_VERSION` を v25→v26 に更新。
 
+### ノッチ色の恒久対策（Service Worker がシェル HTML の theme-color を書き換え）
+- **残っていた問題**: 上記の localStorage + JS 方式でも、iOS Safari は**サーバーから受け取った生 HTML の静的 `theme-color`（既定 `#ffd900`）**をパース〜リロード時のオーバースクロール背景に採用し、JS の事後変更の反映が遅れる。結果、**リロード直後にノッチ/上部が黄色へ戻る**現象が残っていた（読み込みスピナー中は特に顕著）。
+- **恒久対策**: Service Worker の fetch ハンドラで、**ナビゲーション要求（`request.mode === "navigate"`）を専用処理**（`handleNavigate()`）に分離。`?id` があれば `events/<id>.json` の `eventInfo.brandColor`（`getBrandColor()`、キャッシュ優先→無ければ取得）を並行取得し、シェル HTML 内の `<meta name="theme-color" content="…">` を**イベント色へ書き換えてから返す**。これにより **Safari が受け取る生 HTML の時点で theme-color が正しい色**になり、パース/リロード時も黄へ戻らない。一覧ページ（`?id` 無し）や取得失敗時は素のシェル（既定 `#ffd900`）を返す。
+  - 従来の Network First は `networkFirst()` に切り出して共通化。`HEX_RE` で色を検証。
+  - **検証**: スクリプト無効（`sandbox="allow-same-origin"`）の iframe で読み込み（＝ページ JS が一切動かない状態）、SW 書き換え結果のみの `theme-color` が 全国研`#00a7d8`／全算研`#f59e0b`／サマー`#0ea5e9`／一覧`#ffd900` と各イベント色に一致することを確認。
+  - 効果は SW 制御下（＝2 回目以降、実質すべてのリロード）で有効。SW 未登録の初回ヒットのみ生の既定色。
+- シェル変更のため `sw.js` の `CACHE_VERSION` を v26→v27 に更新。
+
 ## 残課題 / TODO
 - [x] **GitHub Pages の有効化**（Settings → Pages → main / root。CNAME 設置済み・公開中）。
 - [ ] **判読困難だった氏名・所属の確認**（画像から転記したもの）:
