@@ -50,6 +50,11 @@
     "forms": [
       { "label": "参加お申し込み", "description": "こくちーずページからお申し込みください。募集期間：2026年5月16日(土) 00:00〜2026年7月17日(金) 23:59", "url": "https://www.kokuchpro.com/event/f38580cc7a70c98301cd38f4155189d2/" }
     ],
+    "bookSale": {
+      "url": "https://www.toyokan.co.jp/discount/2026SUMMER?redirect=%2Fcollections%2F2026summerfes",
+      "label": "東洋館出版社 特設販売ページ",
+      "note": "本大会限定の割引販売はこちら"
+    },
     "venue": {
       "mapNote": "会場は筑波大学附属小学校（東京都文京区大塚3-29-1）です。上履きをご持参ください。",
       "resourceLinks": [
