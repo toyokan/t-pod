@@ -49,8 +49,8 @@
   "rooms": [
     { "id": "講堂", "name": "３階・講堂", "color": "blueDeep" },
     { "id": "１体", "name": "１階・第１体育館", "color": "blue" },
-    { "id": "１音", "name": "別棟１階・第１音楽室", "color": "green" },
-    { "id": "２音", "name": "別棟２階・第２音楽室", "color": "greenDeep" }
+    { "id": "１音", "name": "西校舎１階・第１音楽室", "color": "green" },
+    { "id": "２音", "name": "西校舎２階・第２音楽室", "color": "greenDeep" }
   ],
   "sessions": [
     { "id": "d1-01", "dateId": "day1", "start": "9:30", "end": "10:00", "category": "受付", "items": [] },

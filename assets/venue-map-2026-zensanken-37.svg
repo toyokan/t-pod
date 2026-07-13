@@ -10,7 +10,7 @@
   <!-- ２音：greenDeep（濃緑） -->
   <rect x="410" y="80" width="330" height="180" rx="14" fill="#326650" stroke="#326650" stroke-width="3"/>
   <text x="575" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#ffffff">２音</text>
-  <text x="575" y="192" font-size="14" text-anchor="middle" fill="#e6f2ed">別棟２階･第２音楽室</text>
+  <text x="575" y="192" font-size="14" text-anchor="middle" fill="#e6f2ed">西校舎２階･第２音楽室</text>
 
   <!-- １体：blue（淡青） -->
   <rect x="60" y="280" width="330" height="180" rx="14" fill="#e8f0f8" stroke="#4f7fa8" stroke-width="3"/>
@@ -20,7 +20,7 @@
   <!-- １音：green（淡緑） -->
   <rect x="410" y="280" width="330" height="180" rx="14" fill="#e6f2ed" stroke="#4d9275" stroke-width="3"/>
   <text x="575" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#326650">１音</text>
-  <text x="575" y="392" font-size="14" text-anchor="middle" fill="#4d9275">別棟１階･第１音楽室</text>
+  <text x="575" y="392" font-size="14" text-anchor="middle" fill="#4d9275">西校舎１階･第１音楽室</text>
 
   <text x="400" y="500" font-size="13" text-anchor="middle" fill="#64748b">※ 会場割りは当日の掲示・配布物をご確認ください</text>
 </svg>
