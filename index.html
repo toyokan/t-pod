@@ -132,6 +132,7 @@
     "bg-brand-50", "bg-brand-100", "bg-brand-200", "bg-brand-500", "bg-brand-600",
     "text-brand-500", "text-brand-600", "text-brand-700", "text-brand-800",
     "border-brand-100", "border-brand-200", "border-brand-300",
+    "ring-brand-600", "from-brand-500", "to-brand-600",
     "text-white", "text-brand-fg",
   ],
 };
@@ -828,17 +829,18 @@
       if (!url) return;
       const label = trimmed(sale.label) || "特設販売ページを見る";
       const note = trimmed(sale.note);
-      const card = el("a", "flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-brand-100 transition");
+      const card = el("a", "flex items-center gap-3 bg-gradient-to-br from-brand-500 to-brand-600 text-brand-fg rounded-2xl p-4 shadow-fab ring-1 ring-brand-600 hover:shadow-lg active:scale-[0.99] transition");
       card.href = url;
       card.target = "_blank";
       card.rel = "noopener";
       card.innerHTML =
-        `<div class="w-10 h-10 flex-shrink-0 rounded-lg bg-brand-600 text-brand-fg flex items-center justify-center">${icon("store", "w-5 h-5")}</div>` +
+        `<div class="w-11 h-11 flex-shrink-0 rounded-xl bg-white text-brand-600 flex items-center justify-center shadow-sm">${icon("store", "w-6 h-6")}</div>` +
         `<div class="min-w-0 flex-1">` +
-        `<div class="text-sm font-bold text-brand-800 leading-snug">${escapeHtml(label)}</div>` +
-        (note ? `<div class="text-xs text-brand-700 mt-0.5">${escapeHtml(note)}</div>` : "") +
+        `<div class="inline-block text-[10px] font-bold tracking-wide bg-white text-brand-600 rounded-full px-2 py-0.5 mb-1">SALE</div>` +
+        `<div class="text-sm font-bold text-brand-fg leading-snug">${escapeHtml(label)}</div>` +
+        (note ? `<div class="text-xs text-brand-fg mt-0.5">${escapeHtml(note)}</div>` : "") +
         `</div>` +
-        `<span class="flex-shrink-0 text-brand-500">${icon("chevron", "w-5 h-5")}</span>`;
+        `<span class="flex-shrink-0 text-brand-fg">${icon("chevron", "w-5 h-5")}</span>`;
       box.appendChild(card);
     }
 
