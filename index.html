@@ -848,14 +848,34 @@
     }
 
     // ---- お知らせ（ヘッダーのベル） ----
+    // 既読は「お知らせの署名（title+body）」の集合で保持する。
+    // 件数ではなく内容で判定するため、後からお知らせが追加・更新されると再びバッジが出る。
+    const NOTICE_READ_KEY = () => "t-pod:notices-read:" + (getEventId() || "_");
+    const noticeSig = (n) => (n.title || "") + " " + (n.body || "");
+
+    function getReadNotices() {
+      try {
+        const raw = localStorage.getItem(NOTICE_READ_KEY());
+        const arr = raw ? JSON.parse(raw) : [];
+        return new Set(Array.isArray(arr) ? arr : []);
+      } catch (e) { return new Set(); }
+    }
+
+    function markNoticesRead() {
+      const notices = (DATA.eventInfo && DATA.eventInfo.notices) || [];
+      try {
+        localStorage.setItem(NOTICE_READ_KEY(), JSON.stringify(notices.map(noticeSig)));
+      } catch (e) {}
+    }
+
     function renderNoticeBadge() {
       const notices = (DATA.eventInfo && DATA.eventInfo.notices) || [];
       const badge = $("noticeBadge");
-      if (notices.length) {
-        badge.textContent = String(notices.length);
-        badge.classList.remove("hidden");
-        badge.classList.add("flex");
-      }
+      const read = getReadNotices();
+      const unread = notices.filter((n) => !read.has(noticeSig(n))).length;
+      badge.textContent = String(unread);
+      badge.classList.toggle("hidden", unread === 0);
+      badge.classList.toggle("flex", unread > 0);
     }
 
     function openNotices() {
@@ -881,6 +901,8 @@
           `<div class="text-sm text-slate-600 mt-1 leading-relaxed">${escapeHtml(n.body)}</div></div>`;
       });
       openModal("概要・お知らせ", body);
+      markNoticesRead();
+      renderNoticeBadge();
     }
 
     // ---- モーダル ----
