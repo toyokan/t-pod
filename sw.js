@@ -10,7 +10,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v32";
+const CACHE_VERSION = "v33";
 const CACHE_NAME = `t-pod-${CACHE_VERSION}`;
 
 // 16進カラー（#rgb / #rgba / #rrggbb / #rrggbbaa）判定
@@ -25,7 +25,7 @@ const APP_SHELL = [
   "./events.json",
   "./manifest.json",
   "./assets/icon.svg",
-  "https://cdn.tailwindcss.com",
+  "https://cdn.tailwindcss.com/3.4.17",
 ];
 
 self.addEventListener("install", (event) => {
