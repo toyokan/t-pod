@@ -203,7 +203,7 @@
 
   <!-- ===== オフライン表示バナー（通信断のとき表示） ===== -->
   <div id="offlineBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
-    <div class="flex items-center gap-2 bg-slate-800 text-white/90 text-xs font-medium rounded-lg px-3 py-2">
+    <div class="flex items-center gap-2 bg-slate-800 text-white/90 text-xs font-medium rounded-xl px-3 py-2">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0" aria-hidden="true"><path d="M12 20h.01"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/></svg>
       <span>オフライン — 保存済みの情報を表示しています</span>
     </div>
@@ -212,7 +212,7 @@
   <!-- ===== ホーム画面に追加バナー（既定 hidden。イベントモードかつ未インストール時のみ表示） ===== -->
   <div id="installBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
     <div class="flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2.5 shadow-card">
-      <span class="flex-shrink-0 w-9 h-9 rounded-lg bg-brand-500 text-brand-fg flex items-center justify-center">
+      <span class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-500 text-brand-fg flex items-center justify-center">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       </span>
       <div class="flex-1 min-w-0">
@@ -230,7 +230,7 @@
   <main class="max-w-2xl mx-auto px-4 pt-4 pb-28">
 
     <!-- 読み込みエラー表示 -->
-    <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-lg p-4 text-sm">
+    <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
       <p>データの読み込みに失敗しました。通信環境をご確認のうえ、ページを再読み込みしてください。</p>
       <a href="./" class="inline-block mt-2 text-brand-600 font-medium underline">イベント一覧へ戻る</a>
     </div>
@@ -295,19 +295,19 @@
   <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
     <div class="grid grid-cols-3 px-2 pt-1.5">
       <button data-tab="program" class="navbtn group flex justify-center" aria-label="TIMETABLE">
-        <span class="navpill flex flex-col items-center gap-1 min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           <span>TIMETABLE</span>
         </span>
       </button>
       <button data-tab="materials" class="navbtn group flex justify-center" aria-label="FILES">
-        <span class="navpill flex flex-col items-center gap-1 min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
           <span>FILES</span>
         </span>
       </button>
       <button data-tab="books" class="navbtn group flex justify-center" aria-label="BOOKS">
-        <span class="navpill flex flex-col items-center gap-1 min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
           <span>BOOKS</span>
         </span>
@@ -957,7 +957,6 @@
         if (pill) {
           pill.classList.toggle("grad-pill", on);
           pill.classList.toggle("shadow-fab", on);
-          pill.classList.toggle("font-extrabold", on);
           pill.classList.toggle("text-slate-400", !on);
         }
       });
