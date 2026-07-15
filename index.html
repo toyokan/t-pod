@@ -31,7 +31,6 @@
         document.head.appendChild(m);
       }
       // 前回訪問時にキャッシュしたイベントのブランド色を theme-color と CSS 変数へ即時反映。
-      // これによりノッチ/ステータスバー背面の色が（2回目以降は）パース時点でイベント色に揃う。
       try {
         var cached = id ? localStorage.getItem("t-pod:theme:" + id) : null;
         var meta = document.querySelector('meta[name="theme-color"]');
@@ -49,8 +48,13 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
+  <!-- Webフォント（Zen Kaku Gothic New）。SWでキャッシュしオフライン時はシステムフォントに劣化 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
+
   <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
   theme: {
@@ -58,7 +62,6 @@
       colors: {
         // ブランド（テーマアクセント）色。基準色は CSS 変数 --brand（既定 amber）。
         // events/<id>.json の eventInfo.brandColor で --brand を上書きするとイベント毎に変化。
-        // 50〜800 の濃淡は color-mix で自動生成（単色指定でOK）。
         brand: {
           50: "color-mix(in srgb, var(--brand) 8%, white)",
           100: "color-mix(in srgb, var(--brand) 16%, white)",
@@ -66,7 +69,6 @@
           300: "color-mix(in srgb, var(--brand) 45%, white)",
           400: "color-mix(in srgb, var(--brand) 70%, white)",
           500: "var(--brand)",
-          // brand-500/600 背景上の文字色（輝度に応じて JS が --brand-fg を白/濃色に切替）
           fg: "var(--brand-fg)",
           600: "color-mix(in srgb, var(--brand) 82%, black)",
           700: "color-mix(in srgb, var(--brand) 62%, black)",
@@ -75,41 +77,21 @@
 
         // 会場カラー：彩度・明度をそろえた配色
         venue: {
-          blue: {
-            100: "#e8f0f8",
-            300: "#9ebbd5",
-            500: "#4f7fa8",
-            700: "#315875",
-          },
-          green: {
-            100: "#e6f2ed",
-            300: "#96c5b1",
-            500: "#4d9275",
-            700: "#326650",
-          },
-          violet: {
-            100: "#f0ebf5",
-            300: "#c2abd3",
-            500: "#8868a3",
-            700: "#5f4775",
-          },
-          coral: {
-            100: "#faece8",
-            300: "#e7ad9e",
-            500: "#c86f59",
-            700: "#914b3a",
-          },
+          blue:   { 100: "#e8f0f8", 300: "#9ebbd5", 500: "#4f7fa8", 700: "#315875" },
+          green:  { 100: "#e6f2ed", 300: "#96c5b1", 500: "#4d9275", 700: "#326650" },
+          violet: { 100: "#f0ebf5", 300: "#c2abd3", 500: "#8868a3", 700: "#5f4775" },
+          coral:  { 100: "#faece8", 300: "#e7ad9e", 500: "#c86f59", 700: "#914b3a" },
         },
       },
 
       boxShadow: {
-        card: "0 1px 2px 0 rgb(15 23 42 / 0.04), 0 1px 3px 0 rgb(15 23 42 / 0.06)",
+        card: "0 1px 3px 0 rgb(15 23 42 / 0.05)",
+        now: "0 8px 24px -8px color-mix(in srgb, var(--brand) 55%, transparent)",
         fab: "0 8px 24px -6px color-mix(in srgb, var(--brand) 50%, transparent)",
       },
     },
   },
 
-  // タッチ端末で hover スタイルが押下後に残留（sticky hover）するのを防ぐ
   future: { hoverOnlyWhenSupported: true },
 
   safelist: [
@@ -128,12 +110,13 @@
     "bg-venue-coral-500", "border-venue-coral-300",
 
     "bg-slate-100", "bg-slate-200", "bg-slate-300",
-    "text-slate-400", "text-slate-600",
+    "text-slate-400", "text-slate-500", "text-slate-600",
     "bg-brand-50", "bg-brand-100", "bg-brand-200", "bg-brand-500", "bg-brand-600",
     "text-brand-500", "text-brand-600", "text-brand-700", "text-brand-800",
-    "border-brand-100", "border-brand-200", "border-brand-300",
-    "ring-brand-600", "from-brand-500", "to-brand-600",
-    "text-white", "text-brand-fg",
+    "border-brand-100", "border-brand-200", "border-brand-300", "border-brand-500",
+    "border", "border-2", "border-slate-200/80",
+    "ring-brand-200", "ring-brand-600", "from-brand-500", "to-brand-600",
+    "text-white", "text-brand-fg", "shadow-now", "rounded-2xl",
   ],
 };
   </script>
@@ -152,30 +135,25 @@
     }
     .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
     .pt-safe { padding-top: env(safe-area-inset-top); }
-    .fab-safe { bottom: 6rem; bottom: calc(6rem + env(safe-area-inset-bottom)); }
     .scroll-x { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .scroll-x::-webkit-scrollbar { display: none; }
     html { scroll-behavior: smooth; }
-    /* タッチ操作の最適化: ダブルタップズーム遅延と既定タップハイライトを無効化し、
-       押下フィードバックは active:scale 等で明示的に付与する */
     a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    /* キーボード操作時のフォーカスリング（マウス/タッチでは非表示） */
     :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
-    /* ページ端でのスクロール連鎖・バウンス抑制（Pull-to-Refresh は維持） */
     body { overscroll-behavior-y: contain; }
-    /* モーダル表示中は背面スクロールを固定 */
     body.modal-open { overflow: hidden; }
     body {
-      font-family: 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', system-ui, sans-serif;
+      font-family: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
-    /* スクロール時のヘッダー縮小（縦空間の確保） */
+    /* スクロール時のヘッダー縮小（縦空間の確保）。縮小時はテーマ・副題を畳む */
     #appHeader .hd { transition: padding .15s ease; }
     #appHeader #eventTitle { transition: font-size .15s ease; }
-    #appHeader.is-compact .hd { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+    #appHeader.is-compact .hd { padding-top: 0.5rem; padding-bottom: 0.5rem; }
     #appHeader.is-compact #eventTitle { font-size: 1.125rem; }
     #appHeader.is-compact #eventSubtitle { display: none; }
+    #appHeader.is-compact #themeBanner { display: none; }
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
@@ -189,11 +167,24 @@
 <body class="bg-slate-50 text-slate-800 min-h-screen">
   <div class="safe-area-top-bg" aria-hidden="true"></div>
 
-  <!-- ===== Sticky ヘッダー ===== -->
-  <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe bg-gradient-to-b from-brand-500 to-brand-600 text-brand-fg shadow-sm rounded-b-2xl">
-    <div class="hd px-4 pt-2.5 pb-2 text-center">
-      <h1 id="eventTitle" class="text-2xl font-extrabold leading-none tracking-tight">読み込み中…</h1>
-      <p id="eventSubtitle" class="text-xs font-semibold opacity-80 mt-1 tracking-wide"></p>
+  <!-- ===== Sticky ヘッダー（テーマ・お知らせベルを統合） ===== -->
+  <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe bg-gradient-to-br from-brand-500 to-brand-600 text-brand-fg shadow-sm rounded-b-3xl">
+    <div class="hd px-5 pt-4 pb-3.5">
+      <div class="flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight">読み込み中…</h1>
+          <p id="eventSubtitle" class="text-[11px] font-semibold opacity-85 mt-0.5"></p>
+        </div>
+        <!-- お知らせ（旧FABをヘッダーへ移設） -->
+        <button id="noticeBtn" aria-label="お知らせを見る"
+          class="relative hidden flex-shrink-0 w-10 h-10 rounded-xl bg-white/20 items-center justify-center active:scale-95 transition">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+          <span id="noticeBadge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center font-black ring-2 ring-white"></span>
+        </button>
+      </div>
+      <div id="themeBanner" class="hidden mt-3 bg-white/15 rounded-xl px-3 py-2 text-xs font-bold leading-relaxed">
+        <span class="text-[10px] font-extrabold opacity-80 tracking-widest mr-1.5">テーマ</span><span id="themeText"></span>
+      </div>
     </div>
   </header>
 
@@ -223,7 +214,7 @@
   </div>
 
   <!-- ===== メインコンテンツ ===== -->
-  <main class="max-w-2xl mx-auto px-3 pt-4 pb-28">
+  <main class="max-w-2xl mx-auto px-4 pt-4 pb-28">
 
     <!-- 読み込みエラー表示 -->
     <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-lg p-4 text-sm">
@@ -233,10 +224,10 @@
 
     <!-- 読み込み中スケルトン（データ取得完了で非表示） -->
     <div id="skeleton" aria-hidden="true" class="space-y-3 animate-pulse">
-      <div class="h-8 w-2/3 bg-slate-200/80 rounded-full"></div>
-      <div class="h-24 bg-slate-200/80 rounded-xl"></div>
-      <div class="h-24 bg-slate-200/70 rounded-xl"></div>
-      <div class="h-24 bg-slate-200/60 rounded-xl"></div>
+      <div class="h-9 bg-slate-200/80 rounded-xl"></div>
+      <div class="h-24 bg-slate-200/80 rounded-2xl"></div>
+      <div class="h-24 bg-slate-200/70 rounded-2xl"></div>
+      <div class="h-24 bg-slate-200/60 rounded-2xl"></div>
     </div>
 
     <!-- (0) イベント一覧（?id 無しのとき表示） -->
@@ -247,13 +238,12 @@
 
     <!-- (1) プログラム -->
     <section id="view-program" class="view">
-      <!-- 日付切替タブ（タイムテーブル表示内の要素） -->
-      <nav id="dateTabs" class="flex gap-1.5 mb-4 overflow-x-auto scroll-x" aria-label="開催日"></nav>
-      <div id="themeBanner" class="hidden mb-4 bg-gradient-to-br from-brand-50 to-brand-100 border border-brand-100 rounded-xl p-3.5">
-        <div class="text-[11px] text-brand-500 font-bold tracking-wide uppercase">テーマ</div>
-        <div id="themeText" class="text-sm font-bold text-brand-800 leading-snug mt-0.5"></div>
+      <!-- 日付切替（セグメンテッドコントロール） -->
+      <nav id="dateTabs" class="flex bg-slate-200/70 rounded-xl p-1 gap-1 mb-3" aria-label="開催日"></nav>
+      <div class="flex items-center justify-between mb-3">
+        <div id="dayMeta" class="text-xs font-bold text-slate-500"></div>
+        <button id="jumpNow" class="hidden text-[11px] font-bold text-brand-700 bg-brand-100 rounded-full px-3 py-1.5 active:scale-95 transition">▼ いまの予定へ</button>
       </div>
-      <div id="dayMeta" class="text-xs font-semibold text-slate-500 mb-3"></div>
       <div id="timetable"></div>
     </section>
 
@@ -263,7 +253,7 @@
 
       <div>
         <h3 class="text-sm font-semibold text-slate-600 mb-2">会場マップ</h3>
-        <div class="bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-card">
           <img id="venueMap" alt="会場マップ" class="w-full" />
           <p id="venueNote" class="text-xs text-slate-600 p-3 leading-relaxed"></p>
         </div>
@@ -287,13 +277,6 @@
       <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
     </section>
   </main>
-
-  <!-- ===== FAB（お知らせ） ===== -->
-  <button id="fab" aria-label="お知らせを見る"
-    class="fixed right-4 fab-safe z-30 w-14 h-14 rounded-2xl bg-brand-600 text-brand-fg shadow-fab flex items-center justify-center active:scale-95 transition">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
-    <span id="fabBadge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[11px] min-w-[20px] h-5 px-1 rounded-full items-center justify-center font-bold ring-2 ring-white"></span>
-  </button>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
   <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
@@ -364,27 +347,22 @@
 
     // ---- 会場テーマカラー辞書 ----
     // events/<id>.json の rooms[].color が指すキー。クラスは <head> の safelist で保持。
-    // chip=ラベル, dot=タイムライン上の点, border=カード左罫線。
-    // 建物ごとに色相を揃え、同建物内の部屋は「濃（Deep=塗りつぶし）／淡（ソフト）」で区別する。
-    // 例: 建物A=青系（講堂=blueDeep / 第1体育館=blue）、別棟=緑系（第1音楽室=greenDeep / 第2音楽室=green）。
+    // chip=ラベル, dot=タイムライン上の点。
     const COLOR = {
-      blue:     { chip: "bg-venue-blue-100 text-venue-blue-700",   dot: "bg-venue-blue-500",   border: "border-venue-blue-300" },
-      blueDeep: { chip: "bg-venue-blue-700 text-white",            dot: "bg-venue-blue-700",   border: "border-venue-blue-500" },
-      green:     { chip: "bg-venue-green-100 text-venue-green-700", dot: "bg-venue-green-500",  border: "border-venue-green-300" },
-      greenDeep: { chip: "bg-venue-green-700 text-white",          dot: "bg-venue-green-700",  border: "border-venue-green-500" },
-      orange:   { chip: "bg-venue-coral-100 text-venue-coral-700",   dot: "bg-venue-coral-500",   border: "border-venue-coral-300" },
-      purple:   { chip: "bg-venue-violet-100 text-venue-violet-700", dot: "bg-venue-violet-500", border: "border-venue-violet-300" },
+      blue:      { chip: "bg-venue-blue-100 text-venue-blue-700",     dot: "bg-venue-blue-500" },
+      blueDeep:  { chip: "bg-venue-blue-700 text-white",              dot: "bg-venue-blue-700" },
+      green:     { chip: "bg-venue-green-100 text-venue-green-700",   dot: "bg-venue-green-500" },
+      greenDeep: { chip: "bg-venue-green-700 text-white",             dot: "bg-venue-green-700" },
+      orange:    { chip: "bg-venue-coral-100 text-venue-coral-700",   dot: "bg-venue-coral-500" },
+      purple:    { chip: "bg-venue-violet-100 text-venue-violet-700", dot: "bg-venue-violet-500" },
     };
-    const NEUTRAL = { chip: "bg-slate-100 text-slate-600", dot: "bg-slate-300", border: "border-slate-200" };
+    const NEUTRAL = { chip: "bg-slate-100 text-slate-600", dot: "bg-slate-300" };
 
-    // 会場ラベル → カラー（events/<id>.json の rooms から動的に構築。未定義はグレー扱い）
     let ROOM_COLOR = {};
     const roomColor = (label) => COLOR[ROOM_COLOR[label]] || NEUTRAL;
 
     // ---- ブランド色（イベント毎・単色指定。濃淡は color-mix で自動生成） ----
-    // 16進カラー（#rgb / #rrggbb / #rrggbbaa）のみ許可。不正値は無視して既定 amber を使用。
     const isHexColor = (c) => typeof c === "string" && /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(c.trim());
-    // hex → sRGB 相対輝度（0=黒〜1=白）。#rgb/#rgba/#rrggbb/#rrggbbaa 対応
     function relativeLuminance(hex) {
       let h = hex.trim().slice(1);
       if (h.length <= 4) h = [...h].map((c) => c + c).join("");
@@ -393,26 +371,23 @@
            + 0.7152 * lin(parseInt(h.slice(2, 4), 16))
            + 0.0722 * lin(parseInt(h.slice(4, 6), 16));
     }
-    // ブランド色の明るさに応じて、その上に載せる文字色（--brand-fg）を白/濃色に切替
     function updateBrandFg(color) {
       if (!isHexColor(color)) return;
       const fg = relativeLuminance(color) > 0.55 ? "#1e293b" : "#ffffff";
       document.documentElement.style.setProperty("--brand-fg", fg);
     }
     function applyBrandColor(color) {
-      if (!isHexColor(color)) { updateBrandFg(resolvedBrand()); return; } // 既定 --brand に対して文字色のみ判定
+      if (!isHexColor(color)) { updateBrandFg(resolvedBrand()); return; }
       const c = color.trim();
       document.documentElement.style.setProperty("--brand", c);
       updateBrandFg(c);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", c);
-      // 次回訪問時にパース時点でノッチ/ステータスバー色を当てられるようキャッシュ
       try { const id = getEventId(); if (id) localStorage.setItem("t-pod:theme:" + id, c); } catch (e) {}
     }
 
-    // 運営系カテゴリ（受付・休憩など）は控えめに、授業・提案系は強調
+    // 運営系カテゴリ（受付・休憩など）はコンパクト表示、授業・提案系はカードで強調
     const isAdminCat = (cat) => /受付|昼食|昼休憩|休憩|閉会|事務|理事|挨拶|諸連絡/.test(cat || "");
-    const catColor = (cat) => (isAdminCat(cat) ? "text-slate-500" : "text-brand-700");
 
     // ---- SVG アイコン（Lucide 系・stroke=currentColor） ----
     const ICONS = {
@@ -441,18 +416,16 @@
     let activeTab = "program";
 
     // ---- 「現在時刻」追従の状態 ----
-    let didAutoScroll = false;   // 進行中セッションへの自動スクロールは初回描画のみ
-    let nowTimer = null;         // 1分毎のハイライト更新タイマー（多重登録防止）
-    let currentRows = [];        // 表示中タイムテーブルの行要素
-    let currentSessions = [];    // 表示中タイムテーブルのセッション
-    let currentDayObj = null;    // 表示中の日付オブジェクト
+    let didAutoScroll = false;
+    let nowTimer = null;
+    let currentRows = [];
+    let currentSessions = [];
+    let currentDayObj = null;
 
-    // "9:30" / "09:30" → 分（不正値は null）
     const toMin = (t) => {
       const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
       return m ? +m[1] * 60 + +m[2] : null;
     };
-    // ローカル日付を "YYYY-MM-DD" で取得
     const localDateStr = (d = new Date()) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -467,43 +440,43 @@
     const escapeHtml = (s) =>
       String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    // "2026-08-04" → 月日の表記（sep="月"→"8月4日" / sep="/"→"8/4"。先頭ゼロを除去）
     const fmtMD = (d, sep = "月") => {
       const [, m, day] = String(d || "").split("-");
       if (!m || !day) return "";
       return sep === "月" ? `${+m}月${+day}日` : `${+m}${sep}${+day}`;
     };
+    // scrollIntoView は使わず、ヘッダー分のオフセットを取って scrollTo する
+    function scrollToRow(row) {
+      if (!row) return;
+      const top = row.getBoundingClientRect().top + window.scrollY - 150;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }
 
     // ---- 起動 ----
-    // URL の ?id=<イベントID> を取得（不正値・パストラバーサルは除去）
     function getEventId() {
       const id = new URLSearchParams(location.search).get("id") || "";
       return /^[A-Za-z0-9_-]+$/.test(id) ? id : "";
     }
 
-    // イベントモード（個別ページ）と一覧モードで表示要素を切り替える
     function setMode(mode) {
       const isEvent = mode === "event";
       $("dateTabs").classList.toggle("hidden", !isEvent);
       document.getElementById("bottomNav").classList.toggle("hidden", !isEvent);
-      $("fab").classList.toggle("hidden", !isEvent);
+      $("noticeBtn").classList.toggle("hidden", !isEvent);
+      $("noticeBtn").classList.toggle("flex", isEvent);
       $("view-list").classList.toggle("hidden", isEvent);
-      // 一覧モードではプログラム表示を隠す（イベントモードでは直後の setTab が表示制御）
       $("view-program").classList.toggle("hidden", !isEvent);
-      // 一覧モードではボトムナビ分の余白を詰める
       document.querySelector("main").classList.toggle("pb-28", isEvent);
       document.querySelector("main").classList.toggle("pb-8", !isEvent);
     }
 
     async function init() {
-      // 既定ブランド色（一覧ページ等）にも文字色の輝度判定を適用
       updateBrandFg(resolvedBrand());
       registerSW();
       setupInstallPrompt();
       const id = getEventId();
       try {
         if (id) {
-          // ---- イベントモード ----
           const res = await fetch(`events/${id}.json`, { cache: "no-cache" });
           if (!res.ok) throw new Error("HTTP " + res.status);
           DATA = await res.json();
@@ -511,7 +484,6 @@
           renderAll();
           showLinePromo();
         } else {
-          // ---- 一覧モード ----
           const res = await fetch("events.json", { cache: "no-cache" });
           if (!res.ok) throw new Error("HTTP " + res.status);
           const index = await res.json();
@@ -546,10 +518,9 @@
       }
 
       events.forEach((ev, idx) => {
-        const card = el("a", "group relative block bg-white border border-slate-200/80 rounded-xl p-4 pl-5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition animate-in overflow-hidden");
+        const card = el("a", "group relative block bg-white border border-slate-200/80 rounded-2xl p-4 pl-5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition animate-in overflow-hidden");
         card.href = "?id=" + encodeURIComponent(ev.id);
         card.style.animationDelay = idx * 40 + "ms";
-        // 各カードはイベント個別のブランド色でアクセント（brand-* が --brand を参照して再計算）
         if (isHexColor(ev.brandColor)) card.style.setProperty("--brand", ev.brandColor.trim());
         card.innerHTML =
           `<span class="absolute left-0 inset-y-0 w-1.5 bg-brand-500"></span>` +
@@ -569,11 +540,10 @@
       $("eventSubtitle").textContent = info.logoSub || info.subtitle || "";
       applyAppIdentity(info);
 
-      // 会場カラー辞書を構築
       ROOM_COLOR = {};
       (DATA.rooms || []).forEach((r) => { ROOM_COLOR[r.id] = r.color; ROOM_COLOR[r.name] = r.color; });
 
-      // テーマのバナー
+      // テーマ（ヘッダー内バナー）
       if (info.theme) {
         $("themeText").textContent = info.theme;
         $("themeBanner").classList.remove("hidden");
@@ -583,20 +553,17 @@
       renderMaterials();
       renderBooks();
       renderNoticeBadge();
-      // 初期表示
       setTab("program");
-      // ホーム画面追加バナー（イベント読み込み成功後・未インストール時のみ）
       showInstallBanner();
     }
 
-    // ---- 日付タブ ----
+    // ---- 日付タブ（セグメンテッドコントロール） ----
     function renderDateTabs() {
       const tabs = $("dateTabs");
       tabs.innerHTML = "";
       const dates = (DATA.eventInfo && DATA.eventInfo.dates) || [];
       const todayStr = localDateStr();
       if (!activeDateId && dates.length) {
-        // 開催中（当日）ならその日のタブを既定表示。該当なしは初日。
         const todayObj = dates.find((d) => d.date === todayStr);
         activeDateId = (todayObj || dates[0]).id;
       }
@@ -606,12 +573,11 @@
         const isToday = d.date === todayStr;
         const btn = el(
           "button",
-          "flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold transition active:scale-95 " +
-            (isActive ? "bg-brand-500 text-brand-fg shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"),
+          "flex-1 min-w-0 px-2 py-2 rounded-lg text-sm transition active:scale-[.98] " +
+            (isActive ? "bg-white text-slate-800 font-extrabold shadow-card" : "text-slate-500 font-semibold hover:bg-slate-100"),
           escapeHtml(d.label) +
-            (d.date ? `<span class="ml-1 text-xs font-normal opacity-80">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
-            // 開催当日のタブに目印のドット
-            (isToday ? `<span class="inline-block align-middle w-1.5 h-1.5 rounded-full bg-current ml-1.5 opacity-90" aria-hidden="true"></span>` : "")
+            (d.date ? `<span class="ml-1 text-[11px] font-medium ${isActive ? "text-slate-400" : "opacity-70"}">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
+            (isToday ? `<span class="inline-block align-middle w-1.5 h-1.5 rounded-full bg-brand-500 ml-1.5" aria-hidden="true"></span>` : "")
         );
         btn.type = "button";
         btn.setAttribute("aria-pressed", String(isActive));
@@ -621,12 +587,11 @@
       renderTimetable();
     }
 
-    // ---- タイムテーブル（縦型タイムライン: 時間 → 内容 → 詳細） ----
+    // ---- タイムテーブル（左レール＋カード。運営系はコンパクト表示） ----
     function renderTimetable() {
       const wrap = $("timetable");
       wrap.innerHTML = "";
 
-      // この日の見出し（◯日目 8月4日(火) 10:00〜16:15）
       const dayObj = ((DATA.eventInfo && DATA.eventInfo.dates) || []).find((d) => d.id === activeDateId);
       if (dayObj) {
         const md = fmtMD(dayObj.date);
@@ -643,55 +608,66 @@
         return;
       }
 
-      const list = el("div", "space-y-3");
+      // レール（縦線）付きコンテナ
+      const list = el("div", "relative pl-[18px]");
+      list.appendChild(el("div", "absolute left-[5px] top-2 bottom-2 w-0.5 bg-slate-200 rounded", ""));
+
       const rows = [];
       sessions.forEach((s, idx) => {
-        const row = el("div", "flex gap-3 animate-in");
+        const admin = isAdminCat(s.category);
+        const row = el("div", "relative mb-2.5 animate-in");
         row.style.animationDelay = idx * 30 + "ms";
         rows.push(row);
 
-        // 時間カラム
-        const time = el("div", "flex-shrink-0 w-12 text-right pt-2");
-        time.innerHTML =
-          `<div class="text-sm font-bold tabular-nums text-slate-700">${escapeHtml(s.start || "")}</div>` +
-          (s.end ? `<div class="text-[11px] tabular-nums text-slate-400 leading-tight">${escapeHtml(s.end)}</div>` : "");
-        row.appendChild(time);
-
-        // タイムラインのレール（縦線＋点）
+        // レールの点
         const roomItem = (s.items || []).find((it) => it.room);
-        const dot = roomItem ? roomColor(roomItem.room).dot : isAdminCat(s.category) ? NEUTRAL.dot : "bg-brand-500";
-        const rail = el("div", "relative flex-shrink-0 w-4 border-l-2 border-slate-200 ml-0.5");
-        rail.innerHTML = `<span class="absolute -left-[7px] top-2 w-3 h-3 rounded-full ring-4 ring-slate-50 ${dot}"></span>`;
-        row.appendChild(rail);
+        const dot = roomItem ? roomColor(roomItem.room).dot : admin ? NEUTRAL.dot : "bg-brand-500";
+        row.appendChild(el("span", `now-dot absolute -left-[18px] ${admin ? "top-3" : "top-3.5"} w-3 h-3 rounded-full ring-4 ring-slate-50 ${dot}`, ""));
 
-        // 内容カード
-        const card = el("div", "flex-1 min-w-0 bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-card");
-        let html = `<div class="text-sm font-bold ${catColor(s.category)}">${escapeHtml(s.category || "")}</div>`;
-        if (s.note) html += `<p class="text-xs text-slate-500 mt-1 leading-relaxed">${escapeHtml(s.note)}</p>`;
-        (s.items || []).forEach((it) => {
-          html += `<div class="mt-2.5 first:mt-1.5">`;
-          if (it.room) {
-            const c = roomColor(it.room);
-            html += `<span class="inline-block align-middle text-[11px] font-bold px-2 py-0.5 rounded-full mr-1.5 ${c.chip}">${escapeHtml(it.room)}</span>`;
-          }
-          if (it.title) html += `<span class="align-middle text-sm font-semibold text-slate-800">${escapeHtml(it.title)}</span>`;
-          (it.meta || []).forEach((m) => {
-            html += `<div class="text-xs text-slate-600 leading-relaxed mt-0.5">${escapeHtml(m)}</div>`;
+        if (admin) {
+          // 運営系（受付・昼食など）：時刻＋名称のコンパクト行
+          const bar = el("div", "session-card bg-slate-200/60 rounded-xl px-3.5 py-2 flex items-center gap-2.5");
+          bar.innerHTML =
+            `<span class="text-[12.5px] font-extrabold tabular-nums text-slate-500">${escapeHtml(s.start || "")}</span>` +
+            `<span class="text-[12.5px] font-bold text-slate-500">${escapeHtml(s.category || "")}</span>` +
+            (s.note ? `<span class="text-[11px] text-slate-400 truncate">${escapeHtml(s.note)}</span>` : "");
+          row.appendChild(bar);
+        } else {
+          // 内容カード
+          const card = el("div", "session-card bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card");
+          const range = s.end ? `${escapeHtml(s.start)}–${escapeHtml(s.end)}` : escapeHtml(s.start || "");
+          let html =
+            `<div class="now-slot"></div>` +
+            `<div class="flex items-center justify-between gap-2">` +
+            `<div class="text-sm font-black text-brand-700">${escapeHtml(s.category || "")}</div>` +
+            `<div class="text-[11px] font-extrabold tabular-nums text-slate-400 flex-shrink-0">${range}</div>` +
+            `</div>`;
+          if (s.note) html += `<p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(s.note)}</p>`;
+          (s.items || []).forEach((it) => {
+            html += `<div class="mt-2.5 first-of-type:mt-2">`;
+            html += `<div class="flex items-baseline gap-2 flex-wrap">`;
+            if (it.room) {
+              const c = roomColor(it.room);
+              html += `<span class="flex-shrink-0 text-[10.5px] font-extrabold px-2 py-0.5 rounded-md ${c.chip}">${escapeHtml(it.room)}</span>`;
+            }
+            if (it.title) html += `<span class="text-[12.5px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
+            html += `</div>`;
+            (it.meta || []).forEach((m) => {
+              html += `<div class="text-xs text-slate-500 leading-relaxed mt-0.5">${escapeHtml(m)}</div>`;
+            });
+            html += `</div>`;
           });
-          html += `</div>`;
-        });
-        card.innerHTML = html;
-        row.appendChild(card);
+          card.innerHTML = html;
+          row.appendChild(card);
+        }
         list.appendChild(row);
       });
       wrap.appendChild(list);
 
-      // 「現在」ハイライトを適用（当日のみ）。自動スクロールは初回描画時のみ。
       currentRows = rows;
       currentSessions = sessions;
       currentDayObj = dayObj || null;
       updateNowMarker(true);
-      // 1分毎にハイライトを追従更新（タイマーは1本だけ）
       if (!nowTimer) nowTimer = setInterval(() => updateNowMarker(false), 60000);
     }
 
@@ -708,37 +684,68 @@
       return idx;
     }
 
-    // 表示中タイムテーブルの「現在」ハイライトと進行中バッジを付け直す（再描画なし）
+    // 「現在」ハイライト：進行中カードに枠＋進行中バッジ＋経過バー＋残り時間（再描画なし）
     function updateNowMarker(allowScroll) {
       if (!currentRows.length) return;
       const idx = findNowIdx(currentSessions, currentDayObj);
+      const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+      let showJump = false;
+
       currentRows.forEach((row, i) => {
-        const card = row.querySelector(".shadow-card");
+        const card = row.querySelector(".session-card");
+        const dotEl = row.querySelector(".now-dot");
         if (!card) return;
         const badge = card.querySelector(".now-badge");
-        if (i === idx) {
-          card.classList.add("ring-2", "ring-brand-500");
-          // 進行中（end 経過後は「直近」扱いなのでバッジは進行中の間だけ）
-          const endMin = toMin(currentSessions[i].end);
-          const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+        const isCard = card.classList.contains("bg-white");
+        const on = i === idx;
+        if (on) {
+          const s = currentSessions[i];
+          const stMin = toMin(s.start);
+          const endMin = toMin(s.end);
           const ongoing = endMin === null || nowMin < endMin;
-          if (ongoing && !badge) {
-            card.insertAdjacentHTML(
-              "afterbegin",
-              `<div class="now-badge flex items-center gap-1.5 text-[11px] font-bold text-brand-600 mb-1"><span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>進行中</div>`
-            );
-          } else if (!ongoing && badge) {
-            badge.remove();
+          showJump = true;
+          if (isCard) {
+            card.classList.add("border-2", "border-brand-500", "shadow-now");
+            card.classList.remove("border", "border-slate-200/80");
+          }
+          if (dotEl) dotEl.classList.add("ring-brand-200");
+          if (ongoing && isCard) {
+            const remain = endMin !== null ? Math.max(0, endMin - nowMin) : null;
+            const pct = (stMin !== null && endMin !== null && endMin > stMin)
+              ? Math.min(100, Math.max(0, Math.round(((nowMin - stMin) / (endMin - stMin)) * 100))) : 0;
+            const slot = card.querySelector(".now-slot");
+            const html =
+              `<div class="now-badge">` +
+              `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-700 mb-1">` +
+              `<span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>進行中` +
+              (remain !== null ? ` · あと${remain}分` : "") + `</div>` +
+              (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:${pct}%"></div></div>` : "") +
+              `</div>`;
+            if (slot) slot.innerHTML = html;
+            else if (badge) badge.outerHTML = html;
+          } else if (!ongoing) {
+            const slot = card.querySelector(".now-slot");
+            if (slot) slot.innerHTML = "";
+            if (badge) badge.remove();
           }
         } else {
-          card.classList.remove("ring-2", "ring-brand-500");
+          if (isCard) {
+            card.classList.remove("border-2", "border-brand-500", "shadow-now");
+            card.classList.add("border", "border-slate-200/80");
+          }
+          if (dotEl) dotEl.classList.remove("ring-brand-200");
+          const slot = card.querySelector(".now-slot");
+          if (slot) slot.innerHTML = "";
           if (badge) badge.remove();
         }
       });
+
+      $("jumpNow").classList.toggle("hidden", !(showJump && idx >= 0));
+      $("jumpNow").onclick = () => scrollToRow(currentRows[idx]);
+
       if (allowScroll && !didAutoScroll && idx >= 0 && currentRows[idx]) {
         didAutoScroll = true;
-        const target = currentRows[idx];
-        requestAnimationFrame(() => target.scrollIntoView({ behavior: "smooth", block: "center" }));
+        requestAnimationFrame(() => scrollToRow(currentRows[idx]));
       }
     }
 
@@ -749,7 +756,6 @@
       if (venue.mapImage) {
         map.src = venue.mapImage;
         map.classList.remove("hidden");
-        // 画像取得失敗時は崩さず非表示（注記テキストは残す）
         map.onerror = () => map.classList.add("hidden");
       } else map.classList.add("hidden");
       $("venueNote").textContent = venue.mapNote || "";
@@ -768,15 +774,15 @@
     function linkCard(item, iconName) {
       const a = el(
         "a",
-        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition"
+        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition"
       );
       a.href = item.url || "#";
       a.target = "_blank";
       a.rel = "noopener";
       a.innerHTML =
-        `<span class="flex-shrink-0 w-10 h-10 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">${icon(iconName)}</span>` +
+        `<span class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">${icon(iconName)}</span>` +
         `<span class="flex-1 min-w-0">` +
-        `<span class="block text-sm font-semibold text-slate-800">${escapeHtml(item.label)}</span>` +
+        `<span class="block text-sm font-bold text-slate-800">${escapeHtml(item.label)}</span>` +
         (item.description ? `<span class="block text-xs text-slate-500 mt-0.5">${escapeHtml(item.description)}</span>` : "") +
         `</span>` +
         `<span class="text-slate-300 group-hover:text-brand-400 transition">${icon("chevron", "w-5 h-5")}</span>`;
@@ -789,13 +795,11 @@
       const list = $("bookList");
       list.innerHTML = "";
       (DATA.books || []).forEach((b) => {
-        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition");
-        // リンク先は url 優先、無ければ amazon_url にフォールバック（空白のみの値は無効扱い）
+        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition");
         const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
         card.href = trimmed(b.url) || trimmed(b.amazon_url) || "#";
         card.target = "_blank";
         card.rel = "noopener";
-        // cover は空白のみの値（" " 等）を無効扱いにする
         const cover = typeof b.cover === "string" ? b.cover.trim() : "";
         const placeholder = `<div class="w-16 h-24 flex-shrink-0 rounded-lg bg-brand-50 text-brand-400 flex items-center justify-center">${icon("book", "w-7 h-7")}</div>`;
         card.innerHTML =
@@ -806,7 +810,6 @@
           (b.publisher ? `<div class="text-[11px] text-slate-400">${escapeHtml(b.publisher)}</div>` : "") +
           (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
           `</div>`;
-        // 表紙画像は要素で生成し、取得失敗時は本アイコンのプレースホルダに差し替える
         if (cover) {
           const img = el("img", "w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
           img.src = cover;
@@ -844,10 +847,10 @@
       box.appendChild(card);
     }
 
-    // ---- お知らせ（FAB） ----
+    // ---- お知らせ（ヘッダーのベル） ----
     function renderNoticeBadge() {
       const notices = (DATA.eventInfo && DATA.eventInfo.notices) || [];
-      const badge = $("fabBadge");
+      const badge = $("noticeBadge");
       if (notices.length) {
         badge.textContent = String(notices.length);
         badge.classList.remove("hidden");
@@ -859,7 +862,6 @@
       const info = DATA.eventInfo || {};
       const notices = info.notices || [];
       let body = "";
-      // イベント概要
       body +=
         `<div class="bg-brand-50 border border-brand-100 rounded-xl p-4">` +
         `<div class="text-base font-bold text-brand-800 leading-snug">${escapeHtml(info.title || "")}</div>` +
@@ -882,7 +884,7 @@
     }
 
     // ---- モーダル ----
-    let lastFocused = null; // モーダルを開く直前のフォーカス位置（閉じたら復帰）
+    let lastFocused = null;
     function openModal(title, html) {
       $("modalTitle").textContent = title;
       $("modalBody").innerHTML = html;
@@ -916,8 +918,6 @@
           pill.classList.toggle("text-slate-400", !on);
         }
       });
-      // 日付タブはプログラムでのみ意味を持つ（表示は常に出してOK）
-      // タブ切替は「画面の入れ替え」なのでスムーズスクロールさせず即時に先頭へ
       window.scrollTo({ top: 0, behavior: "instant" });
     }
 
@@ -930,14 +930,11 @@
     }
 
     // ---- PWA アプリアイデンティティ（イベント毎にアイコン/名前/マニフェストを実行時生成） ----
-    // 適用済みの --brand（brandColor 未指定なら既定 amber）を取得
     function resolvedBrand() {
       const v = getComputedStyle(document.documentElement).getPropertyValue("--brand").trim();
       return v || "#f59e0b";
     }
-    // brandColor 地に logoMain 文字を載せた 512×512 アイコン SVG を生成（中央 ~64% に収める）
     function buildAppIconSvg(bg, label) {
-      // アイコン文字は logoMain の先頭3文字（例: 全算研2026 → 全算研）
       const chars = [...String(label || "")].slice(0, 3);
       const text = chars.join("");
       let fontSize;
@@ -948,11 +945,10 @@
         `<text x="256" y="256" font-size="${fontSize}" font-weight="800" text-anchor="middle" dominant-baseline="central">${escapeHtml(text)}</text>`;
       return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">`
         + `<rect width="512" height="512" rx="96" fill="${escapeHtml(bg)}"/>`
-        + `<g fill="${escapeHtml(isHexColor(bg) && relativeLuminance(bg) > 0.55 ? "#1e293b" : "#ffffff")}" font-family="'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif">${texts}</g>`
+        + `<g fill="${escapeHtml(isHexColor(bg) && relativeLuminance(bg) > 0.55 ? "#1e293b" : "#ffffff")}" font-family="'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif">${texts}</g>`
         + `</svg>`;
     }
     const svgToDataUri = (svg) => "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
-    // SVG を canvas で PNG data URI 化（iOS の apple-touch-icon は PNG が必要）
     function rasterize(svg, size) {
       return new Promise((resolve) => {
         const img = new Image();
@@ -969,13 +965,9 @@
       });
     }
     async function applyAppIdentity(info) {
-      // アプリ名（ページ名）= logoMain（例: 全算研2026）
       const name = info.logoMain || info.title || "イベント";
       const shortName = name;
-      // タイトル系（アプリ名 = logoMain）
       document.title = name;
-      // apple タイトルはイベントモードでは <head> に無い（manifest name を優先させるため）。
-      // 遅延読み取りするブラウザの保険として、無ければ生成して logoMain を入れる。
       let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
       if (!appleTitle) {
         appleTitle = document.createElement("meta");
@@ -983,10 +975,8 @@
         document.head.appendChild(appleTitle);
       }
       appleTitle.setAttribute("content", name);
-      // アイコン/マニフェストは logoMain がある時だけ動的生成（無ければ静的のまま）
       if (!info.logoMain) return;
       const bg = resolvedBrand();
-      // アイコン文字は iconLabel があれば優先（logoMain と別表記にしたい場合）、無ければ logoMain 先頭3文字
       const svg = buildAppIconSvg(bg, info.iconLabel || info.logoMain);
       const svgUri = svgToDataUri(svg);
       const [png512, png192] = await Promise.all([rasterize(svg, 512), rasterize(svg, 192)]);
@@ -997,12 +987,10 @@
 
       const link = document.querySelector('link[rel="manifest"]');
       if (!link) return;
-      // (1) 実体マニフェストの指定があれば最優先で参照（最も確実・iOS でも安定）
       if (/^events\/[A-Za-z0-9_-]+\.webmanifest$/.test(info.manifestPath || "")) {
         link.setAttribute("href", info.manifestPath);
         return;
       }
-      // (2) 無ければ data URI で動的生成（start_url/scope は絶対 URL 化して有効にする）
       const id = getEventId();
       const startUrl = new URL(id ? `./?id=${encodeURIComponent(id)}` : "./", location.href).href;
       const scope = new URL("./", location.href).href;
@@ -1041,20 +1029,13 @@
       document.body.classList.remove("modal-open");
       try { localStorage.setItem(LINE_DISMISS_KEY, "1"); } catch (e) {}
     }
-    // タブ切替から呼ばれるフック（showLinePromo が待機中のみ設定される）
     let linePromoTrigger = null;
-    // LINE 友だち追加ポップアップの表示可否:
-    //  - イベントページ: 既定は非表示。events/<id>.json の eventInfo.linePromo === true のときだけ表示（オプトイン）。
-    //    現行イベントはすべて LINE からの導線でアクセスするため出さない。新規イベントは true を指定すれば出せる。
-    //  - 一覧ページ（?id 無し）: LINE 以外からの流入もあるため、初回のみ表示。
-    // いずれも「閲覧後」に1回だけ・localStorage で初回制御。
     function showLinePromo() {
       const isEvent = !!getEventId();
-      if (isEvent && DATA?.eventInfo?.linePromo !== true) return; // イベントはオプトインのみ
-      try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}  // 初回のみ
+      if (isEvent && DATA?.eventInfo?.linePromo !== true) return;
+      try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
       let fired = false;
       const open = () => {
-        // モーダル等の表示中は重ねず、閉じられてから出す
         if (document.body.classList.contains("modal-open")) { setTimeout(open, 3000); return; }
         try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
         $("linePopup").classList.remove("hidden");
@@ -1068,8 +1049,6 @@
         linePromoTrigger = null;
         setTimeout(open, 400);
       };
-      // 「閲覧後」に表示: 一定スクロール・タブ切替・一定時間経過のいずれか早いタイミング。
-      // 一覧ページは縦が短くタブ切替も無いため、しきい値・フォールバックを小さめにする。
       const scrollNeed = isEvent ? 300 : 120;
       const onScroll = () => { if (window.scrollY > scrollNeed) trigger(); };
       const timer = setTimeout(trigger, isEvent ? 30000 : 5000);
@@ -1079,7 +1058,7 @@
     function showInstallBanner() {
       if (!getEventId() || isStandalone()) return;
       try { if (localStorage.getItem(INSTALL_DISMISS_KEY)) return; } catch (e) {}
-      if (!deferredPrompt && !isIos()) return; // 追加手段が無い環境では出さない
+      if (!deferredPrompt && !isIos()) return;
       $("installBanner").classList.remove("hidden");
     }
     function hideInstallBanner() { $("installBanner").classList.add("hidden"); }
@@ -1119,7 +1098,6 @@
     document.querySelectorAll(".navbtn").forEach((b) =>
       b.addEventListener("click", () => {
         setTab(b.dataset.tab);
-        // タブ切替＝コンテンツ閲覧後とみなし、待機中のLINEポップアップを表示
         if (linePromoTrigger) linePromoTrigger();
       })
     );
@@ -1129,18 +1107,16 @@
       const header = $("appHeader");
       let compact = false;
       window.addEventListener("scroll", () => {
-        // 縮小(>48px)と復元(<8px)で閾値を分け、境界でのちらつきを防ぐ
         const y = window.scrollY;
         const next = compact ? y > 8 : y > 48;
         if (next !== compact) { compact = next; header.classList.toggle("is-compact", compact); }
       }, { passive: true });
     })();
-    $("fab").addEventListener("click", openNotices);
+    $("noticeBtn").addEventListener("click", openNotices);
     $("modalClose").addEventListener("click", closeModal);
     $("modalBackdrop").addEventListener("click", closeModal);
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeModal(); dismissLinePromo(); } });
 
-    // タブ復帰時に「現在」ハイライトを即時更新（スリープ中の時間経過に追従）
     document.addEventListener("visibilitychange", () => { if (!document.hidden) updateNowMarker(false); });
 
     // ---- オフライン表示バナー ----
