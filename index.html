@@ -117,13 +117,23 @@
     "border", "border-2", "border-slate-200/80",
     "ring-brand-200", "ring-brand-600", "from-brand-500", "to-brand-600",
     "text-white", "text-brand-fg", "shadow-now", "rounded-2xl",
+    "border-transparent", "shadow-fab", "font-extrabold",
   ],
 };
   </script>
   <style>
     /* ブランド基準色（既定＝東洋館イメージカラーのゴールド。一覧ページの基調色）。
        events/<id>.json の brandColor で実行時に上書き */
-    :root { --brand: #ffd900; --brand-fg: #ffffff; }
+    :root { --brand: #ffd900; --brand-fg: #ffffff; --brand-2: color-mix(in srgb, var(--brand) 68%, black); }
+    /* 2a案：ヘッダーのグラデ強化＋要所グラデのユーティリティ */
+    #appHeader {
+      background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 50%, white) 0%, var(--brand) 52%, var(--brand-2) 100%);
+      box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--brand-2) 55%, transparent);
+    }
+    #appHeader .deco { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.16); pointer-events: none; }
+    #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 2px 6px color-mix(in srgb, var(--brand-2) 25%, transparent); }
+    .grad-pill { background-image: linear-gradient(135deg, color-mix(in srgb, var(--brand) 55%, white) 0%, var(--brand) 45%, var(--brand-2) 100%); color: var(--brand-fg); }
+    .dot-grad { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); }
     /* セーフエリア（ノッチ端末）対応 */
     .safe-area-top-bg {
       position: fixed;
@@ -168,8 +178,11 @@
   <div class="safe-area-top-bg" aria-hidden="true"></div>
 
   <!-- ===== Sticky ヘッダー（テーマ・お知らせベルを統合） ===== -->
-  <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe bg-gradient-to-br from-brand-500 to-brand-600 text-brand-fg shadow-sm rounded-b-3xl">
-    <div class="hd px-5 pt-4 pb-3.5">
+  <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe text-brand-fg rounded-b-[32px] relative overflow-hidden">
+    <span class="deco" style="top:-56px;right:-40px;width:170px;height:170px" aria-hidden="true"></span>
+    <span class="deco" style="top:26px;right:52px;width:56px;height:56px;background:rgba(255,255,255,.13)" aria-hidden="true"></span>
+    <span class="deco" style="bottom:-70px;left:-30px;width:190px;height:190px;background:rgba(255,255,255,.1)" aria-hidden="true"></span>
+    <div class="hd relative px-5 pt-4 pb-3.5">
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
           <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight">読み込み中…</h1>
@@ -177,13 +190,13 @@
         </div>
         <!-- お知らせ（旧FABをヘッダーへ移設） -->
         <button id="noticeBtn" aria-label="お知らせを見る"
-          class="relative hidden flex-shrink-0 w-10 h-10 rounded-xl bg-white/20 items-center justify-center active:scale-95 transition">
+          class="relative hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/25 border border-white/30 items-center justify-center active:scale-95 transition">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
           <span id="noticeBadge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center font-black ring-2 ring-white"></span>
         </button>
       </div>
-      <div id="themeBanner" class="hidden mt-3 bg-white/15 rounded-xl px-3 py-2 text-xs font-bold leading-relaxed">
-        <span class="text-[10px] font-extrabold opacity-80 tracking-widest mr-1.5">テーマ</span><span id="themeText"></span>
+      <div id="themeBanner" class="hidden mt-3 bg-white/20 rounded-full px-4 py-2 text-xs font-bold leading-relaxed">
+        <span class="inline-block align-middle text-[10px] font-black tracking-widest mr-2 bg-white rounded-full px-2 py-0.5" style="color:var(--brand-2)">テーマ</span><span id="themeText"></span>
       </div>
     </div>
   </header>
@@ -239,10 +252,10 @@
     <!-- (1) プログラム -->
     <section id="view-program" class="view">
       <!-- 日付切替（セグメンテッドコントロール） -->
-      <nav id="dateTabs" class="flex bg-slate-200/70 rounded-xl p-1 gap-1 mb-3" aria-label="開催日"></nav>
+      <nav id="dateTabs" class="flex bg-slate-200/70 rounded-full p-1 gap-1 mb-3" aria-label="開催日"></nav>
       <div class="flex items-center justify-between mb-3">
         <div id="dayMeta" class="text-xs font-bold text-slate-500"></div>
-        <button id="jumpNow" class="hidden text-[11px] font-bold text-brand-700 bg-brand-100 rounded-full px-3 py-1.5 active:scale-95 transition">▼ いまの予定へ</button>
+        <button id="jumpNow" class="hidden text-[11px] font-black grad-pill shadow-fab rounded-full px-3 py-1.5 active:scale-95 transition">▼ いまの予定へ</button>
       </div>
       <div id="timetable"></div>
     </section>
@@ -536,6 +549,9 @@
     function renderAll() {
       const info = DATA.eventInfo || {};
       applyBrandColor(info.brandColor);
+      // グラデ終端色（任意）。未指定時は --brand を黒側に振った既定値
+      if (isHexColor(info.brandColor2)) document.documentElement.style.setProperty("--brand-2", info.brandColor2.trim());
+      else document.documentElement.style.removeProperty("--brand-2");
       $("eventTitle").textContent = info.logoMain || info.title || "イベント";
       $("eventSubtitle").textContent = info.logoSub || info.subtitle || "";
       applyAppIdentity(info);
@@ -573,7 +589,7 @@
         const isToday = d.date === todayStr;
         const btn = el(
           "button",
-          "flex-1 min-w-0 px-2 py-2 rounded-lg text-sm transition active:scale-[.98] " +
+          "flex-1 min-w-0 px-2 py-2 rounded-full text-sm transition active:scale-[.98] " +
             (isActive ? "bg-white text-slate-800 font-extrabold shadow-card" : "text-slate-500 font-semibold hover:bg-slate-100"),
           escapeHtml(d.label) +
             (d.date ? `<span class="ml-1 text-[11px] font-medium ${isActive ? "text-slate-400" : "opacity-70"}">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
@@ -621,12 +637,12 @@
 
         // レールの点
         const roomItem = (s.items || []).find((it) => it.room);
-        const dot = roomItem ? roomColor(roomItem.room).dot : admin ? NEUTRAL.dot : "bg-brand-500";
+        const dot = roomItem ? roomColor(roomItem.room).dot : admin ? NEUTRAL.dot : "dot-grad";
         row.appendChild(el("span", `now-dot absolute -left-[18px] ${admin ? "top-3" : "top-3.5"} w-3 h-3 rounded-full ring-4 ring-slate-50 ${dot}`, ""));
 
         if (admin) {
           // 運営系（受付・昼食など）：時刻＋名称のコンパクト行
-          const bar = el("div", "session-card bg-slate-200/60 rounded-xl px-3.5 py-2 flex items-center gap-2.5");
+          const bar = el("div", "session-card bg-slate-200/60 rounded-full px-4 py-2 flex items-center gap-2.5");
           bar.innerHTML =
             `<span class="text-[12.5px] font-extrabold tabular-nums text-slate-500">${escapeHtml(s.start || "")}</span>` +
             `<span class="text-[12.5px] font-bold text-slate-500">${escapeHtml(s.category || "")}</span>` +
@@ -639,7 +655,7 @@
           let html =
             `<div class="now-slot"></div>` +
             `<div class="flex items-center justify-between gap-2">` +
-            `<div class="text-sm font-black text-brand-700">${escapeHtml(s.category || "")}</div>` +
+            `<span class="cat-chip inline-block text-[11px] font-black text-brand-700 bg-brand-50 border border-brand-200 rounded-full px-3 py-1 transition">${escapeHtml(s.category || "")}</span>` +
             `<div class="text-[11px] font-extrabold tabular-nums text-slate-400 flex-shrink-0">${range}</div>` +
             `</div>`;
           if (s.note) html += `<p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(s.note)}</p>`;
@@ -707,6 +723,8 @@
           if (isCard) {
             card.classList.add("border-2", "border-brand-500", "shadow-now");
             card.classList.remove("border", "border-slate-200/80");
+            const chip = card.querySelector(".cat-chip");
+            if (chip) { chip.classList.add("grad-pill", "border-transparent"); chip.classList.remove("text-brand-700", "bg-brand-50", "border-brand-200"); }
           }
           if (dotEl) dotEl.classList.add("ring-brand-200");
           if (ongoing && isCard) {
@@ -719,7 +737,7 @@
               `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-700 mb-1">` +
               `<span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>進行中` +
               (remain !== null ? ` · あと${remain}分` : "") + `</div>` +
-              (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full bg-brand-500 rounded-full" style="width:${pct}%"></div></div>` : "") +
+              (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full grad-pill rounded-full" style="width:${pct}%"></div></div>` : "") +
               `</div>`;
             if (slot) slot.innerHTML = html;
             else if (badge) badge.outerHTML = html;
@@ -732,6 +750,8 @@
           if (isCard) {
             card.classList.remove("border-2", "border-brand-500", "shadow-now");
             card.classList.add("border", "border-slate-200/80");
+            const chip = card.querySelector(".cat-chip");
+            if (chip) { chip.classList.remove("grad-pill", "border-transparent"); chip.classList.add("text-brand-700", "bg-brand-50", "border-brand-200"); }
           }
           if (dotEl) dotEl.classList.remove("ring-brand-200");
           const slot = card.querySelector(".now-slot");
@@ -851,7 +871,7 @@
     // 既読は「お知らせの署名（title+body）」の集合で保持する。
     // 件数ではなく内容で判定するため、後からお知らせが追加・更新されると再びバッジが出る。
     const NOTICE_READ_KEY = () => "t-pod:notices-read:" + (getEventId() || "_");
-    const noticeSig = (n) => (n.title || "") + " " + (n.body || "");
+    const noticeSig = (n) => (n.title || "") + "\u0000" + (n.body || "");
 
     function getReadNotices() {
       try {
@@ -935,8 +955,9 @@
         else b.removeAttribute("aria-current");
         const pill = b.querySelector(".navpill");
         if (pill) {
-          pill.classList.toggle("bg-brand-100", on);
-          pill.classList.toggle("text-brand-700", on);
+          pill.classList.toggle("grad-pill", on);
+          pill.classList.toggle("shadow-fab", on);
+          pill.classList.toggle("font-extrabold", on);
           pill.classList.toggle("text-slate-400", !on);
         }
       });
