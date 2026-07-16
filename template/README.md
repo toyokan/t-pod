@@ -35,7 +35,7 @@ Excel から JSON を生成するときの規則。**構造の正は既存の `e
   - PWA アイコン文字はデフォルトで `logoMain` 先頭3文字。**ヘッダー表示（`logoMain`）とアイコン文字を別にしたい場合**（例: ヘッダー「算数サマー2026」・アイコン「算サマ」）は `eventInfo.iconLabel`（シート「アイコン3文字」）を指定する。
   - **ホーム画面のアプリ名だけ更に短くしたい場合**は `eventInfo.appName`（シート「PWA表示名」）を指定（例: `logoMain`＝「算数サマー2026」／`appName`＝「算サマ2026」）。未指定なら `logoMain` を使う。ヘッダー1行目とブラウザのタブ名は `logoMain` のまま変わらない。なお `manifestPath`（実体マニフェスト）があるイベントは、そのファイル内の `name`/`short_name` が優先される。
   - **LINE 友だち追加ポップアップ** は `eventInfo.linePromo` で制御（既定＝非表示のオプトイン）。「LINE追加ポップアップ」に `true` を記入したイベントだけ、閲覧後に1回ポップアップを表示する。`false`・空欄なら出さない。チラシQR等で既にLINEから誘導するイベントは `false`（＝現行の全イベント）。一覧ページ（`?id` 無し）は流入元が様々なため、この設定に関わらず初回訪問時のみ自動表示する。
-- **タイムテーブル** → `sessions[]`。同じ `日付ID`+`開始`+`終了`+`区分`+(会場以外)の並行行は1セッションに束ね、各行を `items[]` の要素にする。`title` と `meta`（セル内改行を `\n` で分割し配列化）を格納。会場列があれば `item.room`。`note` 列はセッションの `note`。演題・登壇者が無い区分（受付/昼食など）は `items: []`。各セッションに `id`（例 d1-01）を採番。
+- **タイムテーブル** → `sessions[]`。同じ `日付ID`+`開始`+`終了`+`区分`+(会場以外)の並行行は1セッションに束ね、各行を `items[]` の要素にする。`title` と `meta`（セル内改行を `\n` で分割し配列化）を格納。会場列があれば `item.room`。`note` 列はセッションの `note`。演題・登壇者が無い区分（受付/昼食など）は `items: []`。各セッションに `id`（例 d1-01）を採番。補足的な項目を細字・小サイズで控えめに見せたい場合は、その `items[]` 要素に `subtle: true` を付ける（例: 「算数部OBが集います！」）。
 - **資料リンク** → `種別` で `eventInfo.venue.resourceLinks[]`（資料/ホームページ）と `eventInfo.forms[]`（アンケート/申し込み/案内希望）に振り分け。各要素は `label`/`description`/`url`。
 - **関連書籍** → `books[]`（`title`/`author`/`publisher`/`cover`/`description`/`url`/`amazon_url`）。
 - **概要・お知らせ** → `eventInfo.notices[]`（`title`/`body`/`level`）。
@@ -43,5 +43,5 @@ Excel から JSON を生成するときの規則。**構造の正は既存の `e
 ### 仕上げ
 - 生成後に妥当性チェック: `python3 -m json.tool events/<id>.json`。
 - **会場マップ（イベント別）**: 会場はイベント毎に異なる。会場図があれば `assets/venue-map-<id>.svg`（または `.png`/`.jpg`）として置き `eventInfo.venue.mapImage` に相対パス指定、または外部公開URL（Google Drive 等）を指定。無ければ `mapImage` を省略し `mapNote` のみで運用（画像は非表示になる）。
-- PWA アプリ名を安定させるため、必要なら `events/<id>.webmanifest` を作成し、`eventInfo.manifestPath` に指定（既存イベント参照）。
+- **PWA マニフェストは実体 `events/<id>.webmanifest` ファイルを推奨**（`eventInfo.manifestPath` に指定、既存イベント参照）。`manifestPath` 未指定だと実行時に data URI で動的生成するが、iOS では `scope` の扱いが不安定になり、インストール後に外部リンク（書籍・関連イベント等）を開くと元の PWA へ戻りにくくなる。アプリ名の安定化に加え、この戻り導線の安定のためにも実体ファイルを用意する。あわせて `assets/icon-<id>.svg`（既存イベントと同じ書式・ブランド色地＋`iconLabel`）を置き、webmanifest の `icons` から参照する。
 - 注意（CLAUDE.md より）: **過去の `events/<id>.json` は削除しない**。`index.html` に固有文言を書かない。配布資料の実ファイルは置かず外部リンクを記載。
