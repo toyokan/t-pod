@@ -282,13 +282,24 @@
     .animate-out { animation: fadeOutDown .15s ease both; }
     #modalBackdrop, #linePopupBackdrop { transition: opacity .15s ease; }
     .is-closing #modalBackdrop, .is-closing #linePopupBackdrop { opacity: 0; }
+    /* モーダル/LINE ポップアップの背景ぼかし（背後 UI をやわらかくぼかすガラス質感） */
+    #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+    /* 書影の読み込みフェードイン（cover 画像） */
+    .img-fade { opacity: 0; transition: opacity .3s ease; }
+    .img-fade.is-loaded { opacity: 1; }
+    /* 進行バーは scaleX で滑らかに充填（width ではなく transform＝GPU 合成） */
+    .now-fill { transform-origin: left center; transition: transform .6s ease; }
+    /* hidden 切替の登場を柔らかく（fade+scale） */
+    @keyframes popIn { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+    .pop-in { animation: popIn .2s cubic-bezier(.22,1,.36,1) both; }
     @media (prefers-reduced-motion: reduce) {
       .animate-in, .animate-pulse, .animate-out,
-      .view-in-right, .view-in-left { animation: none; }
+      .view-in-right, .view-in-left, .pop-in { animation: none; }
       #skeleton > div::after { animation: none; opacity: 0; }
       .session-card { transition: none; }
       .session-card:active,
       #resourceLinks a:active, #formLinks a:active, #bookList a:active { transform: none; }
+      .img-fade, .now-fill { transition: none; }
       .tab-indicator, .navpill, .view.is-drag-settling, #modalBackdrop, #linePopupBackdrop { transition: none !important; }
       html { scroll-behavior: auto; }
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
@@ -910,15 +921,24 @@
             const pct = (stMin !== null && endMin !== null && endMin > stMin)
               ? Math.min(100, Math.max(0, Math.round(((nowMin - stMin) / (endMin - stMin)) * 100))) : 0;
             const slot = card.querySelector(".now-slot");
+            const scaleX = (pct / 100).toFixed(3);
+            // 既存バッジがあれば要素を作り直さず transform と残り時間だけ更新（scaleX が滑らかに補間される）
+            const existingFill = slot ? slot.querySelector(".now-fill") : null;
+            if (existingFill) {
+              existingFill.style.transform = `scaleX(${scaleX})`;
+              const rem = slot.querySelector(".now-remain");
+              if (rem) rem.textContent = remain !== null ? ` · あと${remain}分` : "";
+            } else {
             const html =
               `<div class="now-badge">` +
               `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-700 mb-1">` +
               `<span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>進行中` +
-              (remain !== null ? ` · あと${remain}分` : "") + `</div>` +
-              (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full grad-pill rounded-full" style="width:${pct}%"></div></div>` : "") +
+              `<span class="now-remain">${remain !== null ? ` · あと${remain}分` : ""}</span></div>` +
+              (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full w-full grad-pill rounded-full now-fill" style="transform:scaleX(${scaleX})"></div></div>` : "") +
               `</div>`;
             if (slot) slot.innerHTML = html;
             else if (badge) badge.outerHTML = html;
+            }
           } else if (!ongoing) {
             const slot = card.querySelector(".now-slot");
             if (slot) slot.innerHTML = "";
@@ -938,8 +958,13 @@
         }
       });
 
-      $("jumpNow").classList.toggle("hidden", !(showJump && idx >= 0));
-      $("jumpNow").onclick = () => scrollToRow(currentRows[idx]);
+      const jump = $("jumpNow");
+      const showBtn = showJump && idx >= 0;
+      const wasHidden = jump.classList.contains("hidden");
+      jump.classList.toggle("hidden", !showBtn);
+      // 非表示→表示に切り替わった瞬間だけ pop-in を1回再生
+      if (showBtn && wasHidden) { jump.classList.remove("pop-in"); void jump.offsetWidth; jump.classList.add("pop-in"); }
+      jump.onclick = () => scrollToRow(currentRows[idx]);
 
       if (allowScroll && !didAutoScroll && idx >= 0 && currentRows[idx]) {
         didAutoScroll = true;
@@ -1009,11 +1034,14 @@
           (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
           `</div>`;
         if (cover) {
-          const img = el("img", "w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
+          const img = el("img", "img-fade w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
           img.src = cover;
           img.alt = "";
           img.loading = "lazy";
+          img.addEventListener("load", () => img.classList.add("is-loaded"));
           img.addEventListener("error", () => { img.outerHTML = placeholder; });
+          // キャッシュ済みで load が発火しない場合に備え即時判定
+          if (img.complete && img.naturalWidth > 0) img.classList.add("is-loaded");
           card.insertAdjacentElement("afterbegin", img);
         }
         list.appendChild(card);
@@ -1071,9 +1099,12 @@
       const badge = $("noticeBadge");
       const read = getReadNotices();
       const unread = notices.filter((n) => !read.has(noticeSig(n))).length;
+      const wasHidden = badge.classList.contains("hidden");
       badge.textContent = String(unread);
       badge.classList.toggle("hidden", unread === 0);
       badge.classList.toggle("flex", unread > 0);
+      // 未読が新たに出たときだけ pop を1回再生
+      if (unread > 0 && wasHidden) { badge.classList.remove("pop-in"); void badge.offsetWidth; badge.classList.add("pop-in"); }
     }
 
     // 主催・共催・協力・後援（指定があるものだけ行を出す）。値は文字列 or 文字列配列
