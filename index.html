@@ -129,14 +129,24 @@
       --brand-fg: #1e293b;
       --brand-2: color-mix(in srgb, var(--brand) 68%, black);
     }
-    /* 2a案：ヘッダーのグラデ強化＋要所グラデのユーティリティ */
+    /* 明るいブランド面を主役にし、暗色は右下の小面積だけに限定 */
     #appHeader {
-      background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
+      background:
+        radial-gradient(circle at 82% 4%, rgba(255,255,255,.34) 0 10%, transparent 30%),
+        linear-gradient(145deg,
+          color-mix(in srgb, var(--brand) 78%, white) 0%,
+          var(--brand) 58%,
+          color-mix(in srgb, var(--brand) 86%, black) 100%);
       color: #fff;
-      box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--brand-2) 55%, transparent);
+      box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--brand) 65%, black), inset 0 1px rgba(255,255,255,.28);
     }
-    #appHeader .deco { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.16); pointer-events: none; }
-    #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 2px 6px color-mix(in srgb, var(--brand-2) 25%, transparent); }
+    #appHeader::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(110deg, rgba(255,255,255,.14), transparent 42% 72%, rgba(255,255,255,.08));
+    }
+    #appHeader .deco { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.12); pointer-events: none; }
+    #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 1px 4px color-mix(in srgb, var(--brand) 45%, transparent); }
+    #themeBanner { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
     .brand-bg { background: var(--brand); color: #fff; }
     .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
@@ -207,7 +217,7 @@
     @media (prefers-reduced-motion: reduce) {
       .animate-in, .animate-pulse, .animate-out,
       .view-in-right, .view-in-left { animation: none; }
-      .tab-indicator, .navpill, #modalBackdrop, #linePopupBackdrop { transition: none; }
+      .tab-indicator, .navpill, .view.is-drag-settling, #modalBackdrop, #linePopupBackdrop { transition: none !important; }
       html { scroll-behavior: auto; }
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
     }
@@ -1309,11 +1319,11 @@
     // 横軸にロックした後は現在ビューを指へ追従させ、離した時に確定／復帰する。
     // CSS の touch-action: pan-y と軸判定により、通常の縦スクロールはブラウザへ委ねる。
     (function () {
-      const SWIPE_MIN_X = 44;
+      const SWIPE_MIN_X = 42;
       const SWIPE_MAX_MS = 800;
       const AXIS_RATIO = 1.4;   // 横が縦のこの倍を超えたときだけ横スワイプと判定
       let startX = 0, startY = 0, startT = 0, lastX = 0, tracking = false, axis = "";
-      let dragView = null, neighborView = null, dragDirection = 0, dragWidth = 0;
+      let dragView = null, neighborView = null, dragDirection = 0, dragWidth = 0, suppressNextClick = false;
 
       const cleanupDrag = () => {
         if (!dragView) return;
@@ -1350,8 +1360,9 @@
       const swipeEnabled = (e) => {
         if ($("bottomNav").classList.contains("hidden")) return false;   // 一覧モード
         if (document.body.classList.contains("modal-open")) return false; // モーダル／LINEポップアップ
-        // 横スクロールするルーム列やリンク・ボタン上では無効
-        return !e.target.closest(".scroll-x, a, button");
+        // 横スクロール領域だけは内部操作を優先。リンクやボタンはタップなら通常動作し、
+        // 横軸へロックされた場合だけスワイプとして扱う。
+        return !e.target.closest(".scroll-x");
       };
 
       document.addEventListener("touchstart", (e) => {
@@ -1410,9 +1421,20 @@
         const dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : lastX) - startX;
         const velocity = Math.abs(dx) / Math.max(1, Date.now() - startT);
         const commit = !!neighborView && ((Math.abs(dx) >= SWIPE_MIN_X && Date.now() - startT <= SWIPE_MAX_MS) || velocity > .45);
+        if (Math.abs(dx) >= 10) {
+          suppressNextClick = true;
+          setTimeout(() => { suppressNextClick = false; }, 400);
+        }
         settleDrag(commit);
       }, { passive: true });
       document.addEventListener("touchcancel", () => { tracking = false; settleDrag(false); }, { passive: true });
+      // リンク上からスワイプした直後に click が発火して遷移するのを防ぐ。通常タップは妨げない。
+      document.addEventListener("click", (e) => {
+        if (!suppressNextClick) return;
+        suppressNextClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+      }, true);
     })();
 
     // ---- スクロール連動のヘッダー縮小 ----
