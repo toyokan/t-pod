@@ -86,6 +86,7 @@
 
       boxShadow: {
         card: "0 1px 3px 0 rgb(15 23 42 / 0.05)",
+        "card-hover": "0 4px 8px -2px rgb(15 23 42 / 0.16)",
         now: "0 8px 24px -8px color-mix(in srgb, var(--brand) 55%, transparent)",
         fab: "0 8px 24px -6px color-mix(in srgb, var(--brand) 50%, transparent)",
       },
@@ -812,6 +813,9 @@
           });
           card.innerHTML = html;
           row.appendChild(card);
+          if (s.afterNote) {
+            row.appendChild(el("p", "px-3.5 pt-1.5 text-xs text-slate-500 leading-relaxed", escapeHtml(s.afterNote)));
+          }
         }
         list.appendChild(row);
       });
@@ -931,7 +935,7 @@
     function linkCard(item, iconName) {
       const a = el(
         "a",
-        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition"
+        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 transition"
       );
       a.href = item.url || "#";
       a.target = "_blank";
@@ -952,7 +956,7 @@
       const list = $("bookList");
       list.innerHTML = "";
       (DATA.books || []).forEach((b) => {
-        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition");
+        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 transition");
         const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
         card.href = trimmed(b.url) || trimmed(b.amazon_url) || "#";
         card.target = "_blank";
