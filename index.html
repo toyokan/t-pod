@@ -144,6 +144,18 @@
         color-mix(in srgb, var(--brand) 86%, black) 100%);
       color: #fff;
       box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--brand) 65%, black), inset 0 1px rgba(255,255,255,.28);
+      transition: box-shadow .2s ease;
+    }
+    /* スクロール中／縮小時のみ、末端をわずかに透過して下のコンテンツをぼかし越しに見せる
+       （天面のヒーロー感は保ち、フロストはスクロール後だけ）。文字色は --brand-fg のまま＝可読性維持 */
+    #appHeader.is-compact, #appHeader.is-scrolling {
+      background: linear-gradient(145deg,
+        color-mix(in srgb, var(--brand) 74%, white) 0%,
+        color-mix(in srgb, var(--brand) 92%, transparent) 58%,
+        color-mix(in srgb, var(--brand) 80%, black) 100%);
+      -webkit-backdrop-filter: blur(10px) saturate(1.1);
+      backdrop-filter: blur(10px) saturate(1.1);
+      box-shadow: 0 10px 26px -18px color-mix(in srgb, var(--brand) 60%, black), inset 0 1px rgba(255,255,255,.24);
     }
     /* 光だけを独立レイヤーにし、スクロール中は再描画の軽い transform で動かす */
     #appHeader::before {
@@ -214,6 +226,18 @@
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
+    /* カードのタップ演出（transform のみ・GPU 合成）。進行中カードの枠/影とは非干渉 */
+    .session-card { transition: transform .12s ease; }
+    .session-card:active { transform: scale(.985); }
+    /* スケルトンの shimmer：各バーに左→右へ光を流す（translateX のみ・GPU 合成） */
+    @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+    #skeleton > div { position: relative; overflow: hidden; }
+    #skeleton > div::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.65) 50%, transparent 80%);
+      animation: shimmer 1.4s ease-in-out infinite;
+      will-change: transform;
+    }
     /* 画面外の長いリストは描画を遅延し、スクロール中のレイアウト・描画量を抑える */
     @supports (content-visibility: auto) {
       .perf-item { content-visibility: auto; contain-intrinsic-size: auto 104px; }
@@ -245,15 +269,37 @@
       .nav-brand-card {
         background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 78%, white), var(--brand));
       }
+      /* backdrop-filter 非対応時はフロストを使わず不透明塗りに戻す */
+      #appHeader.is-compact, #appHeader.is-scrolling {
+        background: linear-gradient(145deg,
+          color-mix(in srgb, var(--brand) 78%, white) 0%,
+          var(--brand) 58%,
+          color-mix(in srgb, var(--brand) 86%, black) 100%);
+      }
     }
     /* モーダルの閉じる演出 */
     @keyframes fadeOutDown { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
     .animate-out { animation: fadeOutDown .15s ease both; }
     #modalBackdrop, #linePopupBackdrop { transition: opacity .15s ease; }
     .is-closing #modalBackdrop, .is-closing #linePopupBackdrop { opacity: 0; }
+    /* モーダル/LINE ポップアップの背景ぼかし（背後 UI をやわらかくぼかすガラス質感） */
+    #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+    /* 書影の読み込みフェードイン（cover 画像） */
+    .img-fade { opacity: 0; transition: opacity .3s ease; }
+    .img-fade.is-loaded { opacity: 1; }
+    /* 進行バーは scaleX で滑らかに充填（width ではなく transform＝GPU 合成） */
+    .now-fill { transform-origin: left center; transition: transform .6s ease; }
+    /* hidden 切替の登場を柔らかく（fade+scale） */
+    @keyframes popIn { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+    .pop-in { animation: popIn .2s cubic-bezier(.22,1,.36,1) both; }
     @media (prefers-reduced-motion: reduce) {
       .animate-in, .animate-pulse, .animate-out,
-      .view-in-right, .view-in-left { animation: none; }
+      .view-in-right, .view-in-left, .pop-in { animation: none; }
+      #skeleton > div::after { animation: none; opacity: 0; }
+      .session-card { transition: none; }
+      .session-card:active,
+      #resourceLinks a:active, #formLinks a:active, #bookList a:active { transform: none; }
+      .img-fade, .now-fill { transition: none; }
       .tab-indicator, .navpill, .view.is-drag-settling, #modalBackdrop, #linePopupBackdrop { transition: none !important; }
       html { scroll-behavior: auto; }
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
@@ -324,7 +370,7 @@
     </div>
 
     <!-- 読み込み中スケルトン（データ取得完了で非表示） -->
-    <div id="skeleton" aria-hidden="true" class="space-y-3 animate-pulse">
+    <div id="skeleton" aria-hidden="true" class="space-y-3">
       <div class="h-9 bg-slate-200/80 rounded-xl"></div>
       <div class="h-24 bg-slate-200/80 rounded-2xl"></div>
       <div class="h-24 bg-slate-200/70 rounded-2xl"></div>
@@ -875,15 +921,24 @@
             const pct = (stMin !== null && endMin !== null && endMin > stMin)
               ? Math.min(100, Math.max(0, Math.round(((nowMin - stMin) / (endMin - stMin)) * 100))) : 0;
             const slot = card.querySelector(".now-slot");
+            const scaleX = (pct / 100).toFixed(3);
+            // 既存バッジがあれば要素を作り直さず transform と残り時間だけ更新（scaleX が滑らかに補間される）
+            const existingFill = slot ? slot.querySelector(".now-fill") : null;
+            if (existingFill) {
+              existingFill.style.transform = `scaleX(${scaleX})`;
+              const rem = slot.querySelector(".now-remain");
+              if (rem) rem.textContent = remain !== null ? ` · あと${remain}分` : "";
+            } else {
             const html =
               `<div class="now-badge">` +
               `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-700 mb-1">` +
               `<span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>進行中` +
-              (remain !== null ? ` · あと${remain}分` : "") + `</div>` +
-              (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full grad-pill rounded-full" style="width:${pct}%"></div></div>` : "") +
+              `<span class="now-remain">${remain !== null ? ` · あと${remain}分` : ""}</span></div>` +
+              (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full w-full grad-pill rounded-full now-fill" style="transform:scaleX(${scaleX})"></div></div>` : "") +
               `</div>`;
             if (slot) slot.innerHTML = html;
             else if (badge) badge.outerHTML = html;
+            }
           } else if (!ongoing) {
             const slot = card.querySelector(".now-slot");
             if (slot) slot.innerHTML = "";
@@ -903,8 +958,13 @@
         }
       });
 
-      $("jumpNow").classList.toggle("hidden", !(showJump && idx >= 0));
-      $("jumpNow").onclick = () => scrollToRow(currentRows[idx]);
+      const jump = $("jumpNow");
+      const showBtn = showJump && idx >= 0;
+      const wasHidden = jump.classList.contains("hidden");
+      jump.classList.toggle("hidden", !showBtn);
+      // 非表示→表示に切り替わった瞬間だけ pop-in を1回再生
+      if (showBtn && wasHidden) { jump.classList.remove("pop-in"); void jump.offsetWidth; jump.classList.add("pop-in"); }
+      jump.onclick = () => scrollToRow(currentRows[idx]);
 
       if (allowScroll && !didAutoScroll && idx >= 0 && currentRows[idx]) {
         didAutoScroll = true;
@@ -937,7 +997,7 @@
     function linkCard(item, iconName) {
       const a = el(
         "a",
-        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 transition"
+        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 active:scale-[.99] transition"
       );
       a.href = item.url || "#";
       a.target = "_blank";
@@ -958,7 +1018,7 @@
       const list = $("bookList");
       list.innerHTML = "";
       (DATA.books || []).forEach((b) => {
-        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 transition");
+        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 active:scale-[.99] transition");
         const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
         card.href = trimmed(b.url) || trimmed(b.amazon_url) || "#";
         card.target = "_blank";
@@ -974,11 +1034,14 @@
           (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
           `</div>`;
         if (cover) {
-          const img = el("img", "w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
+          const img = el("img", "img-fade w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
           img.src = cover;
           img.alt = "";
           img.loading = "lazy";
+          img.addEventListener("load", () => img.classList.add("is-loaded"));
           img.addEventListener("error", () => { img.outerHTML = placeholder; });
+          // キャッシュ済みで load が発火しない場合に備え即時判定
+          if (img.complete && img.naturalWidth > 0) img.classList.add("is-loaded");
           card.insertAdjacentElement("afterbegin", img);
         }
         list.appendChild(card);
@@ -1036,9 +1099,12 @@
       const badge = $("noticeBadge");
       const read = getReadNotices();
       const unread = notices.filter((n) => !read.has(noticeSig(n))).length;
+      const wasHidden = badge.classList.contains("hidden");
       badge.textContent = String(unread);
       badge.classList.toggle("hidden", unread === 0);
       badge.classList.toggle("flex", unread > 0);
+      // 未読が新たに出たときだけ pop を1回再生
+      if (unread > 0 && wasHidden) { badge.classList.remove("pop-in"); void badge.offsetWidth; badge.classList.add("pop-in"); }
     }
 
     // 主催・共催・協力・後援（指定があるものだけ行を出す）。値は文字列 or 文字列配列
@@ -1160,6 +1226,24 @@
       animation.addEventListener("cancel", clear, { once: true });
     }
 
+    // タブ切替時、対象 view 内の主要ブロックを順にフェードインさせる（animate-in の再適用）。
+    // 先頭 6 件まで・20ms 刻みで頭打ち。reduced-motion では既存 CSS が animate-in を無効化するため無演出。
+    const REVEAL_SEL = {
+      "view-program": "#timetable .perf-item",
+      "view-materials": ":scope > div",
+      "view-books": "#bookSale, #bookList > *",
+    };
+    function staggerReveal(view) {
+      if (!view || reduceMotionQuery.matches) return;
+      const items = view.querySelectorAll(REVEAL_SEL[view.id] || "");
+      items.forEach((elm, i) => {
+        elm.classList.remove("animate-in");
+        void elm.offsetWidth; // アニメーション再生のためのリスタート
+        elm.style.animationDelay = Math.min(i, 5) * 20 + "ms";
+        elm.classList.add("animate-in");
+      });
+    }
+
     function setTab(tab) {
       const from = TAB_ORDER.indexOf(activeTab);
       const to = TAB_ORDER.indexOf(tab);
@@ -1174,6 +1258,7 @@
       // Web Animations API で合成レイヤー上だけを動かす。強制レイアウトは発生させない
       if (from >= 0 && from !== to) {
         animateTabView($("view-" + tab), to > from ? 1 : -1);
+        staggerReveal($("view-" + tab));
       }
 
       document.querySelectorAll(".navbtn").forEach((b) => {
