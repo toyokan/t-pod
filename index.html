@@ -291,7 +291,7 @@
     </section>
 
     <!-- クレジット（全タブ共通・本文最下部） -->
-    <p class="mt-8 text-center text-[9px] font-normal text-slate-300">App by TOYOKAN PUBLISHING CO., LTD.</p>
+    <p class="mt-6 text-center text-[10px] font-normal text-slate-300">App by TOYOKAN PUBLISHING CO., LTD.</p>
   </main>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
@@ -1038,9 +1038,11 @@
       });
     }
     async function applyAppIdentity(info) {
-      const name = info.logoMain || info.title || "イベント";
+      const docTitle = info.logoMain || info.title || "イベント";
+      // ホーム画面のアプリ名は長いと省略されるため、appName で短い名前を指定できる（未指定なら logoMain）
+      const name = info.appName || docTitle;
       const shortName = name;
-      document.title = name;
+      document.title = docTitle;
       let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
       if (!appleTitle) {
         appleTitle = document.createElement("meta");
