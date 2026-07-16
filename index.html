@@ -195,8 +195,8 @@
           <span id="noticeBadge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center font-black ring-2 ring-white"></span>
         </button>
       </div>
-      <div id="themeBanner" class="hidden mt-3 bg-white/20 rounded-full px-4 py-2 text-xs font-bold leading-relaxed">
-        <span class="inline-block align-middle text-[10px] font-black tracking-widest mr-2 bg-white rounded-full px-2 py-0.5" style="color:var(--brand-2)">テーマ</span><span id="themeText"></span>
+      <div id="themeBanner" class="hidden mt-3 bg-white/20 rounded-2xl px-4 py-2 text-xs font-bold leading-relaxed">
+        <span class="inline-block align-middle text-[10px] font-black tracking-widest mr-2 bg-white rounded-full px-2 py-0.5" style="color:var(--brand-2)">テーマ</span><span id="themeText" class="inline-block align-middle"></span>
       </div>
     </div>
   </header>
@@ -247,6 +247,9 @@
     <section id="view-list" class="view hidden">
       <h2 class="text-base font-bold text-slate-700 mb-3">イベント一覧</h2>
       <div id="eventList" class="space-y-3"></div>
+      <p class="mt-6 pt-3 border-t border-slate-200/70 text-center text-[10px] text-slate-400 leading-relaxed">
+        This app is developed and operated by<br>TOYOKAN PUBLISHING CO., LTD.
+      </p>
     </section>
 
     <!-- (1) プログラム -->
@@ -281,6 +284,10 @@
         <h3 class="text-sm font-semibold text-slate-600 mb-2">アンケート・各種フォーム</h3>
         <div id="formLinks" class="space-y-2"></div>
       </div>
+
+      <p class="pt-3 border-t border-slate-200/70 text-center text-[10px] text-slate-400 leading-relaxed">
+        This app is developed and operated by<br>TOYOKAN PUBLISHING CO., LTD.
+      </p>
     </section>
 
     <!-- (3) 書籍 -->
@@ -453,6 +460,14 @@
     const escapeHtml = (s) =>
       String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    // テーマを「メインテーマ―サブテーマ」の区切りで分割する（区切りが無ければ sub は空）。
+    // 区切り記号はサブテーマ側の先頭に残す（原文の表記をそのまま活かすため）
+    const splitTheme = (theme) => {
+      const s = String(theme == null ? "" : theme).trim();
+      const m = s.match(/\s*(?:―{1,2}|—{1,2}|〜)/);
+      if (!m || !m.index) return { main: s, sub: "" };
+      return { main: s.slice(0, m.index).trim(), sub: s.slice(m.index).trim() };
+    };
     const fmtMD = (d, sep = "月") => {
       const [, m, day] = String(d || "").split("-");
       if (!m || !day) return "";
@@ -553,7 +568,7 @@
       if (isHexColor(info.brandColor2)) document.documentElement.style.setProperty("--brand-2", info.brandColor2.trim());
       else document.documentElement.style.removeProperty("--brand-2");
       $("eventTitle").textContent = info.logoMain || info.title || "イベント";
-      $("eventSubtitle").textContent = info.logoSub || info.subtitle || "";
+      $("eventSubtitle").textContent = info.title || info.logoSub || info.subtitle || "";
       applyAppIdentity(info);
 
       ROOM_COLOR = {};
@@ -561,7 +576,8 @@
 
       // テーマ（ヘッダー内バナー）
       if (info.theme) {
-        $("themeText").textContent = info.theme;
+        const { main, sub } = splitTheme(info.theme);
+        $("themeText").innerHTML = escapeHtml(main) + (sub ? `<br>${escapeHtml(sub)}` : "");
         $("themeBanner").classList.remove("hidden");
       }
 
