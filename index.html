@@ -167,8 +167,39 @@
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
+    /* タブ切替：スワイプ方向へスライドしながらフェード（transform/opacity のみ＝GPU合成） */
+    @keyframes viewInRight { from { opacity: 0; transform: translate3d(16px, 0, 0); } to { opacity: 1; transform: none; } }
+    @keyframes viewInLeft  { from { opacity: 0; transform: translate3d(-16px, 0, 0); } to { opacity: 1; transform: none; } }
+    .view-in-right { animation: viewInRight .22s cubic-bezier(.22,1,.36,1) both; }
+    .view-in-left  { animation: viewInLeft  .22s cubic-bezier(.22,1,.36,1) both; }
+    /* アクティブ表示のスライド用インジケータ（ボトムナビ／日付タブ共通の動き） */
+    .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); will-change: transform; pointer-events: none; }
+    /* ボトムナビ・日付タブ共通の選択表示：白ピル＋ブランド濃色文字。
+       ブランド色ベタ塗り＋白文字（--brand-fg）は、明るい brandColor だと 1.2〜4.4:1 まで落ちて
+       WCAG AA 未達になるため使わない。濃色は 48%（= brand-800 相当）——既定の黄 #ffd900 でも
+       白ピル上で 5.5:1 を確保できる配合。brand-700(62%) は黄で 3.45:1 と未達なので不可。 */
+    .datebtn[aria-pressed="true"],
+    .navbtn[aria-current] .navpill { color: color-mix(in srgb, var(--brand) 48%, black); }
+    /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
+    .datebtn[aria-pressed="false"],
+    .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
+    .navpill, .datebtn { transition: color .2s ease; }
+    .datebtn[aria-pressed="true"] .datesub { opacity: .75; }
+    .datebtn[aria-pressed="false"] .datesub { opacity: .7; }
+    /* backdrop-filter 非対応時は不透明塗りへフォールバック */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      #bottomNav { background: #fff; }
+      #dateTabs { background: rgb(226 232 240 / .9); }
+    }
+    /* モーダルの閉じる演出 */
+    @keyframes fadeOutDown { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
+    .animate-out { animation: fadeOutDown .15s ease both; }
+    #modalBackdrop, #linePopupBackdrop { transition: opacity .15s ease; }
+    .is-closing #modalBackdrop, .is-closing #linePopupBackdrop { opacity: 0; }
     @media (prefers-reduced-motion: reduce) {
-      .animate-in, .animate-pulse { animation: none; }
+      .animate-in, .animate-pulse, .animate-out,
+      .view-in-right, .view-in-left { animation: none; }
+      .tab-indicator, .navpill, #modalBackdrop, #linePopupBackdrop { transition: none; }
       html { scroll-behavior: auto; }
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
     }
@@ -252,7 +283,9 @@
     <!-- (1) プログラム -->
     <section id="view-program" class="view">
       <!-- 日付切替（セグメンテッドコントロール） -->
-      <nav id="dateTabs" class="flex bg-slate-200/70 rounded-full p-1 gap-1 mb-3" aria-label="開催日"></nav>
+      <!-- gap を持たせない：インジケータ幅 100%/n とボタン幅を厳密に一致させるため -->
+      <!-- 地はグレー：白のインジケータを浮かせるためのコントラスト源 -->
+      <nav id="dateTabs" class="relative flex bg-slate-200/70 backdrop-blur-md border border-white/50 rounded-full p-1 mb-3" aria-label="開催日"></nav>
       <div class="flex items-center justify-between mb-3">
         <div id="dayMeta" class="text-xs font-bold text-slate-500"></div>
         <button id="jumpNow" class="hidden text-[11px] font-black grad-pill shadow-fab rounded-full px-3 py-1.5 active:scale-95 transition">▼ いまの予定へ</button>
@@ -295,33 +328,41 @@
   </main>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
-  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
-    <div class="grid grid-cols-3 px-2 pt-1.5">
-      <button data-tab="program" class="navbtn group flex justify-center" aria-label="TIMETABLE">
+  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/75 backdrop-blur-xl border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
+    <!-- 日付タブと同じセグメンテッドコントロール構造。地をグレーにするのは、
+         白いピルを浮かせるコントラスト源が必要なため（ナビ地＝白では淡色ピルが見えない） -->
+    <div class="px-2 pt-1.5 pb-0.5">
+    <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
+      <!-- アクティブタブを示すピル。setTab() が translate3d で移動させる -->
+      <div id="navIndicator" class="tab-indicator top-1 left-1 w-[calc((100%-0.5rem)/3)] flex justify-center" aria-hidden="true">
+        <span class="bg-white shadow-card w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
+      </div>
+      <button data-tab="program" class="navbtn group relative flex justify-center" aria-label="TIMETABLE">
         <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           <span>TIMETABLE</span>
         </span>
       </button>
-      <button data-tab="materials" class="navbtn group flex justify-center" aria-label="FILES">
+      <button data-tab="materials" class="navbtn group relative flex justify-center" aria-label="FILES">
         <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
           <span>FILES</span>
         </span>
       </button>
-      <button data-tab="books" class="navbtn group flex justify-center" aria-label="BOOKS">
+      <button data-tab="books" class="navbtn group relative flex justify-center" aria-label="BOOKS">
         <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
           <span>BOOKS</span>
         </span>
       </button>
     </div>
+    </div>
   </nav>
 
   <!-- ===== 汎用モーダル ===== -->
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" class="hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center">
     <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
-    <div class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto overscroll-contain shadow-2xl animate-in">
+    <div id="modalPanel" class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto overscroll-contain shadow-2xl animate-in">
       <div class="sticky top-0 bg-white/95 backdrop-blur flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <h3 id="modalTitle" class="font-bold text-slate-800"></h3>
         <button id="modalClose" aria-label="閉じる" class="text-slate-400 hover:text-slate-600 rounded-lg p-2.5 -my-1.5 -mr-2 active:scale-95 transition">
@@ -335,7 +376,7 @@
   <!-- ===== LINE 友だち追加ポップアップ（初回・イベントページのみ） ===== -->
   <div id="linePopup" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
     <div id="linePopupBackdrop" class="absolute inset-0 bg-black/50"></div>
-    <div class="relative bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl animate-in">
+    <div id="linePopupPanel" class="relative bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl animate-in">
       <button id="linePopupClose" aria-label="閉じる" class="absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-600 rounded-lg p-2.5 active:scale-95 transition">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -587,6 +628,7 @@
     }
 
     // ---- 日付タブ（セグメンテッドコントロール） ----
+    // DOM 構築は初回のみ。切替は setActiveDate() がクラスとインジケータだけを動かす
     function renderDateTabs() {
       const tabs = $("dateTabs");
       tabs.innerHTML = "";
@@ -597,22 +639,46 @@
         activeDateId = (todayObj || dates[0]).id;
       }
 
+      if (dates.length) {
+        const ind = el("div", "tab-indicator top-1 bottom-1 left-1", "");
+        ind.id = "dateIndicator";
+        ind.setAttribute("aria-hidden", "true");
+        // ボタン（flex-1）と同じ幅。translate3d(index*100%) がそのまま1ボタン分の移動になる
+        ind.style.width = `calc((100% - 0.5rem) / ${dates.length})`;
+        ind.appendChild(el("div", "w-full h-full bg-white rounded-full shadow-card", ""));
+        tabs.appendChild(ind);
+      }
+
       dates.forEach((d) => {
-        const isActive = d.id === activeDateId;
         const isToday = d.date === todayStr;
         const btn = el(
           "button",
-          "flex-1 min-w-0 px-2 py-2 rounded-full text-sm transition active:scale-[.98] " +
-            (isActive ? "bg-white text-slate-800 font-extrabold shadow-card" : "text-slate-500 font-semibold hover:bg-slate-100"),
+          "datebtn relative flex-1 min-w-0 px-2 py-2 rounded-full text-sm transition active:scale-[.98]",
           escapeHtml(d.label) +
-            (d.date ? `<span class="ml-1 text-[11px] font-medium ${isActive ? "text-slate-400" : "opacity-70"}">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
+            (d.date ? `<span class="datesub ml-1 text-[11px] font-medium">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
             (isToday ? `<span class="inline-block align-middle w-1.5 h-1.5 rounded-full bg-brand-500 ml-1.5" aria-hidden="true"></span>` : "")
         );
         btn.type = "button";
-        btn.setAttribute("aria-pressed", String(isActive));
-        btn.onclick = () => { activeDateId = d.id; renderDateTabs(); };
+        btn.dataset.dateId = d.id;
+        btn.onclick = () => setActiveDate(d.id);
         tabs.appendChild(btn);
       });
+      setActiveDate(activeDateId);
+    }
+
+    function setActiveDate(id) {
+      activeDateId = id;
+      const btns = Array.from(document.querySelectorAll(".datebtn"));
+      const idx = btns.findIndex((b) => b.dataset.dateId === id);
+      btns.forEach((b, i) => {
+        const on = i === idx;
+        // 色・ドットの反転は aria-pressed に紐づく CSS 側が担当する
+        b.setAttribute("aria-pressed", String(on));
+        b.classList.toggle("font-extrabold", on);
+        b.classList.toggle("font-semibold", !on);
+      });
+      const ind = $("dateIndicator");
+      if (ind && idx >= 0) ind.style.transform = `translate3d(${idx * 100}%, 0, 0)`;
       renderTimetable();
     }
 
@@ -645,7 +711,8 @@
       sessions.forEach((s, idx) => {
         const admin = isAdminCat(s.category);
         const row = el("div", "relative mb-2.5 animate-in");
-        row.style.animationDelay = idx * 30 + "ms";
+        // スタッガーは先頭6件まで。件数の多い日でも最後の行が遅れて出ないよう頭打ちにする
+        row.style.animationDelay = Math.min(idx, 5) * 30 + "ms";
         rows.push(row);
 
         // レールの点
@@ -957,40 +1024,86 @@
     }
 
     // ---- モーダル ----
+    const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // hidden の付け外しだけでは CSS animation が初回しか再生されないため、
+    // クラスを外して reflow を挟み再付与する
+    function replayIn(panel) {
+      if (!panel) return;
+      panel.classList.remove("animate-in", "animate-out");
+      void panel.offsetWidth;
+      panel.classList.add("animate-in");
+    }
+
+    // 閉じる演出の再生後に hidden を付ける。演出無効時・多重呼び出し時は即座に閉じる
+    function animateOut(root, panel, done) {
+      if (prefersReducedMotion() || !panel) { done(); return; }
+      root.classList.add("is-closing");
+      panel.classList.remove("animate-in");
+      panel.classList.add("animate-out");
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        panel.classList.remove("animate-out");
+        root.classList.remove("is-closing");
+        done();
+      };
+      panel.addEventListener("animationend", finish, { once: true });
+      setTimeout(finish, 200); // animationend が来ない場合のフォールバック
+    }
+
     let lastFocused = null;
     function openModal(title, html) {
       $("modalTitle").textContent = title;
       $("modalBody").innerHTML = html;
       lastFocused = document.activeElement;
       $("modal").classList.remove("hidden");
+      replayIn($("modalPanel"));
       document.body.classList.add("modal-open");
       $("modalClose").focus();
     }
     function closeModal() {
-      if ($("modal").classList.contains("hidden")) return;
-      $("modal").classList.add("hidden");
-      document.body.classList.remove("modal-open");
-      if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
-      lastFocused = null;
+      const modal = $("modal");
+      if (modal.classList.contains("hidden") || modal.dataset.closing === "1") return;
+      modal.dataset.closing = "1";
+      animateOut(modal, $("modalPanel"), () => {
+        modal.classList.add("hidden");
+        delete modal.dataset.closing;
+        document.body.classList.remove("modal-open");
+        if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+        lastFocused = null;
+      });
     }
 
     // ---- タブ切替 ----
+    const TAB_ORDER = ["program", "materials", "books"];
+
     function setTab(tab) {
+      const from = TAB_ORDER.indexOf(activeTab);
+      const to = TAB_ORDER.indexOf(tab);
+      if (to < 0) return;
       activeTab = tab;
-      ["program", "materials", "books"].forEach((t) => {
-        $("view-" + t).classList.toggle("hidden", t !== tab);
+
+      TAB_ORDER.forEach((t) => {
+        const view = $("view-" + t);
+        view.classList.toggle("hidden", t !== tab);
+        view.classList.remove("view-in-right", "view-in-left");
       });
+      // 移動方向へスライドイン。同一タブの再選択（from === to）では演出しない
+      if (from >= 0 && from !== to) {
+        const view = $("view-" + tab);
+        void view.offsetWidth; // クラス再付与でアニメーションを確実に再生させる
+        view.classList.add(to > from ? "view-in-right" : "view-in-left");
+      }
+
       document.querySelectorAll(".navbtn").forEach((b) => {
-        const on = b.dataset.tab === tab;
-        if (on) b.setAttribute("aria-current", "page");
+        if (b.dataset.tab === tab) b.setAttribute("aria-current", "page");
         else b.removeAttribute("aria-current");
-        const pill = b.querySelector(".navpill");
-        if (pill) {
-          pill.classList.toggle("grad-pill", on);
-          pill.classList.toggle("shadow-fab", on);
-          pill.classList.toggle("text-slate-400", !on);
-        }
       });
+      const ind = $("navIndicator");
+      if (ind) ind.style.transform = `translate3d(${to * 100}%, 0, 0)`;
+
       window.scrollTo({ top: 0, behavior: "instant" });
     }
 
@@ -1099,10 +1212,15 @@
     const LINE_PROMO_URL = "https://page.line.me/bsi8018g";
     const LINE_DISMISS_KEY = "t-pod:line-promo-dismissed";
     function dismissLinePromo() {
-      if ($("linePopup").classList.contains("hidden")) return;
-      $("linePopup").classList.add("hidden");
-      document.body.classList.remove("modal-open");
+      const pop = $("linePopup");
+      if (pop.classList.contains("hidden") || pop.dataset.closing === "1") return;
+      pop.dataset.closing = "1";
       try { localStorage.setItem(LINE_DISMISS_KEY, "1"); } catch (e) {}
+      animateOut(pop, $("linePopupPanel"), () => {
+        pop.classList.add("hidden");
+        delete pop.dataset.closing;
+        document.body.classList.remove("modal-open");
+      });
     }
     let linePromoTrigger = null;
     function showLinePromo() {
@@ -1114,6 +1232,7 @@
         if (document.body.classList.contains("modal-open")) { setTimeout(open, 3000); return; }
         try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
         $("linePopup").classList.remove("hidden");
+        replayIn($("linePopupPanel"));
         document.body.classList.add("modal-open");
       };
       const trigger = () => {
@@ -1176,6 +1295,54 @@
         if (linePromoTrigger) linePromoTrigger();
       })
     );
+
+    // ---- 左右スワイプでタブ移動 ----
+    // 指追従はせず、軸ロック＋離した時点でのコミット方式。
+    // preventDefault を呼ばないためリスナは全て passive のままで、縦スクロールを妨げない
+    (function () {
+      const SWIPE_MIN_X = 60;   // 横移動がこれ未満なら切替しない（px）
+      const SWIPE_MAX_MS = 600; // ゆっくりした指の移動はスクロール意図とみなす
+      const AXIS_RATIO = 1.4;   // 横が縦のこの倍を超えたときだけ横スワイプと判定
+      let startX = 0, startY = 0, startT = 0, tracking = false, axis = "";
+
+      const swipeEnabled = (e) => {
+        if ($("bottomNav").classList.contains("hidden")) return false;   // 一覧モード
+        if (document.body.classList.contains("modal-open")) return false; // モーダル／LINEポップアップ
+        // 横スクロールするルーム列やリンク・ボタン上では無効
+        return !e.target.closest(".scroll-x, a, button");
+      };
+
+      document.addEventListener("touchstart", (e) => {
+        tracking = false;
+        axis = "";
+        if (e.touches.length !== 1 || !swipeEnabled(e)) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        startT = Date.now();
+        tracking = true;
+      }, { passive: true });
+
+      document.addEventListener("touchmove", (e) => {
+        if (!tracking || axis) return;
+        if (e.touches.length !== 1) { tracking = false; return; }
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return; // 軸を決めるには小さすぎる
+        axis = Math.abs(dx) > Math.abs(dy) * AXIS_RATIO ? "x" : "y";
+        if (axis === "y") tracking = false; // 縦スクロールなので以降は無視
+      }, { passive: true });
+
+      document.addEventListener("touchend", (e) => {
+        if (!tracking || axis !== "x") { tracking = false; return; }
+        tracking = false;
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) < SWIPE_MIN_X || Date.now() - startT > SWIPE_MAX_MS) return;
+        const idx = TAB_ORDER.indexOf(activeTab) + (dx < 0 ? 1 : -1); // 左スワイプ＝次のタブ
+        if (idx < 0 || idx >= TAB_ORDER.length) return; // 端では止める（ラップしない）
+        setTab(TAB_ORDER[idx]);
+        if (linePromoTrigger) linePromoTrigger();
+      }, { passive: true });
+    })();
 
     // ---- スクロール連動のヘッダー縮小 ----
     (function () {

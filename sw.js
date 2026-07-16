@@ -10,7 +10,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v37";
+const CACHE_VERSION = "v39";
 const CACHE_NAME = `t-pod-${CACHE_VERSION}`;
 
 // 16進カラー（#rgb / #rgba / #rrggbb / #rrggbbaa）判定
