@@ -149,7 +149,6 @@
       content: ""; position: absolute; inset: -36px; pointer-events: none;
       background: radial-gradient(circle at 82% 4%, rgba(255,255,255,.34) 0 10%, transparent 30%);
       transform: translate3d(var(--header-light-x), var(--header-light-y), 0);
-      will-change: transform;
     }
     #appHeader::after {
       content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -158,12 +157,13 @@
     #appHeader .deco { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.12); pointer-events: none; }
     #appHeader .deco-right-lg {
       transform: translate3d(var(--header-deco-x), var(--header-deco-y), 0);
-      will-change: transform;
     }
     #appHeader .deco-right-sm {
       transform: translate3d(var(--header-deco-sm-x), var(--header-deco-sm-y), 0);
-      will-change: transform;
     }
+    #appHeader.is-scrolling::before,
+    #appHeader.is-scrolling .deco-right-lg,
+    #appHeader.is-scrolling .deco-right-sm { will-change: transform; }
     #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 1px 4px color-mix(in srgb, var(--brand) 45%, transparent); }
     #themeBanner { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px rgba(255,255,255,.12); }
     .brand-bg { background: var(--brand); color: #fff; }
@@ -213,6 +213,10 @@
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
+    /* 画面外の長いリストは描画を遅延し、スクロール中のレイアウト・描画量を抑える */
+    @supports (content-visibility: auto) {
+      .perf-item { content-visibility: auto; contain-intrinsic-size: auto 104px; }
+    }
     /* タブ切替：スワイプ方向へスライドしながらフェード（transform/opacity のみ＝GPU合成） */
     @keyframes viewInRight { from { opacity: 0; transform: translate3d(16px, 0, 0); } to { opacity: 1; transform: none; } }
     @keyframes viewInLeft  { from { opacity: 0; transform: translate3d(-16px, 0, 0); } to { opacity: 1; transform: none; } }
@@ -230,7 +234,7 @@
     #tabViews { touch-action: pan-y; }
     .view.is-dragging { transition: none !important; will-change: transform; }
     .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
-    .view.is-drag-settling { transition: transform .18s cubic-bezier(.22,1,.36,1) !important; }
+    .view.is-drag-settling { transition: transform .18s cubic-bezier(.22,1,.36,1), opacity .18s ease-out !important; }
     .datebtn[aria-pressed="true"] .datesub { opacity: .75; }
     .datebtn[aria-pressed="false"] .datesub { opacity: .7; }
     /* backdrop-filter 非対応時は不透明塗りへフォールバック */
@@ -310,7 +314,7 @@
   </div>
 
   <!-- ===== メインコンテンツ ===== -->
-  <main class="max-w-2xl mx-auto px-4 pt-4 pb-28">
+  <main class="max-w-2xl mx-auto px-4 pt-4 pb-32">
 
     <!-- 読み込みエラー表示 -->
     <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
@@ -585,7 +589,7 @@
       $("noticeBtn").classList.toggle("flex", isEvent);
       $("view-list").classList.toggle("hidden", isEvent);
       $("view-program").classList.toggle("hidden", !isEvent);
-      document.querySelector("main").classList.toggle("pb-28", isEvent);
+      document.querySelector("main").classList.toggle("pb-32", isEvent);
       document.querySelector("main").classList.toggle("pb-8", !isEvent);
     }
 
@@ -763,7 +767,7 @@
       const rows = [];
       sessions.forEach((s, idx) => {
         const admin = isAdminCat(s.category);
-        const row = el("div", "relative mb-2.5 animate-in");
+        const row = el("div", "perf-item relative mb-2.5 animate-in");
         // スタッガーは先頭6件まで。件数の多い日でも最後の行が遅れて出ないよう頭打ちにする
         row.style.animationDelay = Math.min(idx, 5) * 30 + "ms";
         rows.push(row);
@@ -1131,6 +1135,24 @@
 
     // ---- タブ切替 ----
     const TAB_ORDER = ["program", "materials", "books"];
+    const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let tabViewAnimation = null;
+
+    function animateTabView(view, direction) {
+      if (!view || reduceMotionQuery.matches || typeof view.animate !== "function") return;
+      if (tabViewAnimation) tabViewAnimation.cancel();
+      const animation = view.animate(
+        [
+          { opacity: 0, transform: `translate3d(${direction * 18}px,0,0)` },
+          { opacity: 1, transform: "translate3d(0,0,0)" }
+        ],
+        { duration: 220, easing: "cubic-bezier(.22,1,.36,1)" }
+      );
+      tabViewAnimation = animation;
+      const clear = () => { if (tabViewAnimation === animation) tabViewAnimation = null; };
+      animation.addEventListener("finish", clear, { once: true });
+      animation.addEventListener("cancel", clear, { once: true });
+    }
 
     function setTab(tab) {
       const from = TAB_ORDER.indexOf(activeTab);
@@ -1143,11 +1165,9 @@
         view.classList.toggle("hidden", t !== tab);
         view.classList.remove("view-in-right", "view-in-left");
       });
-      // 移動方向へスライドイン。同一タブの再選択（from === to）では演出しない
+      // Web Animations API で合成レイヤー上だけを動かす。強制レイアウトは発生させない
       if (from >= 0 && from !== to) {
-        const view = $("view-" + tab);
-        void view.offsetWidth; // クラス再付与でアニメーションを確実に再生させる
-        view.classList.add(to > from ? "view-in-right" : "view-in-left");
+        animateTabView($("view-" + tab), to > from ? 1 : -1);
       }
 
       document.querySelectorAll(".navbtn").forEach((b) => {
@@ -1364,6 +1384,7 @@
         [dragView, neighborView].filter(Boolean).forEach((view) => {
           view.classList.remove("is-dragging", "is-drag-neighbor", "is-drag-settling");
           view.style.transform = "";
+          view.style.opacity = "";
         });
         dragView = neighborView = null;
         dragDirection = 0;
@@ -1379,7 +1400,9 @@
           view.classList.add("is-drag-settling");
         });
         dragView.style.transform = `translate3d(${commit ? -dragDirection * dragWidth : 0}px,0,0)`;
+        dragView.style.opacity = commit ? "0" : "1";
         if (neighborView) neighborView.style.transform = `translate3d(${commit ? 0 : dragDirection * dragWidth}px,0,0)`;
+        if (neighborView) neighborView.style.opacity = commit ? "1" : "0";
         setTimeout(() => {
           cleanupDrag();
           if (commit && nextTab) {
@@ -1444,9 +1467,15 @@
           dragDirection = direction;
           neighborView = $("view-" + TAB_ORDER[idx + direction]);
           neighborView.classList.add("is-drag-neighbor", "is-dragging");
+          neighborView.style.opacity = "0";
         }
         dragView.style.transform = `translate3d(${offset}px,0,0)`;
-        if (neighborView) neighborView.style.transform = `translate3d(${offset + dragDirection * dragWidth}px,0,0)`;
+        const progress = Math.min(1, Math.abs(offset) / Math.max(1, dragWidth));
+        dragView.style.opacity = String(1 - progress * .28);
+        if (neighborView) {
+          neighborView.style.transform = `translate3d(${offset + dragDirection * dragWidth}px,0,0)`;
+          neighborView.style.opacity = String(.72 + progress * .28);
+        }
       }, { passive: false });
 
       document.addEventListener("touchend", (e) => {
@@ -1477,22 +1506,30 @@
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       let compact = false;
       let ticking = false;
+      let lastProgress = -1;
+      let scrollIdleTimer = 0;
       const update = () => {
         const y = window.scrollY;
         const next = compact ? y > 8 : y > 48;
         if (next !== compact) { compact = next; header.classList.toggle("is-compact", compact); }
         if (!reduceMotion) {
           const progress = Math.min(1, y / 180);
-          header.style.setProperty("--header-light-x", `${(-20 * progress).toFixed(1)}px`);
-          header.style.setProperty("--header-light-y", `${(8 * progress).toFixed(1)}px`);
-          header.style.setProperty("--header-deco-x", `${(-12 * progress).toFixed(1)}px`);
-          header.style.setProperty("--header-deco-y", `${(7 * progress).toFixed(1)}px`);
-          header.style.setProperty("--header-deco-sm-x", `${(-17.4 * progress).toFixed(1)}px`);
-          header.style.setProperty("--header-deco-sm-y", `${(-4.6 * progress).toFixed(1)}px`);
+          if (progress !== lastProgress) {
+            lastProgress = progress;
+            header.style.setProperty("--header-light-x", `${(-20 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-light-y", `${(8 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-x", `${(-12 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-y", `${(7 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-sm-x", `${(-17.4 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-sm-y", `${(-4.6 * progress).toFixed(1)}px`);
+          }
         }
         ticking = false;
       };
       window.addEventListener("scroll", () => {
+        header.classList.add("is-scrolling");
+        clearTimeout(scrollIdleTimer);
+        scrollIdleTimer = setTimeout(() => header.classList.remove("is-scrolling"), 140);
         if (!ticking) { ticking = true; requestAnimationFrame(update); }
       }, { passive: true });
       update();
