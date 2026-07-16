@@ -20,7 +20,7 @@
 ## 各シートの記入ルール
 | シート | 入る場所(JSON) | 記入のポイント |
 | --- | --- | --- |
-| **基本情報** | `eventInfo` ＋ `events.json` | 縦並び。研究会名・テーマ・会場・ブランド色(16進)・イベントID(半角英数/ハイフン/アンダースコア)・並び順日付(YYYY-MM-DD)・LINE追加ポップアップ(true/false)。下部に「開催日ごと(dates)」「会場一覧(rooms)」の小表。 |
+| **基本情報** | `eventInfo` ＋ `events.json` | 縦並び。研究会名・テーマ・会場・ブランド色(16進)・イベントID(半角英数/ハイフン/アンダースコア)・並び順日付(YYYY-MM-DD)・LINE追加ポップアップ(true/false)。**主催／共催／協力／後援**は該当があるものだけ記入（空欄の行は表示されない）。下部に「開催日ごと(dates)」「会場一覧(rooms)」の小表。 |
 | **タイムテーブル** | `sessions` | 1行=1アイテム。`日付ID` は基本情報の開催日に対応(day1/day2…)。会場別の並行セッションは **会場名を入れて行を分ける**。`登壇者など(meta)` は **セル内改行(Alt+Enter)で1行=1要素**。受付・昼食など演題なしは title/meta 空欄。 |
 | **資料リンク** | `venue.resourceLinks` ／ `forms` | `種別` で振り分け: 「資料」「ホームページ」→ 資料リンク、「事後アンケート」「参加申し込み」「次回案内希望」→ フォーム。 |
 | **関連書籍** | `books` | 書名・著者・出版社・表紙URL・紹介文・商品URL・Amazon URL。 |
@@ -30,7 +30,10 @@
 Excel から JSON を生成するときの規則。**構造の正は既存の `events/2026-zensanken-37.json`** とする。
 
 - **基本情報** → `eventInfo` の `title`/`subtitle`/`tagline`/`logoMain`/`logoSub`/`theme`/`venueName`/`dateRange`/`brandColor`/`linePromo`（`true` のときだけ真偽値で出力。`false`・空欄は省略可）、`venue.mapNote`。`dates[]`（`id` は day1/day2… を自動採番、`label`/`date`/`weekday`/`time`）、`rooms[]`（`id`=`name`=会場名、`color`）。`events.json` には `id`/`title`/`theme`/`dateRange`/`venueName`/`sortDate`(=並び順日付) を1エントリ追記。
-  - PWA アイコン文字はデフォルトで `logoMain` 先頭3文字。**ヘッダー表示（`logoMain`）とアイコン文字を別にしたい場合**（例: ヘッダー「算数サマー2026」・アイコン「算サマ」）は `eventInfo.iconLabel` を追加で指定する（任意、Excel シートに列は無いため依頼文で指示）。
+  - **`events.json` の `theme` は個別 JSON と同じ全文**にする（サブテーマも含める）。一覧ページはこちらを読むため、省略するとサブテーマが出ない。
+  - **主催・共催・協力・後援** → `organizer` / `coOrganizer` / `cooperation` / `support`（すべて任意）。**記入があるものだけ出力**し、空欄は省略する（省略した役割は行が出ない）。複数団体は配列で出力してよい（例: `"support": ["文部科学省", "東京都教育委員会"]` → 「後援：文部科学省／東京都教育委員会」）。団体名は推測せず、記載がなければ空欄のままにする。
+  - PWA アイコン文字はデフォルトで `logoMain` 先頭3文字。**ヘッダー表示（`logoMain`）とアイコン文字を別にしたい場合**（例: ヘッダー「算数サマー2026」・アイコン「算サマ」）は `eventInfo.iconLabel`（シート「アイコン3文字」）を指定する。
+  - **ホーム画面のアプリ名だけ更に短くしたい場合**は `eventInfo.appName`（シート「PWA表示名」）を指定（例: `logoMain`＝「算数サマー2026」／`appName`＝「算サマ2026」）。未指定なら `logoMain` を使う。ヘッダー1行目とブラウザのタブ名は `logoMain` のまま変わらない。なお `manifestPath`（実体マニフェスト）があるイベントは、そのファイル内の `name`/`short_name` が優先される。
   - **LINE 友だち追加ポップアップ** は `eventInfo.linePromo` で制御（既定＝非表示のオプトイン）。「LINE追加ポップアップ」に `true` を記入したイベントだけ、閲覧後に1回ポップアップを表示する。`false`・空欄なら出さない。チラシQR等で既にLINEから誘導するイベントは `false`（＝現行の全イベント）。一覧ページ（`?id` 無し）は流入元が様々なため、この設定に関わらず初回訪問時のみ自動表示する。
 - **タイムテーブル** → `sessions[]`。同じ `日付ID`+`開始`+`終了`+`区分`+(会場以外)の並行行は1セッションに束ね、各行を `items[]` の要素にする。`title` と `meta`（セル内改行を `\n` で分割し配列化）を格納。会場列があれば `item.room`。`note` 列はセッションの `note`。演題・登壇者が無い区分（受付/昼食など）は `items: []`。各セッションに `id`（例 d1-01）を採番。
 - **資料リンク** → `種別` で `eventInfo.venue.resourceLinks[]`（資料/ホームページ）と `eventInfo.forms[]`（アンケート/申し込み/案内希望）に振り分け。各要素は `label`/`description`/`url`。
