@@ -1546,6 +1546,31 @@
     $("modalBackdrop").addEventListener("click", closeModal);
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeModal(); dismissLinePromo(); } });
 
+    // モーダルの下方向スワイプで閉じる（右上の×以外の閉じる導線）。
+    // 本文が上端までスクロールされている時のみ有効にし、本文スクロール操作とは競合させない。
+    (() => {
+      const panel = $("modalPanel");
+      const SWIPE_CLOSE_MIN_Y = 70;
+      let startY = 0, tracking = false;
+      panel.addEventListener("touchstart", (e) => {
+        if (e.touches.length !== 1 || panel.scrollTop > 0) { tracking = false; return; }
+        startY = e.touches[0].clientY;
+        tracking = true;
+      }, { passive: true });
+      panel.addEventListener("touchmove", (e) => {
+        if (!tracking || e.touches.length !== 1) return;
+        if (panel.scrollTop > 0) { tracking = false; return; }
+        if (e.touches[0].clientY - startY < 0) tracking = false; // 上方向は対象外
+      }, { passive: true });
+      panel.addEventListener("touchend", (e) => {
+        if (!tracking) return;
+        tracking = false;
+        const dy = (e.changedTouches[0] ? e.changedTouches[0].clientY : startY) - startY;
+        if (dy >= SWIPE_CLOSE_MIN_Y) closeModal();
+      }, { passive: true });
+      panel.addEventListener("touchcancel", () => { tracking = false; }, { passive: true });
+    })();
+
     document.addEventListener("visibilitychange", () => { if (!document.hidden) updateNowMarker(false); });
 
     // ---- オフライン表示バナー ----
