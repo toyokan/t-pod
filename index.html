@@ -227,8 +227,26 @@
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
     /* カードのタップ演出（transform のみ・GPU 合成）。進行中カードの枠/影とは非干渉 */
-    .session-card { transition: transform .12s ease; }
+    .session-card { transition: transform .12s ease, background-color .2s ease; }
     .session-card:active { transform: scale(.985); }
+    /* 進行中の枠は薄いブランド面で奥行きを付け、切替時だけ一度発光する */
+    @keyframes nowGlow {
+      from { opacity: .7; transform: scale(.96); }
+      to { opacity: 0; transform: scale(1.08); }
+    }
+    .session-card.is-now {
+      position: relative;
+      background: color-mix(in srgb, var(--brand) 7%, white);
+    }
+    .session-card.is-now::after {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border: 2px solid color-mix(in srgb, var(--brand) 58%, transparent);
+      border-radius: inherit;
+      pointer-events: none;
+      animation: nowGlow .7s ease-out both;
+    }
     /* スケルトンの shimmer：各バーに左→右へ光を流す（translateX のみ・GPU 合成） */
     @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
     #skeleton > div { position: relative; overflow: hidden; }
@@ -294,7 +312,7 @@
     .pop-in { animation: popIn .2s cubic-bezier(.22,1,.36,1) both; }
     @media (prefers-reduced-motion: reduce) {
       .animate-in, .animate-pulse, .animate-out,
-      .view-in-right, .view-in-left, .pop-in { animation: none; }
+      .view-in-right, .view-in-left, .pop-in, .session-card.is-now::after { animation: none; }
       #skeleton > div::after { animation: none; opacity: 0; }
       .session-card { transition: none; }
       .session-card:active,
@@ -917,6 +935,7 @@
           }
           if (dotEl) dotEl.classList.add("ring-brand-200");
           if (ongoing && isCard) {
+            card.classList.add("is-now");
             const remain = endMin !== null ? Math.max(0, endMin - nowMin) : null;
             const pct = (stMin !== null && endMin !== null && endMin > stMin)
               ? Math.min(100, Math.max(0, Math.round(((nowMin - stMin) / (endMin - stMin)) * 100))) : 0;
@@ -932,7 +951,7 @@
             const html =
               `<div class="now-badge">` +
               `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-700 mb-1">` +
-              `<span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>進行中` +
+              `<span class="w-2 h-2 rounded-full bg-brand-500"></span>進行中` +
               `<span class="now-remain">${remain !== null ? ` · あと${remain}分` : ""}</span></div>` +
               (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full w-full grad-pill rounded-full now-fill" style="transform:scaleX(${scaleX})"></div></div>` : "") +
               `</div>`;
@@ -940,12 +959,14 @@
             else if (badge) badge.outerHTML = html;
             }
           } else if (!ongoing) {
+            card.classList.remove("is-now");
             const slot = card.querySelector(".now-slot");
             if (slot) slot.innerHTML = "";
             if (badge) badge.remove();
           }
         } else {
           if (isCard) {
+            card.classList.remove("is-now");
             card.classList.remove("border-2", "border-brand-500", "shadow-now");
             card.classList.add("border", "border-slate-200/80");
             const chip = card.querySelector(".cat-chip");
