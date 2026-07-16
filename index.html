@@ -1573,25 +1573,6 @@
 
     document.addEventListener("visibilitychange", () => { if (!document.hidden) updateNowMarker(false); });
 
-    // ---- PWA（standalone）での外部リンクの開き方 ----
-    // ホーム画面追加後の standalone 起動時、target="_blank" の外部リンクは
-    // アプリ内 webview にそのまま遷移してしまい、×や戻るなどの導線が出ず戻り方が分かりにくい。
-    // standalone のときだけ外部リンクを window.open で開き、ブラウザの chrome（Done/戻る等）を確実に出す。
-    (() => {
-      const standalone = window.matchMedia("(display-mode: standalone)").matches
-        || window.navigator.standalone === true;
-      if (!standalone) return;
-      document.addEventListener("click", (e) => {
-        const a = e.target.closest && e.target.closest('a[target="_blank"]');
-        if (!a) return;
-        const href = a.getAttribute("href") || "";
-        if (!/^https?:\/\//i.test(href)) return;   // 外部 http(s) URL のみ対象
-        if (a.origin === location.origin) return;  // 同一オリジンは通常動作のまま
-        e.preventDefault();
-        window.open(href, "_blank", "noopener");
-      }, true);
-    })();
-
     // ---- オフライン表示バナー ----
     function updateOnlineStatus() {
       $("offlineBanner").classList.toggle("hidden", navigator.onLine !== false);
