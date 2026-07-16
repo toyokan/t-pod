@@ -130,6 +130,27 @@ def build():
         write_row(ws, r, [name, color, ""])
         r += 1
 
+    # 現行UIで利用できる任意項目
+    r += 1
+    sub = ws.cell(row=r, column=1, value="■ 任意設定（必要な場合のみ）")
+    sub.font = SUBHEAD_FONT
+    ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=3)
+    r += 1
+    optional_rows = [
+        ("補助ブランド色", "", "JSON: brandColor2（任意）。ヘッダー等のグラデーション補助色。16進カラー"),
+        ("会場マップ画像", "", "JSON: venue.mapImage（任意）。assets/venue-map-<id>.svg 等の相対パスまたは公開URL"),
+        ("書籍特設販売URL", "", "JSON: bookSale.url（任意）。BOOKS上部の特設販売ページ導線"),
+        ("書籍特設販売ラベル", "", "JSON: bookSale.label（任意）。リンクの表示名"),
+        ("書籍特設販売補足", "", "JSON: bookSale.note（任意）。リンク下の短い説明"),
+    ]
+    for k, v, note in optional_rows:
+        ws.cell(row=r, column=1, value=k).font = Font(bold=True)
+        ws.cell(row=r, column=2, value=v).alignment = WRAP
+        nc = ws.cell(row=r, column=3, value=note)
+        nc.font = NOTE_FONT
+        nc.alignment = WRAP
+        r += 1
+
     # ---------------------------------------------------------------
     # シート2「タイムテーブル」(TIMETABLE → sessions)
     # ---------------------------------------------------------------
