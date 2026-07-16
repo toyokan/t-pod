@@ -1516,12 +1516,13 @@
           const progress = Math.min(1, y / 180);
           if (progress !== lastProgress) {
             lastProgress = progress;
-            header.style.setProperty("--header-light-x", `${(-20 * progress).toFixed(1)}px`);
-            header.style.setProperty("--header-light-y", `${(8 * progress).toFixed(1)}px`);
-            header.style.setProperty("--header-deco-x", `${(-12 * progress).toFixed(1)}px`);
-            header.style.setProperty("--header-deco-y", `${(7 * progress).toFixed(1)}px`);
-            header.style.setProperty("--header-deco-sm-x", `${(-17.4 * progress).toFixed(1)}px`);
-            header.style.setProperty("--header-deco-sm-y", `${(-4.6 * progress).toFixed(1)}px`);
+            // 奥の光はゆるく、手前の丸ほど大きく動かして自然な奥行きを出す
+            header.style.setProperty("--header-light-x", `${(-30 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-light-y", `${(12 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-x", `${(-20 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-y", `${(12 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-sm-x", `${(-28 * progress).toFixed(1)}px`);
+            header.style.setProperty("--header-deco-sm-y", `${(-8 * progress).toFixed(1)}px`);
           }
         }
         ticking = false;
