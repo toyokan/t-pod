@@ -151,6 +151,11 @@
     .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .dot-grad { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); }
+    /* ボトムナビはヘッダーの明部に合わせ、暗い補助色へ落とさずブランド色へ収束させる */
+    .nav-brand-card {
+      background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 78%, white), var(--brand));
+      box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--brand) 68%, black), inset 0 1px rgba(255,255,255,.3);
+    }
     /* セーフエリア（ノッチ端末）対応 */
     .safe-area-top-bg {
       position: fixed;
@@ -193,7 +198,7 @@
     .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); will-change: transform; pointer-events: none; }
     /* 日付タブは白ピル＋ブランド濃色文字。ボトムナビはブランド背景＋白文字。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
-    .navbtn[aria-current] .navpill { color: #fff; }
+    .navbtn[aria-current] .navpill { color: #fff; text-shadow: 0 1px 3px color-mix(in srgb, var(--brand) 55%, black); }
     /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
@@ -349,12 +354,12 @@
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
   <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/75 backdrop-blur-xl border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
-    <!-- 選択タブはイベントのブランド色＋白文字 -->
+    <!-- 選択タブはヘッダーの明部に合わせたブランド色グラデーション＋白文字 -->
     <div class="px-2 pt-1.5 pb-0.5">
     <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
       <!-- アクティブタブを示すピル。setTab() が translate3d で移動させる -->
       <div id="navIndicator" class="tab-indicator top-1 left-1 w-[calc((100%-0.5rem)/3)] flex justify-center" aria-hidden="true">
-        <span class="brand-card shadow-fab w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
+        <span class="nav-brand-card w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
       </div>
       <button data-tab="program" class="navbtn group relative flex justify-center" aria-label="TIMETABLE">
         <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
