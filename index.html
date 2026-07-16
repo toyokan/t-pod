@@ -124,22 +124,32 @@
   <style>
     /* ブランド基準色（既定＝東洋館イメージカラーのゴールド。一覧ページの基調色）。
        events/<id>.json の brandColor で実行時に上書き */
-    :root { --brand: #ffd900; --brand-fg: #ffffff; --brand-2: color-mix(in srgb, var(--brand) 68%, black); }
+    :root {
+      --brand: #ffd900;
+      --brand-fg: #1e293b;
+      --brand-2: color-mix(in srgb, var(--brand) 68%, black);
+      /* 白文字を載せる面専用。JS が 4.5:1 を満たす最も明るい色へ更新する */
+      --brand-solid: #766500;
+      --brand-solid-2: color-mix(in srgb, var(--brand-solid) 88%, black);
+    }
     /* 2a案：ヘッダーのグラデ強化＋要所グラデのユーティリティ */
     #appHeader {
-      background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 50%, white) 0%, var(--brand) 52%, var(--brand-2) 100%);
+      background: linear-gradient(135deg, var(--brand-solid) 0%, var(--brand-solid-2) 100%);
+      color: #fff;
       box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--brand-2) 55%, transparent);
     }
     #appHeader .deco { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.16); pointer-events: none; }
     #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 2px 6px color-mix(in srgb, var(--brand-2) 25%, transparent); }
-    .grad-pill { background-image: linear-gradient(135deg, color-mix(in srgb, var(--brand) 55%, white) 0%, var(--brand) 45%, var(--brand-2) 100%); color: var(--brand-fg); }
+    .grad-pill { background-image: linear-gradient(135deg, var(--brand-solid) 0%, var(--brand-solid-2) 100%); color: #fff; }
+    .brand-solid-bg { background: var(--brand-solid); color: #fff; }
+    .brand-solid-card { background: linear-gradient(135deg, var(--brand-solid), var(--brand-solid-2)); color: #fff; }
     .dot-grad { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); }
     /* セーフエリア（ノッチ端末）対応 */
     .safe-area-top-bg {
       position: fixed;
       inset: 0 0 auto 0;
       height: env(safe-area-inset-top);
-      background: var(--brand);
+      background: var(--brand-solid);
       z-index: 29;
       pointer-events: none;
     }
@@ -174,16 +184,16 @@
     .view-in-left  { animation: viewInLeft  .22s cubic-bezier(.22,1,.36,1) both; }
     /* アクティブ表示のスライド用インジケータ（ボトムナビ／日付タブ共通の動き） */
     .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); will-change: transform; pointer-events: none; }
-    /* ボトムナビ・日付タブ共通の選択表示：白ピル＋ブランド濃色文字。
-       ブランド色ベタ塗り＋白文字（--brand-fg）は、明るい brandColor だと 1.2〜4.4:1 まで落ちて
-       WCAG AA 未達になるため使わない。濃色は 48%（= brand-800 相当）——既定の黄 #ffd900 でも
-       白ピル上で 5.5:1 を確保できる配合。brand-700(62%) は黄で 3.45:1 と未達なので不可。 */
-    .datebtn[aria-pressed="true"],
-    .navbtn[aria-current] .navpill { color: color-mix(in srgb, var(--brand) 48%, black); }
+    /* 日付タブは白ピル＋ブランド濃色文字。ボトムナビは補正済みブランド背景＋白文字。 */
+    .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
+    .navbtn[aria-current] .navpill { color: #fff; }
     /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
+    .view { touch-action: pan-y; }
+    .view.is-dragging { transition: none !important; will-change: transform; }
+    .view.is-drag-return { transition: transform .16s cubic-bezier(.22,1,.36,1); }
     .datebtn[aria-pressed="true"] .datesub { opacity: .75; }
     .datebtn[aria-pressed="false"] .datesub { opacity: .7; }
     /* backdrop-filter 非対応時は不透明塗りへフォールバック */
@@ -243,14 +253,14 @@
   <!-- ===== ホーム画面に追加バナー（既定 hidden。イベントモードかつ未インストール時のみ表示） ===== -->
   <div id="installBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
     <div class="flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2.5 shadow-card">
-      <span class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-500 text-brand-fg flex items-center justify-center">
+      <span class="brand-solid-bg flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       </span>
       <div class="flex-1 min-w-0">
         <div class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
         <div class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
       </div>
-      <button id="installBtn" class="flex-shrink-0 text-xs font-bold text-brand-fg bg-brand-600 rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
+      <button id="installBtn" class="brand-solid-bg flex-shrink-0 text-xs font-bold rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
       <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-2.5 -m-1 active:scale-95 transition">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -329,13 +339,12 @@
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
   <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/75 backdrop-blur-xl border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
-    <!-- 日付タブと同じセグメンテッドコントロール構造。地をグレーにするのは、
-         白いピルを浮かせるコントラスト源が必要なため（ナビ地＝白では淡色ピルが見えない） -->
+    <!-- 選択タブは補正済みブランド色＋白文字。--brand-solid が AA コントラストを保証する -->
     <div class="px-2 pt-1.5 pb-0.5">
     <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
       <!-- アクティブタブを示すピル。setTab() が translate3d で移動させる -->
       <div id="navIndicator" class="tab-indicator top-1 left-1 w-[calc((100%-0.5rem)/3)] flex justify-center" aria-hidden="true">
-        <span class="bg-white shadow-card w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
+        <span class="brand-solid-card shadow-fab w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
       </div>
       <button data-tab="program" class="navbtn group relative flex justify-center" aria-label="TIMETABLE">
         <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
@@ -433,11 +442,39 @@
       const fg = relativeLuminance(color) > 0.55 ? "#1e293b" : "#ffffff";
       document.documentElement.style.setProperty("--brand-fg", fg);
     }
+    function hexRgb(hex) {
+      let h = hex.trim().slice(1);
+      if (h.length <= 4) h = [...h].map((c) => c + c).join("");
+      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+    }
+    function rgbHex(rgb) {
+      return "#" + rgb.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+    }
+    function updateBrandSolid(color) {
+      if (!isHexColor(color)) return;
+      const rgb = hexRgb(color);
+      // 白とのコントラスト 4.5:1（背景輝度 <= 0.1833）を満たす、最も明るい黒混合色を二分探索する。
+      // 元色が既に適合する場合はそのまま使い、識別色を必要以上に変えない。
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 18; i++) {
+        const keep = (lo + hi) / 2;
+        const mixed = rgb.map((v) => v * keep);
+        if (relativeLuminance(rgbHex(mixed)) <= 0.1833) lo = keep;
+        else hi = keep;
+      }
+      document.documentElement.style.setProperty("--brand-solid", rgbHex(rgb.map((v) => v * lo)));
+    }
     function applyBrandColor(color) {
-      if (!isHexColor(color)) { updateBrandFg(resolvedBrand()); return; }
+      if (!isHexColor(color)) {
+        const fallback = resolvedBrand();
+        updateBrandFg(fallback);
+        updateBrandSolid(fallback);
+        return;
+      }
       const c = color.trim();
       document.documentElement.style.setProperty("--brand", c);
       updateBrandFg(c);
+      updateBrandSolid(c);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", c);
       try { const id = getEventId(); if (id) localStorage.setItem("t-pod:theme:" + id, c); } catch (e) {}
@@ -538,6 +575,7 @@
 
     async function init() {
       updateBrandFg(resolvedBrand());
+      updateBrandSolid(resolvedBrand());
       registerSW();
       setupInstallPrompt();
       const id = getEventId();
@@ -735,7 +773,7 @@
           let html =
             `<div class="now-slot"></div>` +
             `<div class="flex items-center justify-between gap-2">` +
-            `<span class="cat-chip inline-block text-[11px] font-black text-brand-700 bg-brand-50 border border-brand-200 rounded-full px-3 py-1 transition">${escapeHtml(s.category || "")}</span>` +
+            `<span class="cat-chip inline-block text-[11px] font-black text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-3 py-1 transition">${escapeHtml(s.category || "")}</span>` +
             `<div class="text-[11px] font-extrabold tabular-nums text-slate-400 flex-shrink-0">${range}</div>` +
             `</div>`;
           if (s.note) html += `<p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(s.note)}</p>`;
@@ -804,7 +842,7 @@
             card.classList.add("border-2", "border-brand-500", "shadow-now");
             card.classList.remove("border", "border-slate-200/80");
             const chip = card.querySelector(".cat-chip");
-            if (chip) { chip.classList.add("grad-pill", "border-transparent"); chip.classList.remove("text-brand-700", "bg-brand-50", "border-brand-200"); }
+            if (chip) { chip.classList.add("grad-pill", "border-transparent"); chip.classList.remove("text-brand-800", "bg-brand-50", "border-brand-200"); }
           }
           if (dotEl) dotEl.classList.add("ring-brand-200");
           if (ongoing && isCard) {
@@ -831,7 +869,7 @@
             card.classList.remove("border-2", "border-brand-500", "shadow-now");
             card.classList.add("border", "border-slate-200/80");
             const chip = card.querySelector(".cat-chip");
-            if (chip) { chip.classList.remove("grad-pill", "border-transparent"); chip.classList.add("text-brand-700", "bg-brand-50", "border-brand-200"); }
+            if (chip) { chip.classList.remove("grad-pill", "border-transparent"); chip.classList.add("text-brand-800", "bg-brand-50", "border-brand-200"); }
           }
           if (dotEl) dotEl.classList.remove("ring-brand-200");
           const slot = card.querySelector(".now-slot");
@@ -932,7 +970,7 @@
       if (!url) return;
       const label = trimmed(sale.label) || "特設販売ページを見る";
       const note = trimmed(sale.note);
-      const card = el("a", "flex items-center gap-3 bg-gradient-to-br from-brand-500 to-brand-600 text-brand-fg rounded-2xl p-4 shadow-fab ring-1 ring-brand-600 hover:shadow-lg active:scale-[0.99] transition");
+      const card = el("a", "brand-solid-card flex items-center gap-3 rounded-2xl p-4 shadow-fab ring-1 ring-brand-600 hover:shadow-lg active:scale-[0.99] transition");
       card.href = url;
       card.target = "_blank";
       card.rel = "noopener";
@@ -940,10 +978,10 @@
         `<div class="w-11 h-11 flex-shrink-0 rounded-xl bg-white text-brand-600 flex items-center justify-center shadow-sm">${icon("store", "w-6 h-6")}</div>` +
         `<div class="min-w-0 flex-1">` +
         `<div class="inline-block text-[10px] font-bold tracking-wide bg-white text-brand-600 rounded-full px-2 py-0.5 mb-1">SALE</div>` +
-        `<div class="text-sm font-bold text-brand-fg leading-snug">${escapeHtml(label)}</div>` +
-        (note ? `<div class="text-xs text-brand-fg mt-0.5">${escapeHtml(note)}</div>` : "") +
+        `<div class="text-sm font-bold text-white leading-snug">${escapeHtml(label)}</div>` +
+        (note ? `<div class="text-xs text-white mt-0.5">${escapeHtml(note)}</div>` : "") +
         `</div>` +
-        `<span class="flex-shrink-0 text-brand-fg">${icon("chevron", "w-5 h-5")}</span>`;
+        `<span class="flex-shrink-0 text-white">${icon("chevron", "w-5 h-5")}</span>`;
       box.appendChild(card);
     }
 
@@ -1297,13 +1335,28 @@
     );
 
     // ---- 左右スワイプでタブ移動 ----
-    // 指追従はせず、軸ロック＋離した時点でのコミット方式。
-    // preventDefault を呼ばないためリスナは全て passive のままで、縦スクロールを妨げない
+    // 横軸にロックした後は現在ビューを指へ追従させ、離した時に確定／復帰する。
+    // CSS の touch-action: pan-y と軸判定により、通常の縦スクロールはブラウザへ委ねる。
     (function () {
-      const SWIPE_MIN_X = 60;   // 横移動がこれ未満なら切替しない（px）
-      const SWIPE_MAX_MS = 600; // ゆっくりした指の移動はスクロール意図とみなす
+      const SWIPE_MIN_X = 48;   // 横移動がこれ未満なら切替しない（px）
+      const SWIPE_MAX_MS = 700;
       const AXIS_RATIO = 1.4;   // 横が縦のこの倍を超えたときだけ横スワイプと判定
-      let startX = 0, startY = 0, startT = 0, tracking = false, axis = "";
+      let startX = 0, startY = 0, startT = 0, lastX = 0, tracking = false, axis = "", dragView = null;
+
+      const clearDrag = (animate) => {
+        if (!dragView) return;
+        const view = dragView;
+        view.classList.remove("is-dragging");
+        if (animate) {
+          view.classList.add("is-drag-return");
+          view.style.transform = "translate3d(0,0,0)";
+          setTimeout(() => { view.classList.remove("is-drag-return"); view.style.transform = ""; }, 180);
+        } else {
+          view.classList.remove("is-drag-return");
+          view.style.transform = "";
+        }
+        dragView = null;
+      };
 
       const swipeEnabled = (e) => {
         if ($("bottomNav").classList.contains("hidden")) return false;   // 一覧モード
@@ -1318,30 +1371,44 @@
         if (e.touches.length !== 1 || !swipeEnabled(e)) return;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
+        lastX = startX;
         startT = Date.now();
         tracking = true;
       }, { passive: true });
 
       document.addEventListener("touchmove", (e) => {
-        if (!tracking || axis) return;
+        if (!tracking) return;
         if (e.touches.length !== 1) { tracking = false; return; }
         const dx = e.touches[0].clientX - startX;
         const dy = e.touches[0].clientY - startY;
-        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return; // 軸を決めるには小さすぎる
-        axis = Math.abs(dx) > Math.abs(dy) * AXIS_RATIO ? "x" : "y";
-        if (axis === "y") tracking = false; // 縦スクロールなので以降は無視
-      }, { passive: true });
+        if (!axis) {
+          if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+          axis = Math.abs(dx) > Math.abs(dy) * AXIS_RATIO ? "x" : "y";
+          if (axis === "y") { tracking = false; return; }
+          dragView = $("view-" + activeTab);
+          if (dragView) dragView.classList.add("is-dragging");
+        }
+        if (axis !== "x" || !dragView) return;
+        e.preventDefault();
+        lastX = e.touches[0].clientX;
+        const idx = TAB_ORDER.indexOf(activeTab);
+        const outward = (idx === 0 && dx > 0) || (idx === TAB_ORDER.length - 1 && dx < 0);
+        const offset = outward ? dx * .28 : dx;
+        dragView.style.transform = `translate3d(${offset}px,0,0)`;
+      }, { passive: false });
 
       document.addEventListener("touchend", (e) => {
         if (!tracking || axis !== "x") { tracking = false; return; }
         tracking = false;
-        const dx = e.changedTouches[0].clientX - startX;
-        if (Math.abs(dx) < SWIPE_MIN_X || Date.now() - startT > SWIPE_MAX_MS) return;
+        const dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : lastX) - startX;
+        if (Math.abs(dx) < SWIPE_MIN_X || Date.now() - startT > SWIPE_MAX_MS) { clearDrag(true); return; }
         const idx = TAB_ORDER.indexOf(activeTab) + (dx < 0 ? 1 : -1); // 左スワイプ＝次のタブ
-        if (idx < 0 || idx >= TAB_ORDER.length) return; // 端では止める（ラップしない）
+        if (idx < 0 || idx >= TAB_ORDER.length) { clearDrag(true); return; }
+        clearDrag(false);
         setTab(TAB_ORDER[idx]);
         if (linePromoTrigger) linePromoTrigger();
       }, { passive: true });
+      document.addEventListener("touchcancel", () => { tracking = false; clearDrag(true); }, { passive: true });
     })();
 
     // ---- スクロール連動のヘッダー縮小 ----
