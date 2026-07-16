@@ -7,6 +7,7 @@
     "appName": "算サマ2026",
     "iconLabel": "算サマ",
     "brandColor": "#0ea5e9",
+    "manifestPath": "events/2026-math-summer-fes.webmanifest",
     "theme": "算数の「深い学び」をどう創るか？　――教師の見つける力、つなぐ力、広げる力",
     "venueName": "筑波大学附属小学校",
     "dateRange": "2026年７月18日(土) 09:30〜７月19日(日) 15:00",

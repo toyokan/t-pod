@@ -1,0 +1,26 @@
+{
+  "name": "算サマ2026",
+  "short_name": "算サマ2026",
+  "description": "オール筑波 算数サマーフェスティバル2026のプログラム・配布資料・関連書籍",
+  "lang": "ja",
+  "start_url": "../?id=2026-math-summer-fes",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "../assets/icon-2026-math-summer-fes.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/icon-2026-math-summer-fes.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
