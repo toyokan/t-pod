@@ -421,6 +421,7 @@
       close: '<path d="M18 6 6 18M6 6l12 12"/>',
       line: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
       store: '<path d="M2 7 4 4h16l2 3"/><path d="M2 7a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M4 9v11a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/>',
+      users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     };
     function icon(name, cls = "w-5 h-5") {
       return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -910,6 +911,23 @@
       badge.classList.toggle("flex", unread > 0);
     }
 
+    // 主催・共催・協力・後援（指定があるものだけ行を出す）。値は文字列 or 文字列配列
+    const ORG_ROLES = [
+      ["organizer", "主催"],
+      ["coOrganizer", "共催"],
+      ["cooperation", "協力"],
+      ["support", "後援"],
+    ];
+    function orgRows(info) {
+      return ORG_ROLES.map(([key, label]) => {
+        const names = [].concat(info[key] || []).filter((n) => String(n || "").trim());
+        if (!names.length) return "";
+        return `<div class="flex items-start gap-1.5 text-xs text-slate-600 mt-1">` +
+          `${icon("users", "w-4 h-4 mt-0.5 flex-shrink-0 text-brand-500")}` +
+          `<span>${label}：${escapeHtml(names.join("／"))}</span></div>`;
+      }).join("");
+    }
+
     function openNotices() {
       const info = DATA.eventInfo || {};
       const notices = info.notices || [];
@@ -921,6 +939,7 @@
         (info.theme ? `<div class="text-sm text-brand-700 mt-2 font-medium">テーマ：${escapeHtml(info.theme)}</div>` : "") +
         (info.dateRange ? `<div class="flex items-center gap-1.5 text-xs text-slate-600 mt-2.5">${icon("calendar", "w-4 h-4 text-brand-500")}<span>${escapeHtml(info.dateRange)}</span></div>` : "") +
         (info.venueName ? `<div class="flex items-center gap-1.5 text-xs text-slate-600 mt-1">${icon("mapPin", "w-4 h-4 text-brand-500")}<span>${escapeHtml(info.venueName)}</span></div>` : "") +
+        orgRows(info) +
         `</div>`;
       if (!notices.length) body += `<p class="text-sm text-slate-500">現在お知らせはありません。</p>`;
       notices.forEach((n) => {
