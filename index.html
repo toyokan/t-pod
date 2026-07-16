@@ -144,6 +144,18 @@
         color-mix(in srgb, var(--brand) 86%, black) 100%);
       color: #fff;
       box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--brand) 65%, black), inset 0 1px rgba(255,255,255,.28);
+      transition: box-shadow .2s ease;
+    }
+    /* スクロール中／縮小時のみ、末端をわずかに透過して下のコンテンツをぼかし越しに見せる
+       （天面のヒーロー感は保ち、フロストはスクロール後だけ）。文字色は --brand-fg のまま＝可読性維持 */
+    #appHeader.is-compact, #appHeader.is-scrolling {
+      background: linear-gradient(145deg,
+        color-mix(in srgb, var(--brand) 74%, white) 0%,
+        color-mix(in srgb, var(--brand) 92%, transparent) 58%,
+        color-mix(in srgb, var(--brand) 80%, black) 100%);
+      -webkit-backdrop-filter: blur(10px) saturate(1.1);
+      backdrop-filter: blur(10px) saturate(1.1);
+      box-shadow: 0 10px 26px -18px color-mix(in srgb, var(--brand) 60%, black), inset 0 1px rgba(255,255,255,.24);
     }
     /* 光だけを独立レイヤーにし、スクロール中は再描画の軽い transform で動かす */
     #appHeader::before {
@@ -214,6 +226,18 @@
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
+    /* カードのタップ演出（transform のみ・GPU 合成）。進行中カードの枠/影とは非干渉 */
+    .session-card { transition: transform .12s ease; }
+    .session-card:active { transform: scale(.985); }
+    /* スケルトンの shimmer：各バーに左→右へ光を流す（translateX のみ・GPU 合成） */
+    @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+    #skeleton > div { position: relative; overflow: hidden; }
+    #skeleton > div::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.65) 50%, transparent 80%);
+      animation: shimmer 1.4s ease-in-out infinite;
+      will-change: transform;
+    }
     /* 画面外の長いリストは描画を遅延し、スクロール中のレイアウト・描画量を抑える */
     @supports (content-visibility: auto) {
       .perf-item { content-visibility: auto; contain-intrinsic-size: auto 104px; }
@@ -245,6 +269,13 @@
       .nav-brand-card {
         background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 78%, white), var(--brand));
       }
+      /* backdrop-filter 非対応時はフロストを使わず不透明塗りに戻す */
+      #appHeader.is-compact, #appHeader.is-scrolling {
+        background: linear-gradient(145deg,
+          color-mix(in srgb, var(--brand) 78%, white) 0%,
+          var(--brand) 58%,
+          color-mix(in srgb, var(--brand) 86%, black) 100%);
+      }
     }
     /* モーダルの閉じる演出 */
     @keyframes fadeOutDown { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
@@ -254,6 +285,10 @@
     @media (prefers-reduced-motion: reduce) {
       .animate-in, .animate-pulse, .animate-out,
       .view-in-right, .view-in-left { animation: none; }
+      #skeleton > div::after { animation: none; opacity: 0; }
+      .session-card { transition: none; }
+      .session-card:active,
+      #resourceLinks a:active, #formLinks a:active, #bookList a:active { transform: none; }
       .tab-indicator, .navpill, .view.is-drag-settling, #modalBackdrop, #linePopupBackdrop { transition: none !important; }
       html { scroll-behavior: auto; }
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
@@ -324,7 +359,7 @@
     </div>
 
     <!-- 読み込み中スケルトン（データ取得完了で非表示） -->
-    <div id="skeleton" aria-hidden="true" class="space-y-3 animate-pulse">
+    <div id="skeleton" aria-hidden="true" class="space-y-3">
       <div class="h-9 bg-slate-200/80 rounded-xl"></div>
       <div class="h-24 bg-slate-200/80 rounded-2xl"></div>
       <div class="h-24 bg-slate-200/70 rounded-2xl"></div>
@@ -937,7 +972,7 @@
     function linkCard(item, iconName) {
       const a = el(
         "a",
-        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 transition"
+        "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 active:scale-[.99] transition"
       );
       a.href = item.url || "#";
       a.target = "_blank";
@@ -958,7 +993,7 @@
       const list = $("bookList");
       list.innerHTML = "";
       (DATA.books || []).forEach((b) => {
-        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 transition");
+        const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 active:scale-[.99] transition");
         const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
         card.href = trimmed(b.url) || trimmed(b.amazon_url) || "#";
         card.target = "_blank";
@@ -1160,6 +1195,24 @@
       animation.addEventListener("cancel", clear, { once: true });
     }
 
+    // タブ切替時、対象 view 内の主要ブロックを順にフェードインさせる（animate-in の再適用）。
+    // 先頭 6 件まで・20ms 刻みで頭打ち。reduced-motion では既存 CSS が animate-in を無効化するため無演出。
+    const REVEAL_SEL = {
+      "view-program": "#timetable .perf-item",
+      "view-materials": ":scope > div",
+      "view-books": "#bookSale, #bookList > *",
+    };
+    function staggerReveal(view) {
+      if (!view || reduceMotionQuery.matches) return;
+      const items = view.querySelectorAll(REVEAL_SEL[view.id] || "");
+      items.forEach((elm, i) => {
+        elm.classList.remove("animate-in");
+        void elm.offsetWidth; // アニメーション再生のためのリスタート
+        elm.style.animationDelay = Math.min(i, 5) * 20 + "ms";
+        elm.classList.add("animate-in");
+      });
+    }
+
     function setTab(tab) {
       const from = TAB_ORDER.indexOf(activeTab);
       const to = TAB_ORDER.indexOf(tab);
@@ -1174,6 +1227,7 @@
       // Web Animations API で合成レイヤー上だけを動かす。強制レイアウトは発生させない
       if (from >= 0 && from !== to) {
         animateTabView($("view-" + tab), to > from ? 1 : -1);
+        staggerReveal($("view-" + tab));
       }
 
       document.querySelectorAll(".navbtn").forEach((b) => {
