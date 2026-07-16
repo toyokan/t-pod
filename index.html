@@ -804,7 +804,7 @@
               const c = roomColor(it.room);
               html += `<span class="flex-shrink-0 text-[10.5px] font-extrabold px-2 py-0.5 rounded-md ${c.chip}">${escapeHtml(it.room)}</span>`;
             }
-            if (it.title) html += `<span class="text-[12.5px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
+            if (it.title) html += `<span class="text-[13px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
             html += `</div>`;
             (it.meta || []).forEach((m) => {
               html += `<div class="text-xs text-slate-500 leading-relaxed mt-0.5">${escapeHtml(m)}</div>`;
@@ -943,7 +943,7 @@
       a.innerHTML =
         `<span class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">${icon(iconName)}</span>` +
         `<span class="flex-1 min-w-0">` +
-        `<span class="block text-sm font-bold text-slate-800">${escapeHtml(item.label)}</span>` +
+        `<span class="block text-[14.5px] font-bold text-slate-800">${escapeHtml(item.label)}</span>` +
         (item.description ? `<span class="block text-xs text-slate-500 mt-0.5">${escapeHtml(item.description)}</span>` : "") +
         `</span>` +
         `<span class="text-slate-300 group-hover:text-brand-400 transition">${icon("chevron", "w-5 h-5")}</span>`;
@@ -966,7 +966,7 @@
         card.innerHTML =
           (cover ? "" : placeholder) +
           `<div class="min-w-0">` +
-          `<div class="text-sm font-bold text-slate-800 leading-snug">${escapeHtml(b.title)}</div>` +
+          `<div class="text-[14.5px] font-bold text-slate-800 leading-snug">${escapeHtml(b.title)}</div>` +
           (b.author ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(b.author)}</div>` : "") +
           (b.publisher ? `<div class="text-[11px] text-slate-400">${escapeHtml(b.publisher)}</div>` : "") +
           (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
