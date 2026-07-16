@@ -128,28 +128,25 @@
       --brand: #ffd900;
       --brand-fg: #1e293b;
       --brand-2: color-mix(in srgb, var(--brand) 68%, black);
-      /* 白文字を載せる面専用。JS が 4.5:1 を満たす最も明るい色へ更新する */
-      --brand-solid: #766500;
-      --brand-solid-2: color-mix(in srgb, var(--brand-solid) 88%, black);
     }
     /* 2a案：ヘッダーのグラデ強化＋要所グラデのユーティリティ */
     #appHeader {
-      background: linear-gradient(135deg, var(--brand-solid) 0%, var(--brand-solid-2) 100%);
+      background: linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
       color: #fff;
       box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--brand-2) 55%, transparent);
     }
     #appHeader .deco { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.16); pointer-events: none; }
     #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 2px 6px color-mix(in srgb, var(--brand-2) 25%, transparent); }
-    .grad-pill { background-image: linear-gradient(135deg, var(--brand-solid) 0%, var(--brand-solid-2) 100%); color: #fff; }
-    .brand-solid-bg { background: var(--brand-solid); color: #fff; }
-    .brand-solid-card { background: linear-gradient(135deg, var(--brand-solid), var(--brand-solid-2)); color: #fff; }
+    .brand-bg { background: var(--brand); color: #fff; }
+    .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
+    .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .dot-grad { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); }
     /* セーフエリア（ノッチ端末）対応 */
     .safe-area-top-bg {
       position: fixed;
       inset: 0 0 auto 0;
       height: env(safe-area-inset-top);
-      background: var(--brand-solid);
+      background: var(--brand);
       z-index: 29;
       pointer-events: none;
     }
@@ -184,16 +181,17 @@
     .view-in-left  { animation: viewInLeft  .22s cubic-bezier(.22,1,.36,1) both; }
     /* アクティブ表示のスライド用インジケータ（ボトムナビ／日付タブ共通の動き） */
     .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); will-change: transform; pointer-events: none; }
-    /* 日付タブは白ピル＋ブランド濃色文字。ボトムナビは補正済みブランド背景＋白文字。 */
+    /* 日付タブは白ピル＋ブランド濃色文字。ボトムナビはブランド背景＋白文字。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
     .navbtn[aria-current] .navpill { color: #fff; }
     /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
-    .view { touch-action: pan-y; }
+    #tabViews { touch-action: pan-y; }
     .view.is-dragging { transition: none !important; will-change: transform; }
-    .view.is-drag-return { transition: transform .16s cubic-bezier(.22,1,.36,1); }
+    .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
+    .view.is-drag-settling { transition: transform .18s cubic-bezier(.22,1,.36,1) !important; }
     .datebtn[aria-pressed="true"] .datesub { opacity: .75; }
     .datebtn[aria-pressed="false"] .datesub { opacity: .7; }
     /* backdrop-filter 非対応時は不透明塗りへフォールバック */
@@ -253,14 +251,14 @@
   <!-- ===== ホーム画面に追加バナー（既定 hidden。イベントモードかつ未インストール時のみ表示） ===== -->
   <div id="installBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
     <div class="flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2.5 shadow-card">
-      <span class="brand-solid-bg flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center">
+      <span class="brand-bg flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       </span>
       <div class="flex-1 min-w-0">
         <div class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
         <div class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
       </div>
-      <button id="installBtn" class="brand-solid-bg flex-shrink-0 text-xs font-bold rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
+      <button id="installBtn" class="brand-bg flex-shrink-0 text-xs font-bold rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
       <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-2.5 -m-1 active:scale-95 transition">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -290,6 +288,7 @@
       <div id="eventList" class="space-y-3"></div>
     </section>
 
+    <div id="tabViews" class="relative">
     <!-- (1) プログラム -->
     <section id="view-program" class="view">
       <!-- 日付切替（セグメンテッドコントロール） -->
@@ -332,6 +331,7 @@
       <div id="bookSale" class="mb-4"></div>
       <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
     </section>
+    </div>
 
     <!-- クレジット（全タブ共通・本文最下部） -->
     <p class="mt-6 text-center text-[10px] font-normal text-slate-300">App by TOYOKAN PUBLISHING CO., LTD.</p>
@@ -339,12 +339,12 @@
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
   <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/75 backdrop-blur-xl border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
-    <!-- 選択タブは補正済みブランド色＋白文字。--brand-solid が AA コントラストを保証する -->
+    <!-- 選択タブはイベントのブランド色＋白文字 -->
     <div class="px-2 pt-1.5 pb-0.5">
     <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
       <!-- アクティブタブを示すピル。setTab() が translate3d で移動させる -->
       <div id="navIndicator" class="tab-indicator top-1 left-1 w-[calc((100%-0.5rem)/3)] flex justify-center" aria-hidden="true">
-        <span class="brand-solid-card shadow-fab w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
+        <span class="brand-card shadow-fab w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
       </div>
       <button data-tab="program" class="navbtn group relative flex justify-center" aria-label="TIMETABLE">
         <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
@@ -442,39 +442,11 @@
       const fg = relativeLuminance(color) > 0.55 ? "#1e293b" : "#ffffff";
       document.documentElement.style.setProperty("--brand-fg", fg);
     }
-    function hexRgb(hex) {
-      let h = hex.trim().slice(1);
-      if (h.length <= 4) h = [...h].map((c) => c + c).join("");
-      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
-    }
-    function rgbHex(rgb) {
-      return "#" + rgb.map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
-    }
-    function updateBrandSolid(color) {
-      if (!isHexColor(color)) return;
-      const rgb = hexRgb(color);
-      // 白とのコントラスト 4.5:1（背景輝度 <= 0.1833）を満たす、最も明るい黒混合色を二分探索する。
-      // 元色が既に適合する場合はそのまま使い、識別色を必要以上に変えない。
-      let lo = 0, hi = 1;
-      for (let i = 0; i < 18; i++) {
-        const keep = (lo + hi) / 2;
-        const mixed = rgb.map((v) => v * keep);
-        if (relativeLuminance(rgbHex(mixed)) <= 0.1833) lo = keep;
-        else hi = keep;
-      }
-      document.documentElement.style.setProperty("--brand-solid", rgbHex(rgb.map((v) => v * lo)));
-    }
     function applyBrandColor(color) {
-      if (!isHexColor(color)) {
-        const fallback = resolvedBrand();
-        updateBrandFg(fallback);
-        updateBrandSolid(fallback);
-        return;
-      }
+      if (!isHexColor(color)) { updateBrandFg(resolvedBrand()); return; }
       const c = color.trim();
       document.documentElement.style.setProperty("--brand", c);
       updateBrandFg(c);
-      updateBrandSolid(c);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", c);
       try { const id = getEventId(); if (id) localStorage.setItem("t-pod:theme:" + id, c); } catch (e) {}
@@ -575,7 +547,6 @@
 
     async function init() {
       updateBrandFg(resolvedBrand());
-      updateBrandSolid(resolvedBrand());
       registerSW();
       setupInstallPrompt();
       const id = getEventId();
@@ -970,7 +941,7 @@
       if (!url) return;
       const label = trimmed(sale.label) || "特設販売ページを見る";
       const note = trimmed(sale.note);
-      const card = el("a", "brand-solid-card flex items-center gap-3 rounded-2xl p-4 shadow-fab ring-1 ring-brand-600 hover:shadow-lg active:scale-[0.99] transition");
+      const card = el("a", "brand-card flex items-center gap-3 rounded-2xl p-4 shadow-fab ring-1 ring-brand-600 hover:shadow-lg active:scale-[0.99] transition");
       card.href = url;
       card.target = "_blank";
       card.rel = "noopener";
@@ -1338,24 +1309,42 @@
     // 横軸にロックした後は現在ビューを指へ追従させ、離した時に確定／復帰する。
     // CSS の touch-action: pan-y と軸判定により、通常の縦スクロールはブラウザへ委ねる。
     (function () {
-      const SWIPE_MIN_X = 48;   // 横移動がこれ未満なら切替しない（px）
-      const SWIPE_MAX_MS = 700;
+      const SWIPE_MIN_X = 44;
+      const SWIPE_MAX_MS = 800;
       const AXIS_RATIO = 1.4;   // 横が縦のこの倍を超えたときだけ横スワイプと判定
-      let startX = 0, startY = 0, startT = 0, lastX = 0, tracking = false, axis = "", dragView = null;
+      let startX = 0, startY = 0, startT = 0, lastX = 0, tracking = false, axis = "";
+      let dragView = null, neighborView = null, dragDirection = 0, dragWidth = 0;
 
-      const clearDrag = (animate) => {
+      const cleanupDrag = () => {
         if (!dragView) return;
-        const view = dragView;
-        view.classList.remove("is-dragging");
-        if (animate) {
-          view.classList.add("is-drag-return");
-          view.style.transform = "translate3d(0,0,0)";
-          setTimeout(() => { view.classList.remove("is-drag-return"); view.style.transform = ""; }, 180);
-        } else {
-          view.classList.remove("is-drag-return");
+        [dragView, neighborView].filter(Boolean).forEach((view) => {
+          view.classList.remove("is-dragging", "is-drag-neighbor", "is-drag-settling");
           view.style.transform = "";
-        }
-        dragView = null;
+        });
+        dragView = neighborView = null;
+        dragDirection = 0;
+      };
+
+      const settleDrag = (commit) => {
+        if (!dragView) return;
+        const oldTab = activeTab;
+        const nextIdx = TAB_ORDER.indexOf(oldTab) + dragDirection;
+        const nextTab = TAB_ORDER[nextIdx];
+        [dragView, neighborView].filter(Boolean).forEach((view) => {
+          view.classList.remove("is-dragging");
+          view.classList.add("is-drag-settling");
+        });
+        dragView.style.transform = `translate3d(${commit ? -dragDirection * dragWidth : 0}px,0,0)`;
+        if (neighborView) neighborView.style.transform = `translate3d(${commit ? 0 : dragDirection * dragWidth}px,0,0)`;
+        setTimeout(() => {
+          cleanupDrag();
+          if (commit && nextTab) {
+            // ドラッグ自体が切替演出なので、setTab の追加スライドは抑止する
+            activeTab = nextTab;
+            setTab(nextTab);
+            if (linePromoTrigger) linePromoTrigger();
+          }
+        }, 190);
       };
 
       const swipeEnabled = (e) => {
@@ -1386,29 +1375,44 @@
           axis = Math.abs(dx) > Math.abs(dy) * AXIS_RATIO ? "x" : "y";
           if (axis === "y") { tracking = false; return; }
           dragView = $("view-" + activeTab);
+          dragWidth = $("tabViews").clientWidth;
           if (dragView) dragView.classList.add("is-dragging");
         }
         if (axis !== "x" || !dragView) return;
         e.preventDefault();
         lastX = e.touches[0].clientX;
         const idx = TAB_ORDER.indexOf(activeTab);
-        const outward = (idx === 0 && dx > 0) || (idx === TAB_ORDER.length - 1 && dx < 0);
+        const direction = dx < 0 ? 1 : -1;
+        const outward = idx + direction < 0 || idx + direction >= TAB_ORDER.length;
         const offset = outward ? dx * .28 : dx;
+        if (outward && neighborView) {
+          neighborView.classList.remove("is-drag-neighbor", "is-dragging");
+          neighborView.style.transform = "";
+          neighborView = null;
+          dragDirection = 0;
+        }
+        if (!outward && direction !== dragDirection) {
+          if (neighborView) {
+            neighborView.classList.remove("is-drag-neighbor", "is-dragging");
+            neighborView.style.transform = "";
+          }
+          dragDirection = direction;
+          neighborView = $("view-" + TAB_ORDER[idx + direction]);
+          neighborView.classList.add("is-drag-neighbor", "is-dragging");
+        }
         dragView.style.transform = `translate3d(${offset}px,0,0)`;
+        if (neighborView) neighborView.style.transform = `translate3d(${offset + dragDirection * dragWidth}px,0,0)`;
       }, { passive: false });
 
       document.addEventListener("touchend", (e) => {
         if (!tracking || axis !== "x") { tracking = false; return; }
         tracking = false;
         const dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : lastX) - startX;
-        if (Math.abs(dx) < SWIPE_MIN_X || Date.now() - startT > SWIPE_MAX_MS) { clearDrag(true); return; }
-        const idx = TAB_ORDER.indexOf(activeTab) + (dx < 0 ? 1 : -1); // 左スワイプ＝次のタブ
-        if (idx < 0 || idx >= TAB_ORDER.length) { clearDrag(true); return; }
-        clearDrag(false);
-        setTab(TAB_ORDER[idx]);
-        if (linePromoTrigger) linePromoTrigger();
+        const velocity = Math.abs(dx) / Math.max(1, Date.now() - startT);
+        const commit = !!neighborView && ((Math.abs(dx) >= SWIPE_MIN_X && Date.now() - startT <= SWIPE_MAX_MS) || velocity > .45);
+        settleDrag(commit);
       }, { passive: true });
-      document.addEventListener("touchcancel", () => { tracking = false; clearDrag(true); }, { passive: true });
+      document.addEventListener("touchcancel", () => { tracking = false; settleDrag(false); }, { passive: true });
     })();
 
     // ---- スクロール連動のヘッダー縮小 ----
