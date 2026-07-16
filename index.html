@@ -804,7 +804,7 @@
               const c = roomColor(it.room);
               html += `<span class="flex-shrink-0 text-[10.5px] font-extrabold px-2 py-0.5 rounded-md ${c.chip}">${escapeHtml(it.room)}</span>`;
             }
-            if (it.title) html += `<span class="text-[13px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
+            if (it.title) html += `<span class="text-[13.5px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
             html += `</div>`;
             (it.meta || []).forEach((m) => {
               html += `<div class="text-xs text-slate-500 leading-relaxed mt-0.5">${escapeHtml(m)}</div>`;
