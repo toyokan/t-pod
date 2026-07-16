@@ -387,8 +387,8 @@
     <div class="px-2 pt-1.5 pb-0.5">
     <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
       <!-- アクティブタブを示すピル。setTab() が translate3d で移動させる -->
-      <div id="navIndicator" class="tab-indicator top-1 left-1 w-[calc((100%-0.5rem)/3)] flex justify-center" aria-hidden="true">
-        <span class="nav-brand-card w-full max-w-[120px] min-h-[48px] rounded-2xl"></span>
+      <div id="navIndicator" class="tab-indicator top-1 bottom-1 left-1 w-[calc((100%-0.5rem)/3)] flex justify-center" aria-hidden="true">
+        <span class="nav-brand-card w-full h-full max-w-[120px] rounded-2xl"></span>
       </div>
       <button data-tab="program" class="navbtn group relative flex justify-center" aria-label="TIMETABLE">
         <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
@@ -497,7 +497,7 @@
     }
 
     // 運営系カテゴリ（受付・休憩など）はコンパクト表示、授業・提案系はカードで強調
-    const isAdminCat = (cat) => /受付|昼食|昼休憩|休憩|閉会|事務|理事|挨拶|諸連絡/.test(cat || "");
+    const isAdminCat = (cat) => /受付|昼食|昼休|休憩|閉会|事務|理事|挨拶|諸連絡/.test(cat || "");
 
     // ---- SVG アイコン（Lucide 系・stroke=currentColor） ----
     const ICONS = {
