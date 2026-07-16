@@ -131,14 +131,21 @@
     }
     /* 明るいブランド面を主役にし、暗色は右下の小面積だけに限定 */
     #appHeader {
-      background:
-        radial-gradient(circle at 82% 4%, rgba(255,255,255,.34) 0 10%, transparent 30%),
-        linear-gradient(145deg,
-          color-mix(in srgb, var(--brand) 78%, white) 0%,
-          var(--brand) 58%,
-          color-mix(in srgb, var(--brand) 86%, black) 100%);
+      --header-light-x: 0px;
+      --header-light-y: 0px;
+      background: linear-gradient(145deg,
+        color-mix(in srgb, var(--brand) 78%, white) 0%,
+        var(--brand) 58%,
+        color-mix(in srgb, var(--brand) 86%, black) 100%);
       color: #fff;
       box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--brand) 65%, black), inset 0 1px rgba(255,255,255,.28);
+    }
+    /* 光だけを独立レイヤーにし、スクロール中は再描画の軽い transform で動かす */
+    #appHeader::before {
+      content: ""; position: absolute; inset: -36px; pointer-events: none;
+      background: radial-gradient(circle at 82% 4%, rgba(255,255,255,.34) 0 10%, transparent 30%);
+      transform: translate3d(var(--header-light-x), var(--header-light-y), 0);
+      will-change: transform;
     }
     #appHeader::after {
       content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -146,7 +153,7 @@
     }
     #appHeader .deco { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.12); pointer-events: none; }
     #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 1px 4px color-mix(in srgb, var(--brand) 45%, transparent); }
-    #themeBanner { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px rgba(255,255,255,.12); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+    #themeBanner { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px rgba(255,255,255,.12); }
     .brand-bg { background: var(--brand); color: #fff; }
     .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
@@ -212,7 +219,7 @@
     /* backdrop-filter 非対応時は不透明塗りへフォールバック */
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
       #bottomNav { background: #fff; }
-      #dateTabs { background: rgb(226 232 240 / .9); }
+      .modal-glass-bar { background: #fff; }
     }
     /* モーダルの閉じる演出 */
     @keyframes fadeOutDown { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
@@ -225,6 +232,7 @@
       .tab-indicator, .navpill, .view.is-drag-settling, #modalBackdrop, #linePopupBackdrop { transition: none !important; }
       html { scroll-behavior: auto; }
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
+      #appHeader::before { transform: none !important; will-change: auto; }
     }
   </style>
 </head>
@@ -309,7 +317,7 @@
       <!-- 日付切替（セグメンテッドコントロール） -->
       <!-- gap を持たせない：インジケータ幅 100%/n とボタン幅を厳密に一致させるため -->
       <!-- 地はグレー：白のインジケータを浮かせるためのコントラスト源 -->
-      <nav id="dateTabs" class="relative flex bg-slate-200/70 backdrop-blur-md border border-white/50 rounded-full p-1 mb-3" aria-label="開催日"></nav>
+      <nav id="dateTabs" class="relative flex bg-slate-200/80 border border-white/60 rounded-full p-1 mb-3" aria-label="開催日"></nav>
       <div class="flex items-center justify-between mb-3">
         <div id="dayMeta" class="text-xs font-bold text-slate-500"></div>
         <button id="jumpNow" class="hidden text-[11px] font-black grad-pill shadow-fab rounded-full px-3 py-1.5 active:scale-95 transition">▼ いまの予定へ</button>
@@ -353,7 +361,7 @@
   </main>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
-  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/75 backdrop-blur-xl border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
+  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
     <!-- 選択タブはヘッダーの明部に合わせたブランド色グラデーション＋白文字 -->
     <div class="px-2 pt-1.5 pb-0.5">
     <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
@@ -387,7 +395,7 @@
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" class="hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center">
     <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
     <div id="modalPanel" class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto overscroll-contain shadow-2xl animate-in">
-      <div class="sticky top-0 bg-white/95 backdrop-blur flex items-center justify-between px-4 py-3 border-b border-slate-100">
+      <div class="modal-glass-bar sticky top-0 bg-white/95 backdrop-blur flex items-center justify-between px-4 py-3 border-b border-slate-100">
         <h3 id="modalTitle" class="font-bold text-slate-800"></h3>
         <button id="modalClose" aria-label="閉じる" class="text-slate-400 hover:text-slate-600 rounded-lg p-2.5 -my-1.5 -mr-2 active:scale-95 transition">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -1442,15 +1450,27 @@
       }, true);
     })();
 
-    // ---- スクロール連動のヘッダー縮小 ----
+    // ---- スクロール連動のヘッダー縮小＋光レイヤー移動 ----
     (function () {
       const header = $("appHeader");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       let compact = false;
-      window.addEventListener("scroll", () => {
+      let ticking = false;
+      const update = () => {
         const y = window.scrollY;
         const next = compact ? y > 8 : y > 48;
         if (next !== compact) { compact = next; header.classList.toggle("is-compact", compact); }
+        if (!reduceMotion) {
+          const progress = Math.min(1, y / 180);
+          header.style.setProperty("--header-light-x", `${(-20 * progress).toFixed(1)}px`);
+          header.style.setProperty("--header-light-y", `${(8 * progress).toFixed(1)}px`);
+        }
+        ticking = false;
+      };
+      window.addEventListener("scroll", () => {
+        if (!ticking) { ticking = true; requestAnimationFrame(update); }
       }, { passive: true });
+      update();
     })();
     $("noticeBtn").addEventListener("click", openNotices);
     $("modalClose").addEventListener("click", closeModal);
