@@ -782,7 +782,7 @@
           // 運営系（受付・昼食など）：時刻＋名称のコンパクト行
           const bar = el("div", "session-card bg-slate-200/60 rounded-full px-4 py-2 flex items-center gap-2.5");
           bar.innerHTML =
-            `<span class="text-[12.5px] font-extrabold tabular-nums text-slate-500">${escapeHtml(s.start || "")}</span>` +
+            `<span class="text-[13.5px] font-extrabold tabular-nums text-slate-500">${escapeHtml(s.start || "")}</span>` +
             `<span class="text-[12.5px] font-bold text-slate-500">${escapeHtml(s.category || "")}</span>` +
             (s.note ? `<span class="text-[11px] text-slate-400 truncate">${escapeHtml(s.note)}</span>` : "");
           row.appendChild(bar);
@@ -794,7 +794,7 @@
             `<div class="now-slot"></div>` +
             `<div class="flex items-center justify-between gap-2">` +
             `<span class="cat-chip inline-block text-[11px] font-black text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-3 py-1 transition">${escapeHtml(s.category || "")}</span>` +
-            `<div class="text-[11px] font-extrabold tabular-nums text-slate-400 flex-shrink-0">${range}</div>` +
+            `<div class="text-[12.5px] font-extrabold tabular-nums text-slate-400 flex-shrink-0">${range}</div>` +
             `</div>`;
           if (s.note) html += `<p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(s.note)}</p>`;
           (s.items || []).forEach((it) => {
@@ -804,7 +804,9 @@
               const c = roomColor(it.room);
               html += `<span class="flex-shrink-0 text-[10.5px] font-extrabold px-2 py-0.5 rounded-md ${c.chip}">${escapeHtml(it.room)}</span>`;
             }
-            if (it.title) html += `<span class="text-[13.5px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
+            if (it.title) html += it.subtle
+              ? `<span class="text-[11.5px] font-normal text-slate-500">${escapeHtml(it.title)}</span>`
+              : `<span class="text-[13.5px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
             html += `</div>`;
             (it.meta || []).forEach((m) => {
               html += `<div class="text-xs text-slate-500 leading-relaxed mt-0.5">${escapeHtml(m)}</div>`;

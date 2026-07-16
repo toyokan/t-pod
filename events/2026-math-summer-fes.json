@@ -212,7 +212,8 @@
       "category": "OB授業シンポジウム",
       "items": [
         {
-          "title": "算数部OBが集います！"
+          "title": "算数部OBが集います！",
+          "subtle": true
         }
       ]
     },
