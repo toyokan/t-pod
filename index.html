@@ -153,8 +153,8 @@
         color-mix(in srgb, var(--brand) 74%, white) 0%,
         color-mix(in srgb, var(--brand) 92%, transparent) 58%,
         color-mix(in srgb, var(--brand) 80%, black) 100%);
-      -webkit-backdrop-filter: blur(10px) saturate(1.1);
-      backdrop-filter: blur(10px) saturate(1.1);
+      -webkit-backdrop-filter: blur(8px) saturate(1.08);
+      backdrop-filter: blur(8px) saturate(1.08);
       box-shadow: 0 10px 26px -18px color-mix(in srgb, var(--brand) 60%, black), inset 0 1px rgba(255,255,255,.24);
     }
     /* 光だけを独立レイヤーにし、スクロール中は再描画の軽い transform で動かす */
@@ -266,7 +266,7 @@
     .view-in-right { animation: viewInRight .22s cubic-bezier(.22,1,.36,1) both; }
     .view-in-left  { animation: viewInLeft  .22s cubic-bezier(.22,1,.36,1) both; }
     /* アクティブ表示のスライド用インジケータ（ボトムナビ／日付タブ共通の動き） */
-    .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); will-change: transform; pointer-events: none; }
+    .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); pointer-events: none; }
     /* 日付タブは白ピル＋ブランド濃色文字。ボトムナビはブランド背景＋白文字。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
     .navbtn[aria-current] .navpill { color: #fff; text-shadow: 0 1px 3px color-mix(in srgb, var(--brand) 55%, black); }
@@ -301,7 +301,7 @@
     #modalBackdrop, #linePopupBackdrop { transition: opacity .15s ease; }
     .is-closing #modalBackdrop, .is-closing #linePopupBackdrop { opacity: 0; }
     /* モーダル/LINE ポップアップの背景ぼかし（背後 UI をやわらかくぼかすガラス質感） */
-    #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+    #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
     /* 書影の読み込みフェードイン（cover 画像） */
     .img-fade { opacity: 0; transition: opacity .3s ease; }
     .img-fade.is-loaded { opacity: 1; }
@@ -311,6 +311,12 @@
     @keyframes popIn { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
     .pop-in { animation: popIn .2s cubic-bezier(.22,1,.36,1) both; }
     @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+      }
       .animate-in, .animate-pulse, .animate-out,
       .view-in-right, .view-in-left, .pop-in, .session-card.is-now::after { animation: none; }
       #skeleton > div::after { animation: none; opacity: 0; }
@@ -323,6 +329,19 @@
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
       #appHeader::before { transform: none !important; will-change: auto; }
       #appHeader .deco-right-lg, #appHeader .deco-right-sm { transform: none !important; will-change: auto; }
+    }
+    /* OS で透明効果を抑えている場合は、ガラス面を不透明にして可読性と描画負荷を優先 */
+    @media (prefers-reduced-transparency: reduce) {
+      #bottomNav, .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+      #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
+      #appHeader.is-compact, #appHeader.is-scrolling {
+        background: linear-gradient(145deg,
+          color-mix(in srgb, var(--brand) 78%, white) 0%,
+          var(--brand) 58%,
+          color-mix(in srgb, var(--brand) 86%, black) 100%);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
     }
   </style>
 </head>
@@ -451,7 +470,7 @@
   </main>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
-  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/80 backdrop-blur-lg border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
+  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/[.88] backdrop-blur-md border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
     <!-- 選択タブはヘッダーの明部に合わせたブランド色グラデーション＋白文字 -->
     <div class="px-2 pt-1.5 pb-0.5">
     <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
