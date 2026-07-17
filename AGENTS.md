@@ -34,6 +34,10 @@
 | `assets/` | アイコン・会場マップ（SVG） | △ 任意 |
 
 ## 新しいイベントの追加手順（コードは触らない）
+**推奨**: v2 Excelへ入力・目視修正後、`python scripts/import_event_workbook.py "<xlsx>"` で事前検証し、成功後に `--write` を付けて決定的変換する。既存IDは上書きしない。新形式は `docs/event-onboarding-review.md` の台帳へ記録する。
+
+手動で追加する場合:
+
 1. `events/<新id>.json` を作成（既存を複製して中身を書き換え／企画書テキストから生成）。`<新id>` は半角英数・ハイフン・アンダースコアのみ。
 2. `events.json` の `events[]` に1エントリ追記（`id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate`）。
 3. **会場マップ（イベント別・任意）**: `eventInfo.venue.mapImage` で指定。会場はイベント毎に異なるため以下を使い分ける。

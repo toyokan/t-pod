@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-"""イベント情報入力シート（Excel ひな形）を生成するスクリプト。
+"""旧形式のイベント情報入力シート生成コード（保守停止）。
 
-使い方:
-    pip install openpyxl
-    python3 template/make_template.py
-
-実行すると `template/イベント情報入力シート.xlsx` を生成（上書き）します。
-このひな形に担当者が記入し、Claude Code に渡すと `events/<id>.json` を生成できます。
-変換の流れは `template/README.md` を参照してください。
+現在のv2シートは構造が異なるため、このファイルからは再生成しません。
+誤って実行しても `template/イベント情報入力シート.xlsx` を上書きしないよう、
+実行入口で安全停止します。現行手順は `template/README.md` を参照してください。
 """
 
 from pathlib import Path
@@ -261,4 +257,7 @@ def build():
 
 
 if __name__ == "__main__":
-    build()
+    raise SystemExit(
+        "このスクリプトは旧形式のため実行できません。"
+        "現行の template/イベント情報入力シート.xlsx を使用してください。"
+    )

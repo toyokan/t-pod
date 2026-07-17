@@ -28,6 +28,13 @@
 4. `/?id=<id>` をローカルで確認し、チラシ等の QR コードに設定する。
 
 JSON に不慣れな担当者向けに、[Excel 入力ひな形](template/イベント情報入力シート.xlsx) と [記入・変換手順](template/README.md) を用意しています。
+生成後は、一覧・個別JSON・日付ID・会場ID・マニフェスト・アイコンの整合性を検証します。
+
+```bash
+python scripts/import_event_workbook.py "入力済みイベント.xlsx"
+python scripts/import_event_workbook.py "入力済みイベント.xlsx" --write
+python scripts/validate_events.py --event <id>
+```
 
 ## ローカル確認
 
@@ -53,6 +60,8 @@ python3 -m json.tool events/2026-zensanken-37.json
 - [要件・データ仕様・運用ルール](docs/requirements.md)
 - [開発経緯・現状・残課題](progress.md)
 - [Excel 入力ひな形の記入・変換手順](template/README.md)
+- [イベントJSON Schema](template/event-data.schema.json)
+- [新規イベント登録フローの見直し記録](docs/event-onboarding-review.md)
 - [公開範囲の検討記録](docs/repository-visibility-review.md)
 - [Codex 向け作業ガイド](AGENTS.md)
 

@@ -83,7 +83,8 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 | --- | --- |
 | `rooms[]` | `id` / `name` / `color` |
 | `sessions[]` | `id` / `dateId` / `start` / `end`（任意）/ `category` / `note`（任意）/ `items[]` |
-| `sessions[].items[]` | `room`（任意）/ `title`（任意）/ `meta[]` |
+| `sessions[].afterNote` | 任意。セッションカード直後に表示する補足 |
+| `sessions[].items[]` | `room`（任意）/ `title`（任意）/ `meta[]` / `subtle`（任意） |
 | `books[]` | `title` / `author` / `publisher` / `cover` / `description` / `url` / `amazon_url`（任意） |
 
 会場色は `blue` / `blueDeep` / `green` / `greenDeep` / `orange` / `purple` を使用する。複数会場の並行プログラムは同じ時間帯の `items[]` にまとめる。
@@ -94,7 +95,11 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 2. `events.json` に `id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate` / `brandColor` を追加する。
 3. 会場図があれば `assets/venue-map-<id>.svg` 等を置き、`eventInfo.venue.mapImage` に指定する。外部公開 URL も使用できる。
 4. PWA 名とアイコンを安定させる場合は `assets/icon-<id>.svg` と `events/<id>.webmanifest` を作り、`manifestPath` を設定する。
-5. 一覧、個別ページ、存在しない ID、モバイル表示、オフライン復帰を確認する。
+5. `python scripts/validate_events.py --event <id>` で、一覧との一致、日付ID・会場ID、URL、マニフェスト、アイコンを検証する。
+
+AIで生成する場合は `template/event-data.schema.json` を出力契約として使用する。資料間の矛盾や未記載事項は推測で補わず、Excelの `要確認` シートで解決してからJSONを生成する。
+v2 Excelからの生成は `scripts/import_event_workbook.py` を標準とし、既定の事前検証後に `--write` を明示して実行する。将来の形式差と品質指標は `docs/event-onboarding-review.md` に蓄積し、同ファイルの条件に達したらFormatを再レビューする。
+6. 一覧、個別ページ、存在しない ID、モバイル表示、オフライン復帰を確認する。
 
 ## 7. 運用上の禁止・注意
 

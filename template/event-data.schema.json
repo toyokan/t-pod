@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:t-pod:event-data",
+  "title": "t-pod event data",
+  "description": "events/<id>.json の機械可読な出力契約。AI生成時はこの構造に従い、資料にない値を推測しない。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["eventInfo", "sessions", "books"],
+  "properties": {
+    "eventInfo": { "$ref": "#/$defs/eventInfo" },
+    "rooms": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/room" }
+    },
+    "sessions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/session" }
+    },
+    "books": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/book" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://"
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "url"],
+      "properties": {
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "description": { "type": "string" },
+        "url": { "$ref": "#/$defs/url" }
+      }
+    },
+    "date": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "date", "weekday", "time"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "label": { "$ref": "#/$defs/nonEmptyString" },
+        "date": { "type": "string", "format": "date" },
+        "weekday": { "$ref": "#/$defs/nonEmptyString" },
+        "time": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "notice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "body", "level"],
+      "properties": {
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "body": { "$ref": "#/$defs/nonEmptyString" },
+        "level": { "enum": ["important", "info"] }
+      }
+    },
+    "venue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mapImage": { "type": "string", "minLength": 1 },
+        "mapNote": { "type": "string" },
+        "resourceLinks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/link" }
+        }
+      }
+    },
+    "bookSale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url"],
+      "properties": {
+        "url": { "$ref": "#/$defs/url" },
+        "label": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "organization": {
+      "oneOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        }
+      ]
+    },
+    "eventInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "logoMain",
+        "brandColor",
+        "manifestPath",
+        "theme",
+        "venueName",
+        "dateRange",
+        "dates",
+        "venue"
+      ],
+      "properties": {
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "subtitle": { "type": "string" },
+        "tagline": { "type": "string" },
+        "logoMain": { "$ref": "#/$defs/nonEmptyString" },
+        "logoSub": { "type": "string" },
+        "appName": { "type": "string" },
+        "iconLabel": { "type": "string" },
+        "brandColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "brandColor2": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+        "manifestPath": {
+          "type": "string",
+          "pattern": "^events/[A-Za-z0-9_-]+\\.webmanifest$"
+        },
+        "theme": { "$ref": "#/$defs/nonEmptyString" },
+        "venueName": { "$ref": "#/$defs/nonEmptyString" },
+        "dateRange": { "$ref": "#/$defs/nonEmptyString" },
+        "organizer": { "$ref": "#/$defs/organization" },
+        "coOrganizer": { "$ref": "#/$defs/organization" },
+        "cooperation": { "$ref": "#/$defs/organization" },
+        "support": { "$ref": "#/$defs/organization" },
+        "linePromo": { "type": "boolean" },
+        "dates": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/date" }
+        },
+        "notices": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/notice" }
+        },
+        "forms": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/link" }
+        },
+        "venue": { "$ref": "#/$defs/venue" },
+        "bookSale": { "$ref": "#/$defs/bookSale" }
+      }
+    },
+    "room": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "color"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "name": { "$ref": "#/$defs/nonEmptyString" },
+        "color": {
+          "enum": ["blue", "blueDeep", "green", "greenDeep", "orange", "purple"]
+        }
+      }
+    },
+    "sessionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "room": { "type": "string" },
+        "title": { "type": "string" },
+        "meta": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "subtle": { "type": "boolean" }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "dateId", "start", "end", "category", "items"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "dateId": { "$ref": "#/$defs/nonEmptyString" },
+        "start": { "type": "string", "pattern": "^$|^(?:[01]?\\d|2[0-3]):[0-5]\\d$" },
+        "end": { "type": "string", "pattern": "^$|^(?:[01]?\\d|2[0-3]):[0-5]\\d$" },
+        "category": { "$ref": "#/$defs/nonEmptyString" },
+        "note": { "type": "string" },
+        "afterNote": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sessionItem" }
+        }
+      }
+    },
+    "book": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "author", "publisher", "description", "url"],
+      "properties": {
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "author": { "$ref": "#/$defs/nonEmptyString" },
+        "publisher": { "$ref": "#/$defs/nonEmptyString" },
+        "cover": { "$ref": "#/$defs/url" },
+        "description": { "$ref": "#/$defs/nonEmptyString" },
+        "url": { "$ref": "#/$defs/url" },
+        "amazon_url": { "$ref": "#/$defs/url" }
+      }
+    }
+  }
+}

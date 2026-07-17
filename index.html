@@ -878,30 +878,45 @@
         } else {
           // 内容カード
           const card = el("div", "session-card bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card");
+          const sessionItems = s.items || [];
+          const manyItems = sessionItems.length >= 4;
           const range = s.end ? `${escapeHtml(s.start)}–${escapeHtml(s.end)}` : escapeHtml(s.start || "");
           let html =
             `<div class="now-slot"></div>` +
             `<div class="flex items-center justify-between gap-2">` +
+            `<div class="flex items-center gap-2 min-w-0">` +
             `<span class="cat-chip inline-block text-[11px] font-black text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-3 py-1 transition">${escapeHtml(s.category || "")}</span>` +
+            (manyItems ? `<span class="text-[10.5px] font-bold text-slate-500 whitespace-nowrap">全${sessionItems.length}プログラム</span>` : "") +
+            `</div>` +
             `<div class="text-[12.5px] font-extrabold tabular-nums text-slate-400 flex-shrink-0">${range}</div>` +
             `</div>`;
           if (s.note) html += `<p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(s.note)}</p>`;
-          (s.items || []).forEach((it) => {
-            html += `<div class="mt-2.5 first-of-type:mt-2">`;
+          if (manyItems) html += `<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">`;
+          sessionItems.forEach((it, itemIdx) => {
+            html += manyItems
+              ? `<div class="min-w-0 rounded-xl border border-slate-200/90 bg-slate-50/70 p-3">`
+              : `<div class="mt-2.5 first-of-type:mt-2">`;
             html += `<div class="flex items-baseline gap-2 flex-wrap">`;
+            if (manyItems) {
+              html += `<span class="flex items-center justify-center flex-shrink-0 w-5 h-5 rounded-full bg-white border border-slate-200 text-[10px] font-extrabold tabular-nums text-slate-500">${itemIdx + 1}</span>`;
+            }
             if (it.room) {
               const c = roomColor(it.room);
               html += `<span class="flex-shrink-0 text-[10.5px] font-extrabold px-2 py-0.5 rounded-md ${c.chip}">${escapeHtml(it.room)}</span>`;
             }
             if (it.title) html += it.subtle
-              ? `<span class="text-[11.5px] font-normal text-slate-500">${escapeHtml(it.title)}</span>`
-              : `<span class="text-[13.5px] font-bold text-slate-800">${escapeHtml(it.title)}</span>`;
+              ? `<span class="min-w-0 text-[11.5px] font-normal text-slate-500 leading-relaxed break-words [line-break:strict] [text-wrap:pretty]">${escapeHtml(it.title)}</span>`
+              : `<span class="min-w-0 text-[13.5px] font-bold text-slate-800 leading-[1.65] break-words [line-break:strict] [text-wrap:pretty]">${escapeHtml(it.title)}</span>`;
             html += `</div>`;
-            (it.meta || []).forEach((m) => {
-              html += `<div class="text-xs text-slate-500 leading-relaxed mt-0.5">${escapeHtml(m)}</div>`;
+            (it.meta || []).forEach((m, metaIdx) => {
+              const metaClass = manyItems && metaIdx === 0
+                ? "text-xs text-slate-500 leading-relaxed mt-2 pt-2 border-t border-slate-200/80"
+                : "text-xs text-slate-500 leading-relaxed mt-0.5";
+              html += `<div class="${metaClass} break-words [line-break:strict]">${escapeHtml(m)}</div>`;
             });
             html += `</div>`;
           });
+          if (manyItems) html += `</div>`;
           card.innerHTML = html;
           row.appendChild(card);
           if (s.afterNote) {
