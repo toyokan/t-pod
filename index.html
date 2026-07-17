@@ -151,7 +151,7 @@
     #appHeader.is-compact, #appHeader.is-scrolling {
       background: linear-gradient(145deg,
         color-mix(in srgb, var(--brand) 74%, white) 0%,
-        color-mix(in srgb, var(--brand) 92%, transparent) 58%,
+        color-mix(in srgb, var(--brand) 88%, transparent) 58%,
         color-mix(in srgb, var(--brand) 80%, black) 100%);
       -webkit-backdrop-filter: blur(8px) saturate(1.08);
       backdrop-filter: blur(8px) saturate(1.08);
@@ -274,6 +274,8 @@
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
+    /* 通常時の可読性は保ち、スクロール後だけボトムナビの透明感を少し強める */
+    body.is-scrolled #bottomNav { background-color: rgba(255,255,255,.82); }
     #tabViews { touch-action: pan-y; }
     .view.is-dragging { transition: none !important; will-change: transform; }
     .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
@@ -332,7 +334,7 @@
     }
     /* OS で透明効果を抑えている場合は、ガラス面を不透明にして可読性と描画負荷を優先 */
     @media (prefers-reduced-transparency: reduce) {
-      #bottomNav, .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+      #bottomNav, body.is-scrolled #bottomNav, .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
       #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
       #appHeader.is-compact, #appHeader.is-scrolling {
         background: linear-gradient(145deg,
@@ -1642,7 +1644,11 @@
       const update = () => {
         const y = window.scrollY;
         const next = compact ? y > 8 : y > 48;
-        if (next !== compact) { compact = next; header.classList.toggle("is-compact", compact); }
+        if (next !== compact) {
+          compact = next;
+          header.classList.toggle("is-compact", compact);
+          document.body.classList.toggle("is-scrolled", compact);
+        }
         if (!reduceMotion) {
           const progress = Math.min(1, y / 180);
           if (progress !== lastProgress) {
