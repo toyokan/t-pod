@@ -76,6 +76,7 @@ python3 -m json.tool events/2026-zensanken-37.json
 - [新規イベント登録フローの見直し記録](docs/event-onboarding-review.md)
 - [公開範囲の検討記録](docs/repository-visibility-review.md)
 - [Codex 向け作業ガイド](AGENTS.md)
+- [iPhone から Codex クラウドタスクを使う](docs/codex-cloud-setup.md)
 
 詳細仕様は README から `docs/requirements.md` へ分離しています。なお、リポジトリが public の場合は同ファイルも公開されます。
 

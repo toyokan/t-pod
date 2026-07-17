@@ -58,6 +58,17 @@ python3 -m json.tool events.json            # JSON 妥当性チェック
 python3 -m json.tool events/2026-zensanken-37.json
 ```
 
+## Codex クラウド環境での確認
+
+- Setup script は `bash scripts/setup_codex_cloud.sh` を使用する。
+- 実装後は最低限、次を実行する。
+
+```bash
+python scripts/validate_events.py
+python -m unittest discover -s tests -v
+git diff --check
+```
+
 ## デプロイ
 GitHub **Settings → Pages → Source: `main` / `/ (root)`** → `https://<user>.github.io/t-pod/`。
 パスはすべて相対指定のため、サブパス配信（`/t-pod/`）でも追加設定は不要。
