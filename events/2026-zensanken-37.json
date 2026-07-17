@@ -47,11 +47,6 @@
     ],
     "forms": [
       {
-        "label": "事後アンケート（参加者全員）",
-        "description": "本大会の感想をお寄せください",
-        "url": "https://forms.gle/example-survey"
-      },
-      {
         "label": "参加お申し込み",
         "description": "お申し込み時のメールに最新案内をお送りします",
         "url": "https://www.kokuchpro.com/event/e0c4b5dd21d46b50f6d277884641a987/"
@@ -66,11 +61,6 @@
       "mapImage": "assets/venue-map-2026-zensanken-37.svg",
       "mapNote": "会場は筑波大学附属小学校です。公開授業はA〜D会場（各教室）で行います。詳しい会場割りは当日の掲示・配布物をご確認ください。",
       "resourceLinks": [
-        {
-          "label": "当日資料一式（PDF）",
-          "description": "全提案・公開授業の資料フォルダ",
-          "url": "https://drive.google.com/drive/folders/example-all"
-        },
         {
           "label": "全国算数授業研究会 ホームページ",
           "description": "最新情報・お知らせはこちら",

@@ -7,7 +7,7 @@
 t-pod は教育イベント・研究会向けの静的タイムテーブル PWA である。ビルド工程は持たず、`index.html`、Vanilla JavaScript、Tailwind CSS Play CDN で動作する。
 
 - `?id=<id>` あり: `events/<id>.json` を読み込むイベントモード
-- `?id` なし: LINEまたはQRコードからのアクセスを促す参加者向け案内モード
+- `?id` なし: LINEまたはQRコードからのアクセスを促し、東洋館出版社公式LINEの友だち追加ボタンを表示する参加者向け案内モード
 - イベント ID は `[A-Za-z0-9_-]` のみ許可する
 - `index.html` は汎用シェルとし、個別イベント固有の文言を置かない
 - 文字列を HTML に入れる場合は `escapeHtml()` を通す
@@ -40,7 +40,7 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 - `eventInfo.bookSale` がある場合、BOOKS に特設販売ページへの導線を表示する
 - `prefers-reduced-motion` と `backdrop-filter` 非対応環境にフォールバックする
 - Service Worker は Network First とし、閲覧済みイベントをオフラインでも表示できるようにする
-- 全ページを `noindex, nofollow, noarchive` とし、個別イベントではURLの転載・共有を控える旨を常設表示する
+- 全ページを `noindex, nofollow, noarchive` とし、個別イベントの概要・お知らせモーダル最下部にURLの転載・共有を控える旨を表示する
 
 ## 4. `events.json`
 
