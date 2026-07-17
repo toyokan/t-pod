@@ -19,6 +19,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from generate_event_url_index import OUTPUT_PATH, render_event_url_index
+
 
 ROOT = Path(__file__).resolve().parents[1]
 EVENTS_INDEX = ROOT / "events.json"
@@ -361,6 +363,22 @@ def main() -> int:
         entries: list[Any] = []
     else:
         entries = index["events"]
+
+    if isinstance(index, dict):
+        validator.check_url(index.get("siteUrl"), "events.json.siteUrl")
+
+    if isinstance(index, dict):
+        expected_url_index = render_event_url_index(index)
+        try:
+            actual_url_index = OUTPUT_PATH.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            validator.error("docs/event-url-index.md", "URL台帳がありません。生成スクリプトを実行してください")
+        else:
+            if actual_url_index != expected_url_index:
+                validator.error(
+                    "docs/event-url-index.md",
+                    "events.json と一致しません。python scripts/generate_event_url_index.py を実行してください",
+                )
 
     seen_ids: set[str] = set()
     selected = 0

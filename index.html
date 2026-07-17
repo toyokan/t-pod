@@ -6,6 +6,7 @@
   <!-- 静的タイトルは汎用。読み込み後に events/<id>.json の eventInfo.title で上書きされる -->
   <title>プログラム / タイムテーブル</title>
   <meta name="description" content="教育イベント・研究会向けタイムテーブル PWA" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
 
   <!-- theme-color（ステータスバー/ノッチ部の色）。LINE 等のアプリ内ブラウザはこの値を
        パース時に一度だけ読み、JS の事後更新を反映しないため、下の inline スクリプトが
@@ -407,13 +408,20 @@
     </div>
   </div>
 
+  <!-- ===== 参加者向け注意（イベントモードで常設） ===== -->
+  <div id="participantNotice" class="hidden max-w-2xl mx-auto mt-2 px-3">
+    <div class="bg-slate-50 border border-slate-200 text-slate-600 text-xs leading-relaxed rounded-xl px-3.5 py-2.5">
+      本ページはイベント参加者向けです。URLの転載・共有はお控えください。
+    </div>
+  </div>
+
   <!-- ===== メインコンテンツ ===== -->
   <main class="max-w-2xl mx-auto px-4 pt-4 pb-32">
 
     <!-- 読み込みエラー表示 -->
     <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
       <p>データの読み込みに失敗しました。通信環境をご確認のうえ、ページを再読み込みしてください。</p>
-      <a href="./" class="inline-block mt-2 text-brand-600 font-medium underline">イベント一覧へ戻る</a>
+      <a href="./" class="inline-block mt-2 text-brand-600 font-medium underline">案内ページへ戻る</a>
     </div>
 
     <!-- 読み込み中スケルトン（データ取得完了で非表示） -->
@@ -424,10 +432,12 @@
       <div class="h-24 bg-slate-200/60 rounded-2xl"></div>
     </div>
 
-    <!-- (0) イベント一覧（?id 無しのとき表示） -->
+    <!-- (0) 参加者向け案内（?id 無しのとき表示） -->
     <section id="view-list" class="view hidden">
-      <h2 class="text-base font-bold text-slate-700 mb-3">イベント一覧</h2>
-      <div id="eventList" class="space-y-3"></div>
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-card text-center">
+        <h2 class="text-base font-bold text-slate-700">イベント参加者の方へ</h2>
+        <p class="text-sm text-slate-600 leading-relaxed mt-3">イベントページは、ご案内のLINEまたはQRコードからアクセスしてください。</p>
+      </div>
     </section>
 
     <div id="tabViews" class="relative">
@@ -681,6 +691,7 @@
       document.getElementById("bottomNav").classList.toggle("hidden", !isEvent);
       $("noticeBtn").classList.toggle("hidden", !isEvent);
       $("noticeBtn").classList.toggle("flex", isEvent);
+      $("participantNotice").classList.toggle("hidden", !isEvent);
       $("view-list").classList.toggle("hidden", isEvent);
       $("view-program").classList.toggle("hidden", !isEvent);
       document.querySelector("main").classList.toggle("pb-32", isEvent);
@@ -701,12 +712,8 @@
           renderAll();
           showLinePromo();
         } else {
-          const res = await fetch("events.json", { cache: "no-cache" });
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          const index = await res.json();
           setMode("list");
-          renderEventList(index);
-          showLinePromo();
+          renderAccessGuide();
         }
       } catch (err) {
         console.error(err);
@@ -717,37 +724,11 @@
       }
     }
 
-    // ---- イベント一覧（?id 無し） ----
-    function renderEventList(index) {
-      $("eventTitle").textContent = index.siteTitle || "イベント一覧";
-      $("eventSubtitle").textContent = index.siteSubtitle || "";
-      document.title = index.siteTitle || document.title;
-
-      const wrap = $("eventList");
-      wrap.innerHTML = "";
-      const events = (index.events || [])
-        .slice()
-        .sort((a, b) => String(b.sortDate || "").localeCompare(String(a.sortDate || "")));
-
-      if (!events.length) {
-        wrap.appendChild(el("p", "text-sm text-slate-500 py-8 text-center", "公開中のイベントはありません。"));
-        return;
-      }
-
-      events.forEach((ev, idx) => {
-        const card = el("a", "group relative block bg-white border border-slate-200/80 rounded-2xl p-4 pl-5 shadow-card hover:border-brand-300 hover:shadow-md active:bg-slate-50 transition animate-in overflow-hidden");
-        card.href = "?id=" + encodeURIComponent(ev.id);
-        card.style.animationDelay = idx * 40 + "ms";
-        if (isHexColor(ev.brandColor)) card.style.setProperty("--brand", ev.brandColor.trim());
-        card.innerHTML =
-          `<span class="absolute left-0 inset-y-0 w-1.5 bg-brand-500"></span>` +
-          `<div class="text-sm font-bold text-slate-800 leading-snug pr-6">${escapeHtml(ev.title || ev.id)}</div>` +
-          (ev.theme ? `<div class="text-xs text-brand-700 mt-1">テーマ：${escapeHtml(ev.theme)}</div>` : "") +
-          (ev.dateRange ? `<div class="flex items-center gap-1.5 text-xs text-slate-500 mt-2">${icon("calendar", "w-4 h-4 text-slate-400")}<span>${escapeHtml(ev.dateRange)}</span></div>` : "") +
-          (ev.venueName ? `<div class="flex items-center gap-1.5 text-xs text-slate-500 mt-1">${icon("mapPin", "w-4 h-4 text-slate-400")}<span>${escapeHtml(ev.venueName)}</span></div>` : "") +
-          `<span class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-brand-400 group-hover:translate-x-0.5 transition">${icon("chevron", "w-5 h-5")}</span>`;
-        wrap.appendChild(card);
-      });
+    // ---- 参加者向け案内（?id 無し） ----
+    function renderAccessGuide() {
+      $("eventTitle").textContent = "イベントページのご案内";
+      $("eventSubtitle").textContent = "";
+      document.title = "イベントページのご案内";
     }
 
     function renderAll() {

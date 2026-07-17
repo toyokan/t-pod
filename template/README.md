@@ -18,7 +18,7 @@
 
 ### JSON生成を依頼するプロンプト
 
-> このExcelと `template/event-data.schema.json` から `events/<id>.json` を生成し、`events.json` に一覧エントリを追記してください。あわせて `events/<id>.webmanifest` と `assets/icon-<id>.svg` を既存イベントに合わせて生成してください。資料にない内容は推測せず、「要確認」シートに未解決事項があれば作業を止めて報告してください。既存イベントは上書き・削除しないでください。生成後に `python scripts/validate_events.py --event <id>` とローカル表示を確認してください。
+> このExcelと `template/event-data.schema.json` から `events/<id>.json` を生成し、`events.json` に索引エントリを追記してください。あわせて `events/<id>.webmanifest` と `assets/icon-<id>.svg` を既存イベントに合わせて生成してください。取込スクリプトは開発者向けURL台帳も自動更新します。資料にない内容は推測せず、「要確認」シートに未解決事項があれば作業を止めて報告してください。既存イベントは上書き・削除しないでください。生成後に `python scripts/validate_events.py --event <id>` とローカル表示を確認してください。
 
 通常はAIにJSONを直接書かせず、次のコマンドを使用します。
 

@@ -12,7 +12,7 @@
 - **JSON駆動・UIとデータ完全分離**。`index.html` は**汎用シェル**で、固有のイベント文言を持たない（タイトル等は JSON から動的反映）。
 - **マルチイベント方式（クエリパラメータ）**:
   - `?id=<id>` あり → `events/<id>.json` を fetch して個別イベント表示（イベントモード）。
-  - `?id` なし（ルートURL）→ `events.json` を fetch してイベント一覧を表示（一覧モード）。
+  - `?id` なし（ルートURL）→ LINEまたはQRコードからのアクセスを促す案内を表示（案内モード）。イベント一覧は公開画面に出さない。
   - `index.html` の `getEventId()` が `?id` を取得し `[A-Za-z0-9_-]` のみ許可（不正値・パストラバーサル除去）。`init()` が両モードを分岐。
 - **キャッシュ**: `sw.js` は **Network First**（取得成功でキャッシュ更新、失敗時はキャッシュ）。
   - シェル（HTML/JS/アセット）を変更したら **`CACHE_VERSION` を必ず上げる**。
@@ -27,7 +27,8 @@
 | ファイル | 役割 | 編集方針 |
 | --- | --- | --- |
 | `index.html` | 汎用 UI シェル + 描画ロジック | ⚠️ ロジック変更時のみ。**固有文言は書かない** |
-| `events.json` | イベント一覧インデックス（一覧ページの元データ） | ✅ イベント追加時に1エントリ追記 |
+| `events.json` | 開発・検証・URL台帳生成用のイベント索引（`siteUrl` が本番URL基準） | ✅ イベント追加時に1エントリ追記 |
+| `docs/event-url-index.md` | 開発者向け本番URL台帳 | 自動生成（直接編集しない） |
 | `events/<id>.json` | 各イベントの全情報（`eventInfo`/`rooms`/`sessions`/`books`） | ✅ ここを追加・編集 |
 | `sw.js` | Service Worker（Network First） | ⚠️ 変更時は `CACHE_VERSION` を上げる |
 | `manifest.json` | PWA 汎用シェル（インストール名・色） | △ 任意 |
@@ -39,7 +40,7 @@
 手動で追加する場合:
 
 1. `events/<新id>.json` を作成（既存を複製して中身を書き換え／企画書テキストから生成）。`<新id>` は半角英数・ハイフン・アンダースコアのみ。
-2. `events.json` の `events[]` に1エントリ追記（`id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate`）。
+2. `events.json` の `events[]` に1エントリ追記（`id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate`）。手動追加時は `python scripts/generate_event_url_index.py` でURL台帳を更新する（Excel取込時は自動）。
 3. **会場マップ（イベント別・任意）**: `eventInfo.venue.mapImage` で指定。会場はイベント毎に異なるため以下を使い分ける。
    - リポジトリ内の図: `assets/venue-map-<id>.svg`（または `.png` / `.jpg`）として置き、`mapImage` に相対パス指定（アイコンの `icon-<id>.svg` と同じイベント別命名で統一）。
    - 外部リンク: 会場図の写真等は `mapImage` に公開URL（Google Drive 等）を直接指定でも可。
@@ -50,7 +51,7 @@
 `file://` 直開きは不可（fetch / Service Worker が動かない）。静的サーバを使う。
 ```bash
 python3 -m http.server 8080
-# /                         → イベント一覧
+# /                         → 参加者向け案内
 # /?id=2026-zensanken-37    → 個別イベント
 # /?id=does-not-exist       → エラー＋一覧への導線
 python3 -m json.tool events.json            # JSON 妥当性チェック
@@ -62,7 +63,7 @@ GitHub **Settings → Pages → Source: `main` / `/ (root)`** → `https://<user
 パスはすべて相対指定のため、サブパス配信（`/t-pod/`）でも追加設定は不要。
 
 ## 禁止 / 注意事項
-- **過去の `events/<id>.json` を削除しない**（旧チラシの QR リンクが無効になる）。一覧から外すだけなら `events.json` のエントリ削除で OK。
+- **過去の `events/<id>.json` と `events.json` の索引を削除しない**（旧チラシのQRリンクと開発者向けURL台帳を維持する）。
 - `index.html` に特定イベントの固有文言を書かない（汎用シェルを維持）。
 - 配布資料の実ファイル（PDF/Word 等）はリポジトリに置かず、外部公開リンク（Google Drive 等）を JSON に記述する。
 - フォーム類は PWA 内処理せず外部（Google フォーム等）へ誘導。

@@ -10,7 +10,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v65";
+const CACHE_VERSION = "v66";
 const CACHE_NAME = `t-pod-${CACHE_VERSION}`;
 
 // 16進カラー（#rgb / #rgba / #rrggbb / #rrggbbaa）判定
@@ -22,7 +22,6 @@ const HEX_RE = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 const APP_SHELL = [
   "./",
   "./index.html",
-  "./events.json",
   "./manifest.json",
   "./assets/icon.svg",
   "https://cdn.tailwindcss.com/3.4.17",

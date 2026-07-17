@@ -7,7 +7,7 @@
 t-pod は教育イベント・研究会向けの静的タイムテーブル PWA である。ビルド工程は持たず、`index.html`、Vanilla JavaScript、Tailwind CSS Play CDN で動作する。
 
 - `?id=<id>` あり: `events/<id>.json` を読み込むイベントモード
-- `?id` なし: `events.json` を読み込む一覧モード
+- `?id` なし: LINEまたはQRコードからのアクセスを促す参加者向け案内モード
 - イベント ID は `[A-Za-z0-9_-]` のみ許可する
 - `index.html` は汎用シェルとし、個別イベント固有の文言を置かない
 - 文字列を HTML に入れる場合は `escapeHtml()` を通す
@@ -17,7 +17,8 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 | ファイル | 責務 | 通常のイベント追加時 |
 | --- | --- | --- |
 | `index.html` | 汎用 UI、描画、操作、PWA 実行時設定 | 変更しない |
-| `events.json` | 一覧ページ用のイベント索引 | 1件追加 |
+| `events.json` | 開発・検証・URL台帳生成用のイベント索引 | 1件追加 |
+| `docs/event-url-index.md` | 開発者向け本番URL台帳（自動生成） | 自動更新 |
 | `events/<id>.json` | イベントの全データ | 新規作成・編集 |
 | `events/<id>.webmanifest` | イベント別 PWA マニフェスト | 任意（推奨） |
 | `sw.js` | Network First キャッシュ、ナビゲーション HTML の `theme-color` 書換え | 通常は変更しない |
@@ -39,13 +40,17 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 - `eventInfo.bookSale` がある場合、BOOKS に特設販売ページへの導線を表示する
 - `prefers-reduced-motion` と `backdrop-filter` 非対応環境にフォールバックする
 - Service Worker は Network First とし、閲覧済みイベントをオフラインでも表示できるようにする
+- 全ページを `noindex, nofollow, noarchive` とし、個別イベントではURLの転載・共有を控える旨を常設表示する
 
 ## 4. `events.json`
 
+公開ルートでは読み込まず、イベントデータの整合性検証と開発者向けURL台帳の生成に使用する。
+
 | キー | 内容 |
 | --- | --- |
+| `siteUrl` | URL台帳に使用する公開サイトのルートURL |
 | `siteTitle` / `siteSubtitle` | 一覧ページのヘッダー文言 |
-| `events[]` | 一覧表示するイベント |
+| `events[]` | 登録済みイベントの索引 |
 | `events[].id` | `events/<id>.json` の `<id>` |
 | `events[].title` / `theme` / `dateRange` / `venueName` | カード表示文言 |
 | `events[].sortDate` | `YYYY-MM-DD`。新しい順の並び替えに使用 |
@@ -95,15 +100,16 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 2. `events.json` に `id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate` / `brandColor` を追加する。
 3. 会場図があれば `assets/venue-map-<id>.svg` 等を置き、`eventInfo.venue.mapImage` に指定する。外部公開 URL も使用できる。
 4. PWA 名とアイコンを安定させる場合は `assets/icon-<id>.svg` と `events/<id>.webmanifest` を作り、`manifestPath` を設定する。
-5. `python scripts/validate_events.py --event <id>` で、一覧との一致、日付ID・会場ID、URL、マニフェスト、アイコンを検証する。
+5. 手動追加時は `python scripts/generate_event_url_index.py` で開発者向けURL台帳を更新する（Excel取込時は自動更新）。
+6. `python scripts/validate_events.py --event <id>` で、索引・URL台帳・個別JSON・日付ID・会場ID・マニフェスト・アイコンの整合性を検証する。
 
 AIで生成する場合は `template/event-data.schema.json` を出力契約として使用する。資料間の矛盾や未記載事項は推測で補わず、Excelの `要確認` シートで解決してからJSONを生成する。
 v2 Excelからの生成は `scripts/import_event_workbook.py` を標準とし、既定の事前検証後に `--write` を明示して実行する。将来の形式差と品質指標は `docs/event-onboarding-review.md` に蓄積し、同ファイルの条件に達したらFormatを再レビューする。
-6. 一覧、個別ページ、存在しない ID、モバイル表示、オフライン復帰を確認する。
+7. 参加者向け案内、個別ページ、存在しない ID、モバイル表示、オフライン復帰を確認する。
 
 ## 7. 運用上の禁止・注意
 
-- 過去の `events/<id>.json` を削除しない。一覧から外す場合は `events.json` のエントリだけを削除する
+- 過去の `events/<id>.json` と `events.json` の索引を削除しない（旧チラシのQRと開発者用台帳を維持する）
 - 配布資料の PDF / Word 等はリポジトリに置かず、外部公開リンクを JSON に記述する
 - フォームは PWA 内に実装せず、外部フォームへ誘導する
 - 新規色クラスを動的生成する場合は Tailwind の設定と safelist を同期する

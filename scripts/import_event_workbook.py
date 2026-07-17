@@ -24,6 +24,8 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any
 
+from generate_event_url_index import write_event_url_index
+
 try:
     from openpyxl import load_workbook
 except ImportError as exc:  # pragma: no cover - 利用環境向け案内
@@ -547,6 +549,7 @@ def write_outputs(
     atomic_json(ROOT / "events" / f"{event_id}.webmanifest", manifest)
     (ROOT / "assets" / f"icon-{event_id}.svg").write_text(icon_svg, encoding="utf-8", newline="\n")
     atomic_json(index_path, index_data)
+    write_event_url_index(index_data)
 
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "validate_events.py"), "--event", event_id],

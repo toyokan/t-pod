@@ -17,13 +17,15 @@
 
 | URL | 表示 |
 | --- | --- |
-| `/` | `events.json` に登録されたイベント一覧 |
+| `/` | LINEまたはQRコードからのアクセスを案内するページ |
 | `/?id=2026-zensanken-37` | 指定イベントのプログラム・資料・書籍 |
+
+作成済みイベントの本番URLは、[開発者向けイベントURL台帳](docs/event-url-index.md)で確認できます。
 
 ## 新しいイベントを追加する
 
 1. `events/<id>.json` を作成する。`<id>` は半角英数・ハイフン・アンダースコアのみ。
-2. `events.json` の `events[]` に一覧表示用の1件を追加する。
+2. `events.json` の `events[]` に開発・検証用の索引を1件追加する。
 3. イベント別マニフェスト（`events/<id>.webmanifest`）とアイコン、会場マップを追加する。マニフェストは data URI 動的生成にフォールバックできるが、iOS では `scope` の扱いが不安定になり外部リンクから PWA へ戻りにくくなるため、**実体ファイルの用意を推奨**（`eventInfo.manifestPath` で参照）。
 4. `/?id=<id>` をローカルで確認し、チラシ等の QR コードに設定する。
 
@@ -36,6 +38,12 @@ python scripts/import_event_workbook.py "入力済みイベント.xlsx" --write
 python scripts/validate_events.py --event <id>
 ```
 
+Excel取込ではURL台帳も自動更新されます。`events.json` を手動編集した場合は、次のコマンドで台帳を更新してください。
+
+```bash
+python scripts/generate_event_url_index.py
+```
+
 ## ローカル確認
 
 `file://` では fetch と Service Worker が動かないため、静的サーバを使用します。
@@ -44,7 +52,7 @@ python scripts/validate_events.py --event <id>
 python3 -m http.server 8080
 ```
 
-- 一覧: `http://localhost:8080/`
+- 参加者向け案内: `http://localhost:8080/`
 - 個別イベント: `http://localhost:8080/?id=2026-zensanken-37`
 - 存在しないイベント: `http://localhost:8080/?id=does-not-exist`
 
@@ -58,6 +66,7 @@ python3 -m json.tool events/2026-zensanken-37.json
 ## ドキュメント
 
 - [要件・データ仕様・運用ルール](docs/requirements.md)
+- [開発者向けイベントURL台帳](docs/event-url-index.md)
 - [開発経緯・現状・残課題](progress.md)
 - [Excel 入力ひな形の記入・変換手順](template/README.md)
 - [イベントJSON Schema](template/event-data.schema.json)
