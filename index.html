@@ -274,8 +274,12 @@
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
-    /* 通常時の可読性は保ち、スクロール後だけボトムナビの透明感を少し強める */
-    body.is-scrolled #bottomNav { background-color: rgba(255,255,255,.82); }
+    /* 小面積の固定ナビだけ、ぼかしと彩度を補って軽いすりガラス面にする */
+    #bottomNav {
+      -webkit-backdrop-filter: blur(14px) saturate(1.18);
+      backdrop-filter: blur(14px) saturate(1.18);
+    }
+    body.is-scrolled #bottomNav { background-color: rgba(255,255,255,.66); }
     #tabViews { touch-action: pan-y; }
     .view.is-dragging { transition: none !important; will-change: transform; }
     .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
@@ -472,7 +476,7 @@
   </main>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
-  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/[.88] backdrop-blur-md border-t border-slate-200/80 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
+  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/[.74] border-t border-white/70 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
     <!-- 選択タブはヘッダーの明部に合わせたブランド色グラデーション＋白文字 -->
     <div class="px-2 pt-1.5 pb-0.5">
     <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
