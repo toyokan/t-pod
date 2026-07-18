@@ -104,7 +104,7 @@
       "id": "d1-02",
       "dateId": "day1",
       "start": "09:30",
-      "end": "10:30",
+      "end": "10:20",
       "category": "講演１",
       "items": [
         {
@@ -134,7 +134,7 @@
       "id": "d1-04",
       "dateId": "day1",
       "start": "11:15",
-      "end": "12:10",
+      "end": "12:05",
       "category": "協議会１",
       "items": []
     },
@@ -150,7 +150,7 @@
       "id": "d1-06",
       "dateId": "day1",
       "start": "13:25",
-      "end": "14:15",
+      "end": "14:10",
       "category": "授業２",
       "items": [
         {
@@ -165,7 +165,7 @@
       "id": "d1-07",
       "dateId": "day1",
       "start": "14:15",
-      "end": "15:15",
+      "end": "15:05",
       "category": "協議会２",
       "items": []
     },
@@ -194,7 +194,7 @@
       "id": "d2-02",
       "dateId": "day2",
       "start": "09:00",
-      "end": "10:00",
+      "end": "09:45",
       "category": "授業３",
       "items": [
         {
@@ -209,7 +209,7 @@
       "id": "d2-03",
       "dateId": "day2",
       "start": "10:00",
-      "end": "11:25",
+      "end": "11:15",
       "category": "OB授業シンポジウム",
       "items": [
         {
@@ -245,7 +245,7 @@
       "id": "d2-06",
       "dateId": "day2",
       "start": "13:15",
-      "end": "14:15",
+      "end": "14:05",
       "category": "協議会４",
       "items": []
     },
@@ -253,7 +253,7 @@
       "id": "d2-07",
       "dateId": "day2",
       "start": "14:15",
-      "end": "15:00",
+      "end": "15:05",
       "category": "講演２",
       "items": [
         {
