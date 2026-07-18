@@ -880,7 +880,7 @@
               ? `<div class="min-w-0 rounded-xl border border-slate-200/90 bg-slate-50/70 p-3">`
               : `<div class="mt-2.5 first-of-type:mt-2">`;
             html += `<div class="flex items-baseline gap-2 flex-wrap">`;
-            if (manyItems) {
+            if (manyItems || it.label) {
               const badge = it.label ? escapeHtml(it.label) : (itemIdx + 1);
               html += `<span class="flex items-center justify-center flex-shrink-0 w-5 h-5 rounded-full bg-white border border-slate-200 text-[10px] font-extrabold tabular-nums text-slate-500">${badge}</span>`;
             }
