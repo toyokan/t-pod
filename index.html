@@ -120,6 +120,7 @@
     "ring-brand-200", "ring-brand-600", "from-brand-500", "to-brand-600",
     "text-white", "text-brand-fg", "shadow-now", "rounded-2xl",
     "border-transparent", "shadow-fab", "font-extrabold",
+    "w-4", "h-4", "max-h-72", "object-cover",
   ],
 };
   </script>
@@ -451,6 +452,8 @@
         <button id="jumpNow" class="hidden text-[11px] font-black grad-pill shadow-fab rounded-full px-3 py-1.5 active:scale-95 transition">▼ いまの予定へ</button>
       </div>
       <div id="timetable"></div>
+      <!-- 次回イベントのご案内（eventInfo.nextEvent がある時だけ表示） -->
+      <div id="nextEvent" class="mt-6"></div>
     </section>
 
     <!-- (2) 資料 -->
@@ -752,6 +755,7 @@
       renderDateTabs();
       renderMaterials();
       renderBooks();
+      renderNextEvent();
       renderNoticeBadge();
       setTab("program");
       showInstallBanner();
@@ -1115,6 +1119,60 @@
         (note ? `<div class="text-xs text-white mt-0.5">${escapeHtml(note)}</div>` : "") +
         `</div>` +
         `<span class="flex-shrink-0 text-white">${icon("chevron", "w-5 h-5")}</span>`;
+      box.appendChild(card);
+    }
+
+    // 次回イベントのご案内（eventInfo.nextEvent がある時だけ表示）
+    // タイムテーブル末尾に配置。写真（任意）＋日時・会場・案内文＋申込リンク。
+    function renderNextEvent() {
+      const box = $("nextEvent");
+      box.innerHTML = "";
+      const ne = (DATA.eventInfo && DATA.eventInfo.nextEvent) || null;
+      const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
+      if (!ne) return;
+      const title = trimmed(ne.title);
+      const url = trimmed(ne.url);
+      if (!title) return;
+
+      const label = trimmed(ne.label) || "次回のご案内";
+      const greeting = trimmed(ne.greeting);
+      const cat = trimmed(ne.catch);
+      const date = trimmed(ne.date);
+      const venue = trimmed(ne.venue);
+      const desc = trimmed(ne.description);
+      const image = trimmed(ne.image);
+      const linkLabel = trimmed(ne.linkLabel) || "詳細・お申し込み";
+
+      const card = el("div", "bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-card");
+
+      const rows = [];
+      if (image) {
+        rows.push(
+          `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" class="w-full max-h-72 object-cover" style="object-position:50% 18%" onerror="this.remove()" />`
+        );
+      }
+      const body = [];
+      body.push(
+        `<div class="inline-flex items-center gap-1 text-[10px] font-black tracking-wide bg-slate-200/70 text-slate-600 rounded-full px-2 py-0.5 mb-2">NEXT EVENT</div>`
+      );
+      body.push(`<div class="text-xs font-bold text-slate-500 mb-1">${escapeHtml(label)}</div>`);
+      if (greeting) body.push(`<p class="text-xs text-slate-600 leading-relaxed mb-3">${escapeHtml(greeting)}</p>`);
+      body.push(`<div class="text-base font-bold text-slate-800 leading-snug">${escapeHtml(title)}</div>`);
+      if (cat) body.push(`<div class="text-sm font-semibold text-brand-800 mt-0.5">${escapeHtml(cat)}</div>`);
+      const meta = [];
+      if (date) meta.push(`<div class="flex items-start gap-1.5"><span class="flex-shrink-0 text-slate-400 mt-px">${icon("calendar", "w-4 h-4")}</span><span>${escapeHtml(date)}</span></div>`);
+      if (venue) meta.push(`<div class="flex items-start gap-1.5"><span class="flex-shrink-0 text-slate-400 mt-px">${icon("mapPin", "w-4 h-4")}</span><span>${escapeHtml(venue)}</span></div>`);
+      if (meta.length) body.push(`<div class="text-xs text-slate-600 space-y-1 mt-3">${meta.join("")}</div>`);
+      if (desc) body.push(`<p class="text-xs text-slate-600 leading-relaxed mt-3">${escapeHtml(desc)}</p>`);
+      if (url) {
+        body.push(
+          `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="grad-pill mt-4 inline-flex items-center justify-center gap-1.5 w-full text-white text-sm font-bold rounded-full px-4 py-2.5 shadow-fab active:scale-[0.99] transition">` +
+            `<span>${escapeHtml(linkLabel)}</span>${icon("chevron", "w-4 h-4")}` +
+          `</a>`
+        );
+      }
+      rows.push(`<div class="p-4">${body.join("")}</div>`);
+      card.innerHTML = rows.join("");
       box.appendChild(card);
     }
 
