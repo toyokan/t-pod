@@ -1134,6 +1134,14 @@
       const url = trimmed(ne.url);
       if (!title) return;
 
+      // 表示開始時刻（任意）。ne.showFrom（例 "2026-08-05T13:00:00+09:00"）が
+      // 指定され、その時刻より前なら表示しない（大会終盤から次回案内を出す用途）。
+      const showFrom = trimmed(ne.showFrom);
+      if (showFrom) {
+        const t = Date.parse(showFrom);
+        if (!isNaN(t) && Date.now() < t) return;
+      }
+
       const label = trimmed(ne.label) || "次回のご案内";
       const greeting = trimmed(ne.greeting);
       const cat = trimmed(ne.catch);
