@@ -185,15 +185,20 @@
     .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .dot-grad { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); }
-    /* ボトムナビはヘッダーの明部に合わせ、暗い補助色へ落とさずブランド色へ収束させる */
+    /* 選択中のピルはブランド色を透かし、白い反射を重ねた色付きガラスにする */
     .nav-brand-card {
-      background: linear-gradient(145deg,
-        color-mix(in srgb, color-mix(in srgb, var(--brand) 72%, white) 82%, transparent),
-        color-mix(in srgb, var(--brand) 84%, transparent));
-      border: 1px solid rgba(255,255,255,.46);
-      -webkit-backdrop-filter: blur(8px) saturate(1.15);
-      backdrop-filter: blur(8px) saturate(1.15);
-      box-shadow: 0 8px 18px -10px color-mix(in srgb, var(--brand) 68%, black), inset 0 1px rgba(255,255,255,.42);
+      background:
+        linear-gradient(155deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.1) 42%, transparent 58%),
+        linear-gradient(145deg,
+          color-mix(in srgb, color-mix(in srgb, var(--brand) 70%, white) 64%, transparent),
+          color-mix(in srgb, var(--brand) 70%, transparent));
+      border: 1px solid rgba(255,255,255,.68);
+      -webkit-backdrop-filter: blur(10px) saturate(1.22);
+      backdrop-filter: blur(10px) saturate(1.22);
+      box-shadow:
+        0 8px 18px -11px color-mix(in srgb, var(--brand) 58%, black),
+        inset 0 1px rgba(255,255,255,.72),
+        inset 0 -1px color-mix(in srgb, var(--brand) 28%, transparent);
     }
     /* セーフエリア（ノッチ端末）対応 */
     .safe-area-top-bg {
@@ -273,9 +278,9 @@
     .view-in-left  { animation: viewInLeft  .22s cubic-bezier(.22,1,.36,1) both; }
     /* アクティブ表示のスライド用インジケータ（ボトムナビ／日付タブ共通の動き） */
     .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); pointer-events: none; }
-    /* 日付タブは白ピル＋ブランド濃色文字。ボトムナビはブランド背景＋白文字。 */
+    /* 日付タブは白ピル、ボトムナビは色付きガラス。文字色はブランド背景とのコントラストで自動選択する。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
-    .navbtn[aria-current] .navpill { color: #fff; text-shadow: 0 1px 3px color-mix(in srgb, var(--brand) 55%, black); }
+    .navbtn[aria-current] .navpill { color: var(--brand-fg); text-shadow: 0 1px rgba(255,255,255,.35); }
     /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
