@@ -55,7 +55,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
   theme: {
@@ -114,12 +114,12 @@
     "bg-slate-100", "bg-slate-200", "bg-slate-300",
     "text-slate-400", "text-slate-500", "text-slate-600",
     "bg-brand-50", "bg-brand-100", "bg-brand-200", "bg-brand-500", "bg-brand-600",
-    "text-brand-500", "text-brand-600", "text-brand-700", "text-brand-800",
+    "text-brand-400", "text-brand-500", "text-brand-600", "text-brand-700", "text-brand-800",
     "border-brand-100", "border-brand-200", "border-brand-300", "border-brand-500",
     "border", "border-2", "border-slate-200/80",
     "ring-brand-200", "ring-brand-600", "from-brand-500", "to-brand-600",
     "text-white", "text-brand-fg", "shadow-now", "rounded-2xl",
-    "border-transparent", "shadow-fab", "font-extrabold",
+    "border-transparent", "shadow-fab", "font-extrabold", "font-semibold",
     "w-4", "h-4", "max-h-72", "object-cover",
   ],
 };
@@ -385,7 +385,7 @@
   </header>
 
   <!-- ===== オフライン表示バナー（通信断のとき表示） ===== -->
-  <div id="offlineBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
+  <div id="offlineBanner" class="hidden max-w-2xl mx-auto mt-2 px-3" role="status">
     <div class="flex items-center gap-2 bg-slate-800 text-white/90 text-xs font-medium rounded-xl px-3 py-2">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0" aria-hidden="true"><path d="M12 20h.01"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 13a10 10 0 0 1 5.24-2.76"/><path d="m2 2 20 20"/></svg>
       <span>オフライン — 保存済みの情報を表示しています</span>
@@ -662,6 +662,17 @@
     const escapeHtml = (s) =>
       String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
         ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    // href に入れる URL を検証する（http/https と相対パスのみ許可。javascript: 等の注入を防ぐ）
+    const safeUrl = (v) => {
+      const s = typeof v === "string" ? v.trim() : "";
+      if (!s) return "#";
+      try {
+        const u = new URL(s, location.href);
+        return u.protocol === "http:" || u.protocol === "https:" ? s : "#";
+      } catch (e) {
+        return "#";
+      }
+    };
     // テーマを「メインテーマ―サブテーマ」の区切りで分割する（区切りが無ければ sub は空）。
     // 区切り記号はサブテーマ側の先頭に残す（原文の表記をそのまま活かすため）
     const splitTheme = (theme) => {
@@ -939,8 +950,13 @@
     // 「現在」ハイライト：進行中カードに枠＋進行中バッジ＋経過バー＋残り時間（再描画なし）
     function updateNowMarker(allowScroll) {
       if (!currentRows.length) return;
-      const idx = findNowIdx(currentSessions, currentDayObj);
+      let idx = findNowIdx(currentSessions, currentDayObj);
       const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+      // 当日の最終セッションが終了済みなら「現在」扱いを解除（終了後に強調と▼ボタンが残るのを防ぐ）
+      if (idx === currentSessions.length - 1 && idx >= 0) {
+        const lastEnd = toMin(currentSessions[idx].end);
+        if (lastEnd !== null && nowMin >= lastEnd) idx = -1;
+      }
       let showJump = false;
 
       currentRows.forEach((row, i) => {
@@ -1027,7 +1043,7 @@
       const venue = (DATA.eventInfo && DATA.eventInfo.venue) || {};
       const map = $("venueMap");
       if (venue.mapImage) {
-        map.src = venue.mapImage;
+        map.src = safeUrl(venue.mapImage);
         map.classList.remove("hidden");
         map.onerror = () => map.classList.add("hidden");
       } else map.classList.add("hidden");
@@ -1049,7 +1065,7 @@
         "a",
         "group flex items-center gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 active:scale-[.99] transition"
       );
-      a.href = item.url || "#";
+      a.href = safeUrl(item.url);
       a.target = "_blank";
       a.rel = "noopener";
       a.innerHTML =
@@ -1070,7 +1086,7 @@
       (DATA.books || []).forEach((b) => {
         const card = el("a", "flex gap-3 bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card hover:border-brand-300 hover:shadow-card-hover active:bg-slate-50 active:scale-[.99] transition");
         const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
-        card.href = trimmed(b.url) || trimmed(b.amazon_url) || "#";
+        card.href = safeUrl(trimmed(b.url) || trimmed(b.amazon_url));
         card.target = "_blank";
         card.rel = "noopener";
         const cover = typeof b.cover === "string" ? b.cover.trim() : "";
@@ -1097,7 +1113,7 @@
           `</div>`;
         if (cover) {
           const img = el("img", "img-fade w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
-          img.src = cover;
+          img.src = safeUrl(cover);
           img.alt = "";
           img.loading = "lazy";
           img.addEventListener("load", () => img.classList.add("is-loaded"));
@@ -1121,7 +1137,7 @@
       const label = trimmed(sale.label) || "特設販売ページを見る";
       const note = trimmed(sale.note);
       const card = el("a", "brand-card flex items-center gap-3 rounded-2xl p-4 shadow-fab ring-1 ring-brand-600 hover:shadow-lg active:scale-[0.99] transition");
-      card.href = url;
+      card.href = safeUrl(url);
       card.target = "_blank";
       card.rel = "noopener";
       card.innerHTML =
@@ -1169,7 +1185,7 @@
       const rows = [];
       if (image) {
         rows.push(
-          `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" class="w-full max-h-72 object-cover" style="object-position:50% 18%" onerror="this.remove()" />`
+          `<img src="${escapeHtml(safeUrl(image))}" alt="${escapeHtml(title)}" loading="lazy" class="w-full max-h-72 object-cover" style="object-position:50% 18%" onerror="this.remove()" />`
         );
       }
       const body = [];
@@ -1187,7 +1203,7 @@
       if (desc) body.push(`<p class="text-xs text-slate-600 leading-relaxed mt-3">${escapeHtml(desc)}</p>`);
       if (url) {
         body.push(
-          `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="grad-pill mt-4 inline-flex items-center justify-center gap-1.5 w-full text-white text-sm font-bold rounded-full px-4 py-2.5 shadow-fab active:scale-[0.99] transition">` +
+          `<a href="${escapeHtml(safeUrl(url))}" target="_blank" rel="noopener" class="grad-pill mt-4 inline-flex items-center justify-center gap-1.5 w-full text-white text-sm font-bold rounded-full px-4 py-2.5 shadow-fab active:scale-[0.99] transition">` +
             `<span>${escapeHtml(linkLabel)}</span>${icon("chevron", "w-4 h-4")}` +
           `</a>`
         );

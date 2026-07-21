@@ -10,7 +10,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v74";
+const CACHE_VERSION = "v75";
 const CACHE_NAME = `t-pod-${CACHE_VERSION}`;
 
 // 16進カラー（#rgb / #rgba / #rrggbb / #rrggbbaa）判定
@@ -76,7 +76,9 @@ self.addEventListener("fetch", (event) => {
 function networkFirst(request) {
   return fetch(request)
     .then((response) => {
-      if (response && response.status === 200) {
+      // opaque（no-cors のクロスオリジン。例: fonts.gstatic.com のフォント実体）は
+      // status 0 で返るため、200 と併せてキャッシュ対象にする
+      if (response && (response.status === 200 || response.type === "opaque")) {
         const copy = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
       }
@@ -138,10 +140,13 @@ async function handleNavigate(request) {
       `$1${color}$2`
     );
     if (patched === html) return response; // 対象メタが無ければそのまま
+    // 本文長が変わるため content-length を除去（不整合だと本文が途切れる環境がある）
+    const headers = new Headers(response.headers);
+    headers.delete("content-length");
     return new Response(patched, {
       status: response.status,
       statusText: response.statusText,
-      headers: response.headers,
+      headers,
     });
   } catch (e) {
     return response;

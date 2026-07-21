@@ -12,7 +12,7 @@
 - **JSON駆動・UIとデータ完全分離**。`index.html` は**汎用シェル**で、固有のイベント文言を持たない（タイトル等は JSON から動的反映）。
 - **マルチイベント方式（クエリパラメータ）**:
   - `?id=<id>` あり → `events/<id>.json` を fetch して個別イベント表示（イベントモード）。
-  - `?id` なし（ルートURL）→ `events.json` を fetch してイベント一覧を表示（一覧モード）。
+  - `?id` なし（ルートURL）→ 静的な参加者向け案内ページを表示（一覧モード。`renderAccessGuide()`）。`events.json` はイベント一覧の表示には使われず、`scripts/` や `docs/event-url-index.md` 生成用のインデックスとしてのみ参照される。
   - `index.html` の `getEventId()` が `?id` を取得し `[A-Za-z0-9_-]` のみ許可（不正値・パストラバーサル除去）。`init()` が両モードを分岐。
 - **キャッシュ**: `sw.js` は **Network First**（取得成功でキャッシュ更新、失敗時はキャッシュ）。
   - シェル（HTML/JS/アセット）を変更したら **`CACHE_VERSION` を必ず上げる**。
@@ -29,7 +29,7 @@
 | ファイル | 役割 | 編集方針 |
 | --- | --- | --- |
 | `index.html` | 汎用 UI シェル + 描画ロジック | ⚠️ ロジック変更時のみ。**固有文言は書かない** |
-| `events.json` | イベント一覧インデックス（一覧ページの元データ） | ✅ イベント追加時に1エントリ追記 |
+| `events.json` | イベント一覧インデックス（スクリプト・URL台帳生成用。UI の一覧表示には未使用） | ✅ イベント追加時に1エントリ追記 |
 | `events/<id>.json` | 各イベントの全情報（`eventInfo`/`rooms`/`sessions`/`books`） | ✅ ここを追加・編集 |
 | `sw.js` | Service Worker（Network First） | ⚠️ 変更時は `CACHE_VERSION` を上げる |
 | `manifest.json` | PWA 汎用シェル（インストール名・色） | △ 任意 |
