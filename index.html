@@ -1081,10 +1081,10 @@
         let badge = "";
         if (off) {
           const yr = off.year ? escapeHtml(String(off.year)) + " " : "";
-          const label = `${yr}大会オフィシャルブック`;
+          const label = `${yr}Official Book`;
           badge = off.new
-            ? `<div class="inline-flex items-center gap-1 text-[10.5px] font-black tracking-wide text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 mb-1">${icon("award", "w-3 h-3")}${label}</div>`
-            : `<div class="inline-flex items-center gap-1 text-[10px] font-bold tracking-wide text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5 mb-1">${icon("award", "w-3 h-3")}${label}</div>`;
+            ? `<div class="inline-flex items-center gap-1 whitespace-nowrap text-[10.5px] font-black tracking-wide text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-2 py-0.5 mb-1">${icon("award", "w-3 h-3 flex-shrink-0")}${label}</div>`
+            : `<div class="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-bold tracking-wide text-slate-500 bg-slate-100 border border-slate-200 rounded-full px-2 py-0.5 mb-1">${icon("award", "w-3 h-3 flex-shrink-0")}${label}</div>`;
         }
         card.innerHTML =
           (cover ? "" : placeholder) +

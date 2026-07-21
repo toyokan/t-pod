@@ -486,6 +486,7 @@
       "publisher": "東洋館出版社",
       "cover": "https://www.toyokan.co.jp/cdn/shop/files/5907_01_70105b7d-4f65-4b0b-bc4b-048d9f6186d4.jpg?v=1753169169&width=1200",
       "description": "主体的な学び手を育てるために教師が今すべきことや、教科書学習材を用いた具体的な国語授業づくりを提案。",
+      "official": { "year": 2025 },
       "url": "https://www.toyokan.co.jp/products/5907",
       "amazon_url": "https://www.amazon.co.jp/dp/4491059071"
     },
@@ -495,6 +496,7 @@
       "publisher": "東洋館出版社",
       "cover": "https://www.toyokan.co.jp/cdn/shop/files/product-255472.jpg?v=1721697418&width=1200",
       "description": "定番教材16本を素材に、「個別最適な学び」と「協働的な学び」が往還する国語授業の工夫を提案。",
+      "official": { "year": 2023 },
       "url": "https://www.toyokan.co.jp/products/5302",
       "amazon_url": "https://www.amazon.co.jp/dp/4491053022"
     },
@@ -504,26 +506,9 @@
       "publisher": "東洋館出版社",
       "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-499426.jpg?v=1692938598&width=1200",
       "description": "筑波小国語部と全国国語授業研究会の実践をもとに、子ども起点の授業と個別最適・協働的な学びをつなぐ国語授業を提案。",
+      "official": { "year": 2022 },
       "url": "https://www.toyokan.co.jp/products/4927",
       "amazon_url": "https://www.amazon.co.jp/dp/4491049270"
-    },
-    {
-      "title": "定番教材で考える「深い学び」をうむ国語授業",
-      "author": "全国国語授業研究会・筑波大学附属小学校国語研究部／編著",
-      "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-469996.jpg?v=1692938568&width=1200",
-      "description": "各学年の文学・説明文の定番教材をもとに、子どもの課題意識や見方・考え方を生かした深い学びの単元構想を提案。",
-      "url": "https://www.toyokan.co.jp/products/3568",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491035687"
-    },
-    {
-      "title": "小学校国語「深い学び」をうむ授業改善プラン―文学",
-      "author": "全国国語授業研究会・筑波大学附属小学校国語教育研究部／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-312000.jpg?v=1692938599&width=1200",
-      "description": "新学習指導要領下で、文学教材の教材分析・単元化・授業更新に向けた授業改善の視点を提案。",
-      "url": "https://www.toyokan.co.jp/products/4326",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491043264"
     },
     {
       "title": "小学校国語「深い学び」をうむ授業改善プラン―説明文",
@@ -531,8 +516,29 @@
       "publisher": "東洋館出版社",
       "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-723970.jpg?v=1692938599&width=1200",
       "description": "新学習指導要領下で、説明文教材の教材分析・単元化・授業更新に向けた授業改善の視点を提案。",
+      "official": { "year": 2021 },
       "url": "https://www.toyokan.co.jp/products/4327",
       "amazon_url": "https://www.amazon.co.jp/dp/4491043272"
+    },
+    {
+      "title": "小学校国語「深い学び」をうむ授業改善プラン―文学",
+      "author": "全国国語授業研究会・筑波大学附属小学校国語教育研究部／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-312000.jpg?v=1692938599&width=1200",
+      "description": "新学習指導要領下で、文学教材の教材分析・単元化・授業更新に向けた授業改善の視点を提案。",
+      "official": { "year": 2021 },
+      "url": "https://www.toyokan.co.jp/products/4326",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491043264"
+    },
+    {
+      "title": "定番教材で考える「深い学び」をうむ国語授業",
+      "author": "全国国語授業研究会・筑波大学附属小学校国語研究部／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-469996.jpg?v=1692938568&width=1200",
+      "description": "各学年の文学・説明文の定番教材をもとに、子どもの課題意識や見方・考え方を生かした深い学びの単元構想を提案。",
+      "official": { "year": 2018 },
+      "url": "https://www.toyokan.co.jp/products/3568",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491035687"
     }
   ]
 }
