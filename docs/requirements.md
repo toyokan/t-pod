@@ -110,6 +110,7 @@ v2 Excelからの生成は `scripts/import_event_workbook.py` を標準とし、
 ## 7. 運用上の禁止・注意
 
 - 過去の `events/<id>.json` と `events.json` の索引を削除しない（旧チラシのQRと開発者用台帳を維持する）
+- 終了後もページは公開維持。**終了判定は日付から自動**（最終開催日＋7日を過ぎたら終了扱い。最終開催日は個別JSON `eventInfo.dates[]` の最終 `date`、無ければ `sortDate`）。終了済み `events/<id>.json` は原則更新・複製しない（似た名称・同じ会の別回との取り違え防止）。特殊ケースのみ個別JSONルートの `"_status": "ended"`/`"active"` で手動固定（日付判定より優先・UI未使用）
 - 配布資料の PDF / Word 等はリポジトリに置かず、外部公開リンクを JSON に記述する
 - フォームは PWA 内に実装せず、外部フォームへ誘導する
 - 新規色クラスを動的生成する場合は Tailwind の設定と safelist を同期する
