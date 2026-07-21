@@ -1827,7 +1827,20 @@
     $("noticeBtn").addEventListener("click", openNotices);
     $("modalClose").addEventListener("click", closeModal);
     $("modalBackdrop").addEventListener("click", closeModal);
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeModal(); dismissLinePromo(); } });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { closeModal(); dismissLinePromo(); return; }
+      // モーダル表示中は Tab を内部要素だけで循環させる（背面へフォーカスが抜けるのを防ぐ）
+      if (e.key === "Tab" && !$("modal").classList.contains("hidden")) {
+        const focusables = $("modalPanel").querySelectorAll(
+          'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        );
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
 
     // モーダルの下方向スワイプで閉じる（右上の×以外の閉じる導線）。
     // 本文が上端までスクロールされている時のみ有効にし、本文スクロール操作とは競合させない。

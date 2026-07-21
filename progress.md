@@ -403,3 +403,16 @@
 - iOS では 16.4+ かつホーム画面追加済みPWAからの許可が必須で、現状ホーム画面追加は任意機能のため到達率がごく小さい点も判断材料。加えてイベント毎に動的生成されるマニフェスト（`manifestPath` 無しの場合）は iOS での安定性に懸念があり、購読をイベント別に分離する必要も生じ複雑化する。
 - 代替案: `events/<id>.json` に `notices`（お知らせ）配列を追加しアプリ内表示する案が、Network First キャッシュの特性上「開くたびに最新のお知らせが出る」形で当日周知に実用上足りると判断。即時性が必要な場合は既存方針どおり外部サービス（LINEオープンチャット等）へ誘導。
 - コード変更なし（検討のみ、実装は行っていない）。
+
+### 2026-07-21 全体レビューによる堅牢性・アクセシビリティ・スクリプト改善
+
+複数観点で全体を点検し、脆弱性・エッジケースのバグ・アクセシビリティ・スクリプトの堅牢性をまとめて改善した。UI の見た目や運用手順は変えていない。
+
+- **セキュリティ（`index.html`）**: JSON 由来の URL を `href`/`src` に入れる箇所（リンクカード・書籍・特設販売・次回案内・会場マップ・書影）へ `safeUrl()` を導入し、`http`/`https` と相対パスのみ許可（`javascript:` 等のスキームを弾く）。相対パスはそのまま保持するため既存データに影響なし。
+- **Service Worker（`sw.js`）**: Play CDN の URL 不一致（`index.html` は `https://cdn.tailwindcss.com`、プリキャッシュは `.../3.4.17`）でオフライン時に全スタイルが崩れる不具合を、`index.html` 側を `3.4.17` 固定にして解消。`networkFirst` を opaque レスポンス（no-cors のクロスオリジン＝Webフォント実体）もキャッシュするよう緩和。`handleNavigate` の `theme-color` 差し替え時に本文長が変わるため `content-length` を除去して不整合を防止。
+- **当日ハイライトのバグ（`index.html`）**: `updateNowMarker()` が、当日最終セッションの終了後もブランド枠強調と「▼ いまの予定へ」を残し続けていた。最終セッションの `end`、無い場合は `eventInfo.dates[].time` の終了時刻（`dayEndMin()` で末尾の `H:MM` を抽出）を過ぎたら「現在」扱いを解除するよう修正。
+- **エラー UX（`index.html`）**: `events/<id>.json` の取得に `AbortController`＋10秒タイムアウトを追加し、ハング時もスケルトンを残さず `errorBox` へ倒す。`errorBox` に `location.reload()` する「再試行」ボタンを追加。
+- **iOS 背景スクロール固定（`index.html`）**: モーダル／LINE ポップアップ表示中の背面スクロールが iOS Safari で止まらなかったのを、`position:fixed`＋scrollY 退避（`lockBodyScroll()`/`unlockBodyScroll()`）で固定し、閉じたら元位置へ復元する標準手法に変更。
+- **アクセシビリティ（`index.html`）**: モーダルに Tab フォーカストラップを追加（背面への抜けを防止）。オフラインバナーに `role="status"`。`applyAppIdentity()` を try/catch で保護し、失敗しても表示継続。reduced-motion 判定を `reduceMotionQuery` に一本化。
+- **スクリプト堅牢化**: `validate_events.py`／`generate_event_url_index.py`／`import_event_workbook.py` に UTF-8 出力の `reconfigure` を追加（Windows cp932 端末での文字化け・例外落ち防止）。`import_event_workbook.py` の生成アイコン文字色を白固定から輝度判定（`index.html` と同式・閾値 0.55）に変更し、検証失敗時に生成物をロールバックする処理を追加。`find_event.py` のデッド三項と `validate_events.py` の `brandColor` None 安全化。
+- 一連のシェル変更に伴い Service Worker の `CACHE_VERSION` を **v74→v77** に更新。

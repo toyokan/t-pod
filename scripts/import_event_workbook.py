@@ -568,9 +568,17 @@ def write_outputs(
     entries.sort(key=lambda entry: (entry.get("sortDate", ""), entry.get("id", "")), reverse=True)
     index_data["events"] = entries
 
+    manifest_path = ROOT / "events" / f"{event_id}.webmanifest"
+    icon_path = ROOT / "assets" / f"icon-{event_id}.svg"
+    url_index_path = ROOT / "docs" / "event-url-index.md"
+    # 新規イベントのみ許可（上のガードで上書きは弾いている）ため、検証失敗時は
+    # 今回作成した生成物を安全にロールバックできる。events.json / URL台帳は元の内容へ復元する。
+    original_index_text = index_path.read_text(encoding="utf-8")
+    original_url_index_text = url_index_path.read_text(encoding="utf-8") if url_index_path.exists() else None
+
     atomic_json(event_path, event_data)
-    atomic_json(ROOT / "events" / f"{event_id}.webmanifest", manifest)
-    (ROOT / "assets" / f"icon-{event_id}.svg").write_text(icon_svg, encoding="utf-8", newline="\n")
+    atomic_json(manifest_path, manifest)
+    icon_path.write_text(icon_svg, encoding="utf-8", newline="\n")
     atomic_json(index_path, index_data)
     write_event_url_index(index_data)
 
@@ -580,7 +588,15 @@ def write_outputs(
         check=False,
     )
     if result.returncode:
-        raise WorkbookError("生成後の検証に失敗しました。git diffを確認してください")
+        for path in (event_path, manifest_path, icon_path):
+            path.unlink(missing_ok=True)
+        index_path.write_text(original_index_text, encoding="utf-8")
+        if original_url_index_text is not None:
+            url_index_path.write_text(original_url_index_text, encoding="utf-8")
+        raise WorkbookError(
+            "生成後の検証に失敗したため、作成した生成物をロールバックしました。"
+            "入力シートを修正して再実行してください"
+        )
 
 
 def parse_args() -> argparse.Namespace:
