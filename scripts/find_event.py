@@ -181,7 +181,7 @@ def main() -> int:
         print(f"現行（未終了）のイベント（{today.isoformat()} 基準・開催日順）:\n")
         for _, e in future:
             print_entry(e, today)
-        return 0 if len(future) == 1 else 0
+        return 0
 
     query = " ".join(args.query).strip()
     if not query:

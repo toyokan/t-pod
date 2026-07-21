@@ -21,6 +21,11 @@ from urllib.parse import urlparse
 
 from generate_event_url_index import OUTPUT_PATH, render_event_url_index
 
+try:  # Windows の cp932 端末でも UTF-8 で出力する
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
 
 ROOT = Path(__file__).resolve().parents[1]
 EVENTS_INDEX = ROOT / "events.json"
@@ -349,7 +354,7 @@ def validate_manifest(
         validator.error(f"assets/icon-{event_id}.svg", "アイコンファイルがありません")
     else:
         svg = icon_path.read_text(encoding="utf-8")
-        if info.get("brandColor", "").lower() not in svg.lower():
+        if str(info.get("brandColor") or "").lower() not in svg.lower():
             validator.error(f"assets/icon-{event_id}.svg", "eventInfo.brandColor が使われていません")
         label = info.get("iconLabel") or str(info.get("logoMain", ""))[:3]
         if label and label not in svg:

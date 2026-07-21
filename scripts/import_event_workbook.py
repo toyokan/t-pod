@@ -26,6 +26,12 @@ from typing import Any
 
 from generate_event_url_index import write_event_url_index
 
+try:  # Windows の cp932 端末でも UTF-8 で出力する
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
+
 try:
     from openpyxl import load_workbook
 except ImportError as exc:  # pragma: no cover - 利用環境向け案内
@@ -71,6 +77,23 @@ class Issue:
 
 class WorkbookError(Exception):
     """入力シートにエラーがある。"""
+
+
+def relative_luminance(hex_color: str) -> float:
+    """#RRGGBB の相対輝度（WCAG 定義）。index.html の relativeLuminance() と同じ式・同じ閾値を使う。"""
+    h = hex_color.strip().lstrip("#")
+    r, g, b = (int(h[i : i + 2], 16) for i in (0, 2, 4))
+
+    def lin(v: int) -> float:
+        v /= 255
+        return v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+
+
+def icon_fg_color(brand_color: str) -> str:
+    """アイコン背景色に対して読みやすい文字色（濃色/白）を選ぶ。index.html の updateBrandFg() と同じ閾値 0.55。"""
+    return "#1e293b" if relative_luminance(brand_color) > 0.55 else "#ffffff"
 
 
 def text(value: Any) -> str:
@@ -515,7 +538,7 @@ class EventWorkbook:
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" '
             'width="512" height="512">\n'
             f'  <rect width="512" height="512" rx="96" fill="{info["brandColor"]}"/>\n'
-            '  <g fill="#ffffff" font-family="\'Hiragino Sans\',\'Yu Gothic\','
+            f'  <g fill="{icon_fg_color(info["brandColor"])}" font-family="\'Hiragino Sans\',\'Yu Gothic\','
             '\'Noto Sans JP\',sans-serif">\n'
             '    <text x="256" y="256" font-size="130" font-weight="800" '
             'text-anchor="middle" dominant-baseline="central">'

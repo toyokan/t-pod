@@ -4,10 +4,16 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+try:  # Windows の cp932 端末でも UTF-8 で出力する
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
 
 ROOT = Path(__file__).resolve().parents[1]
 EVENTS_INDEX = ROOT / "events.json"

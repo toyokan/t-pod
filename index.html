@@ -212,7 +212,7 @@
     a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
     body { overscroll-behavior-y: contain; }
-    body.modal-open { overflow: hidden; }
+    body.modal-open { position: fixed; width: 100%; overflow: hidden; }
     body {
       font-family: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', system-ui, sans-serif;
       background-image: linear-gradient(180deg,
@@ -414,8 +414,11 @@
 
     <!-- 読み込みエラー表示 -->
     <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
-      <p>データの読み込みに失敗しました。通信環境をご確認のうえ、ページを再読み込みしてください。</p>
-      <a href="./" class="inline-block mt-2 text-brand-600 font-medium underline">案内ページへ戻る</a>
+      <p>データの読み込みに失敗しました。通信環境をご確認のうえ、再試行してください。</p>
+      <div class="mt-2 flex items-center gap-4">
+        <button type="button" id="errorRetry" class="text-brand-600 font-medium underline">再試行</button>
+        <a href="./" class="text-brand-600 font-medium underline">案内ページへ戻る</a>
+      </div>
     </div>
 
     <!-- 読み込み中スケルトン（データ取得完了で非表示） -->
@@ -724,7 +727,15 @@
       const id = getEventId();
       try {
         if (id) {
-          const res = await fetch(`events/${id}.json`, { cache: "no-cache" });
+          // 通信がハングした場合にスケルトンが残り続けないよう、一定時間で打ち切る
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
+          let res;
+          try {
+            res = await fetch(`events/${id}.json`, { cache: "no-cache", signal: controller.signal });
+          } finally {
+            clearTimeout(timeoutId);
+          }
           if (!res.ok) throw new Error("HTTP " + res.status);
           DATA = await res.json();
           setMode("event");
@@ -738,6 +749,7 @@
         console.error(err);
         setMode("list");
         $("errorBox").classList.remove("hidden");
+        $("errorRetry").onclick = () => location.reload();
       } finally {
         $("skeleton").classList.add("hidden");
       }
@@ -1304,7 +1316,9 @@
     }
 
     // ---- モーダル ----
-    const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // reduceMotionQuery（後方で定義）を参照。アロー関数の中身は呼び出し時に評価されるため、
+    // 定義順が前後していても実行時には初期化済みで問題ない
+    const prefersReducedMotion = () => reduceMotionQuery.matches;
 
     // hidden の付け外しだけでは CSS animation が初回しか再生されないため、
     // クラスを外して reflow を挟み再付与する
@@ -1333,6 +1347,22 @@
       setTimeout(finish, 200); // animationend が来ない場合のフォールバック
     }
 
+    // 背面スクロール固定。iOS Safari は body の overflow:hidden だけでは止まらないため、
+    // position:fixed + scrollY 退避の標準的な手法で固定し、解除時に元の位置へ戻す
+    let lockedScrollY = 0;
+    function lockBodyScroll() {
+      if (document.body.classList.contains("modal-open")) return;
+      lockedScrollY = window.scrollY || window.pageYOffset || 0;
+      document.body.style.top = `-${lockedScrollY}px`;
+      document.body.classList.add("modal-open");
+    }
+    function unlockBodyScroll() {
+      if (!document.body.classList.contains("modal-open")) return;
+      document.body.classList.remove("modal-open");
+      document.body.style.top = "";
+      window.scrollTo(0, lockedScrollY);
+    }
+
     let lastFocused = null;
     function openModal(title, html) {
       $("modalTitle").textContent = title;
@@ -1340,7 +1370,7 @@
       lastFocused = document.activeElement;
       $("modal").classList.remove("hidden");
       replayIn($("modalPanel"));
-      document.body.classList.add("modal-open");
+      lockBodyScroll();
       $("modalClose").focus();
     }
     function closeModal() {
@@ -1350,7 +1380,7 @@
       animateOut(modal, $("modalPanel"), () => {
         modal.classList.add("hidden");
         delete modal.dataset.closing;
-        document.body.classList.remove("modal-open");
+        unlockBodyScroll();
         if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
         lastFocused = null;
       });
@@ -1466,6 +1496,14 @@
       });
     }
     async function applyAppIdentity(info) {
+      try {
+        await applyAppIdentityInner(info);
+      } catch (e) {
+        // 失敗しても静的 manifest.json / assets/icon.svg のフォールバックで表示は継続する
+        console.warn("applyAppIdentity 失敗", e);
+      }
+    }
+    async function applyAppIdentityInner(info) {
       const docTitle = info.logoMain || info.title || "イベント";
       // ホーム画面のアプリ名は長いと省略されるため、appName で短い名前を指定できる（未指定なら logoMain）
       const name = info.appName || docTitle;
@@ -1534,7 +1572,7 @@
       animateOut(pop, $("linePopupPanel"), () => {
         pop.classList.add("hidden");
         delete pop.dataset.closing;
-        document.body.classList.remove("modal-open");
+        unlockBodyScroll();
       });
     }
     let linePromoTrigger = null;
@@ -1548,7 +1586,7 @@
         try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
         $("linePopup").classList.remove("hidden");
         replayIn($("linePopupPanel"));
-        document.body.classList.add("modal-open");
+        lockBodyScroll();
       };
       const trigger = () => {
         if (fired) return;
