@@ -648,6 +648,12 @@
       const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
       return m ? +m[1] * 60 + +m[2] : null;
     };
+    // 日単位の終了時刻（分）。dates[].time（例 "10:00〜16:15" / "受付8:30/9:00〜17:00"）の
+    // 末尾の H:MM を採用（区切り文字に依存しない）。end 無しの最終セッションの終了判定に使う。
+    const dayEndMin = (dayObj) => {
+      const all = String((dayObj && dayObj.time) || "").match(/\d{1,2}:\d{2}/g);
+      return all && all.length ? toMin(all[all.length - 1]) : null;
+    };
     const localDateStr = (d = new Date()) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -952,10 +958,12 @@
       if (!currentRows.length) return;
       let idx = findNowIdx(currentSessions, currentDayObj);
       const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-      // 当日の最終セッションが終了済みなら「現在」扱いを解除（終了後に強調と▼ボタンが残るのを防ぐ）
+      // 当日の最終セッションが終了済みなら「現在」扱いを解除（終了後に強調と▼ボタンが残るのを防ぐ）。
+      // 最終セッションに end が無い（閉会・終了予定など）場合は dates[].time の終了時刻で代替。
       if (idx === currentSessions.length - 1 && idx >= 0) {
         const lastEnd = toMin(currentSessions[idx].end);
-        if (lastEnd !== null && nowMin >= lastEnd) idx = -1;
+        const endMin = lastEnd !== null ? lastEnd : dayEndMin(currentDayObj);
+        if (endMin !== null && nowMin >= endMin) idx = -1;
       }
       let showJump = false;
 
