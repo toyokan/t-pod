@@ -1707,6 +1707,7 @@
       const AXIS_RATIO = 1.4;   // 横が縦のこの倍を超えたときだけ横スワイプと判定
       let startX = 0, startY = 0, startT = 0, lastX = 0, tracking = false, axis = "";
       let dragView = null, neighborView = null, dragDirection = 0, dragWidth = 0, suppressNextClick = false;
+      let navSwipe = false, navWidth = 0;   // ボトムナビ上のスワイプ（コンテンツとは逆方向で切替）
 
       const cleanupDrag = () => {
         if (!dragView) return;
@@ -1750,6 +1751,23 @@
         }, 190);
       };
 
+      // ボトムナビ上でのスワイプ確定：指の向きへタブを切り替える（指右→右タブ＝コンテンツと逆）
+      const settleNavSwipe = (dx, velocity) => {
+        const idx = TAB_ORDER.indexOf(activeTab);
+        const navDir = dx > 0 ? 1 : -1;
+        const target = idx + navDir;
+        const inRange = target >= 0 && target < TAB_ORDER.length;
+        const commit = inRange && ((Math.abs(dx) >= SWIPE_MIN_X && Date.now() - startT <= SWIPE_MAX_MS) || velocity > .45);
+        const ind = $("navIndicator");
+        if (ind) ind.classList.remove("is-dragging-ind");   // トランジション復帰でスナップを滑らかに
+        if (commit) {
+          setTab(TAB_ORDER[target]);
+          if (linePromoTrigger) linePromoTrigger();
+        } else if (ind) {
+          ind.style.transform = `translate3d(${idx * 100}%, 0, 0)`;
+        }
+      };
+
       const swipeEnabled = (e) => {
         if ($("bottomNav").classList.contains("hidden")) return false;   // 一覧モード
         if (document.body.classList.contains("modal-open")) return false; // モーダル／LINEポップアップ
@@ -1767,6 +1785,8 @@
         lastX = startX;
         startT = Date.now();
         tracking = true;
+        // ボトムナビ上で始まったスワイプは、コンテンツとは逆向き（指右→右タブ）で切り替える
+        navSwipe = !!e.target.closest("#bottomNav");
       }, { passive: true });
 
       document.addEventListener("touchmove", (e) => {
@@ -1778,14 +1798,32 @@
           if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
           axis = Math.abs(dx) > Math.abs(dy) * AXIS_RATIO ? "x" : "y";
           if (axis === "y") { tracking = false; return; }
-          dragView = $("view-" + activeTab);
-          dragWidth = $("tabViews").clientWidth;
-          if (dragView) dragView.classList.add("is-dragging");
+          if (navSwipe) {
+            navWidth = $("bottomNav").clientWidth;
+          } else {
+            dragView = $("view-" + activeTab);
+            dragWidth = $("tabViews").clientWidth;
+            if (dragView) dragView.classList.add("is-dragging");
+          }
         }
-        if (axis !== "x" || !dragView) return;
+        if (axis !== "x") return;
+        if (!navSwipe && !dragView) return;
         e.preventDefault();
         lastX = e.touches[0].clientX;
         const idx = TAB_ORDER.indexOf(activeTab);
+        // --- ボトムナビ上のスワイプ：コンテンツは動かさず、ピルを指方向へ追従（指右→右タブ） ---
+        if (navSwipe) {
+          const navDir = dx > 0 ? 1 : -1;
+          const navOut = idx + navDir < 0 || idx + navDir >= TAB_ORDER.length;
+          const navProg = Math.min(1, Math.abs(dx) / Math.max(1, navWidth));
+          const ind = $("navIndicator");
+          if (ind) {
+            ind.classList.add("is-dragging-ind");
+            const frac = navOut ? navDir * navProg * .18 : navDir * navProg;
+            ind.style.transform = `translate3d(${(idx + frac) * 100}%, 0, 0)`;
+          }
+          return;
+        }
         const direction = dx < 0 ? 1 : -1;
         const outward = idx + direction < 0 || idx + direction >= TAB_ORDER.length;
         const offset = outward ? dx * .28 : dx;
@@ -1827,14 +1865,26 @@
         tracking = false;
         const dx = (e.changedTouches[0] ? e.changedTouches[0].clientX : lastX) - startX;
         const velocity = Math.abs(dx) / Math.max(1, Date.now() - startT);
-        const commit = !!neighborView && ((Math.abs(dx) >= SWIPE_MIN_X && Date.now() - startT <= SWIPE_MAX_MS) || velocity > .45);
         if (Math.abs(dx) >= 10) {
           suppressNextClick = true;
           setTimeout(() => { suppressNextClick = false; }, 400);
         }
+        if (navSwipe) { settleNavSwipe(dx, velocity); return; }
+        const commit = !!neighborView && ((Math.abs(dx) >= SWIPE_MIN_X && Date.now() - startT <= SWIPE_MAX_MS) || velocity > .45);
         settleDrag(commit);
       }, { passive: true });
-      document.addEventListener("touchcancel", () => { tracking = false; settleDrag(false); }, { passive: true });
+      document.addEventListener("touchcancel", () => {
+        tracking = false;
+        if (navSwipe) {
+          const ind = $("navIndicator");
+          if (ind) {
+            ind.classList.remove("is-dragging-ind");
+            ind.style.transform = `translate3d(${TAB_ORDER.indexOf(activeTab) * 100}%, 0, 0)`;
+          }
+          return;
+        }
+        settleDrag(false);
+      }, { passive: true });
       // リンク上からスワイプした直後に click が発火して遷移するのを防ぐ。通常タップは妨げない。
       document.addEventListener("click", (e) => {
         if (!suppressNextClick) return;
