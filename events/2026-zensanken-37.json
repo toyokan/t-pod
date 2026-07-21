@@ -503,73 +503,11 @@
   ],
   "books": [
     {
-      "title": "対話的な算数授業に変える 教師の言語活動",
-      "author": "全国算数授業研究会／編",
-      "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491037566.09.LZZZZZZZ.jpg",
-      "description": "子どもと教師の言葉で編む算数授業。指導案通りの展開に当てはめるのではなく、子どもの声を反映して軌道修正していく対話的な授業をいかにつくりあげるか。教師の言語活動の事例をまとめた一冊。",
-      "url": "https://www.toyokan.co.jp/products/3756",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491037566"
-    },
-    {
-      "title": "思考と表現を深める 算数の発問",
-      "author": "盛山 隆雄／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491036462.09.LZZZZZZZ.jpg",
-      "description": "算数授業における発問を「新規の発問」と「問い返し発問」の2つの切り口で体系的に解説。1〜6年生の具体的な授業事例を通じて、思考力を育てる教師の問いかけの重要性を示す。",
-      "url": "https://www.toyokan.co.jp/products/3646",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491036462"
-    },
-    {
-      "title": "小学校1年生 算数授業ガイド",
-      "author": "新城 喬之／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491049343.09.LZZZZZZZ.jpg",
-      "description": "先行知識がある子も退屈せず、分かりにくい子も算数を好きになる1年生の授業づくり。学級全体で共に学ぶための具体的なポイントをまとめた授業ガイド。",
-      "url": "https://www.toyokan.co.jp/products/4934",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491049343"
-    },
-    {
-      "title": "授業場面でわかる！算数用語ハンドブック",
-      "author": "平川 賢／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491045984.09.LZZZZZZZ.jpg",
-      "description": "分かっているようで分かっていなかった算数用語を、授業場面に即して分かりやすく解説。36の事例と160語の索引を収録した算数用語ハンドブック。",
-      "url": "https://www.toyokan.co.jp/products/4598",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491045984"
-    },
-    {
-      "title": "視覚化で納得！伝わるグラフ指導",
-      "author": "鈴木 純／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491040486.09.LZZZZZZZ.jpg",
-      "description": "小学校6年間のグラフ学習をまとめたグラフ指導の決定版。具体的な授業実践を通じて、データ活用力につながるグラフ読解力を育てる指導方法を提案。",
-      "url": "https://www.toyokan.co.jp/products/4048",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491040486"
-    },
-    {
-      "title": "3つの“感”でつくる算数授業",
-      "author": "森 寛暁／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491037027.09.LZZZZZZZ.jpg",
-      "description": "「安心感」「期待感」「納得感」の3つの“感”を中心に据えた算数授業の実践書。子どもの思いを大切にした授業づくりの方法を具体的な事例を通じて提案する。",
-      "url": "https://www.toyokan.co.jp/products/3702",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491037027"
-    },
-    {
-      "title": "「問いをつくり出す力」を育てる算数の授業開発13の視点",
-      "author": "尾﨑 正彦／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491037256.09.LZZZZZZZ.jpg",
-      "description": "教師が「めあて」を押しつけるだけでは子どもは主体的に学ばない。教材研究・教材に仕込む5つのギャップ・授業展開の4つのアプローチという13の視点で、子どもが自ら問いを生み出す授業づくりを示す。",
-      "url": "https://www.toyokan.co.jp/products/3725",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491037256"
-    },
-    {
       "title": "探究がはじまる！　算数で育てたい子どもの「見る目」",
       "author": "全国算数授業研究会／編著",
       "publisher": "東洋館出版社",
       "description": "既成の枠にあてはめない、子どもの素直さから学ぶ授業づくり。",
+      "official": { "year": 2026, "new": true },
       "url": "https://www.toyokan.co.jp/products/6525"
     },
     {
@@ -697,6 +635,69 @@
       "description": "小学校教育を通じて、児童を「自立した学び手」へと導いていくための、算数授業の実践提案。不確実性の時代に求められる自律型の人材を育成する、算数授業の具体がわかる！",
       "url": "https://www.toyokan.co.jp/products/5288",
       "amazon_url": "https://www.amazon.co.jp/dp/4491052883"
+    },
+    {
+      "title": "対話的な算数授業に変える 教師の言語活動",
+      "author": "全国算数授業研究会／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491037566.09.LZZZZZZZ.jpg",
+      "description": "子どもと教師の言葉で編む算数授業。指導案通りの展開に当てはめるのではなく、子どもの声を反映して軌道修正していく対話的な授業をいかにつくりあげるか。教師の言語活動の事例をまとめた一冊。",
+      "url": "https://www.toyokan.co.jp/products/3756",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491037566"
+    },
+    {
+      "title": "思考と表現を深める 算数の発問",
+      "author": "盛山 隆雄／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491036462.09.LZZZZZZZ.jpg",
+      "description": "算数授業における発問を「新規の発問」と「問い返し発問」の2つの切り口で体系的に解説。1〜6年生の具体的な授業事例を通じて、思考力を育てる教師の問いかけの重要性を示す。",
+      "url": "https://www.toyokan.co.jp/products/3646",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491036462"
+    },
+    {
+      "title": "小学校1年生 算数授業ガイド",
+      "author": "新城 喬之／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491049343.09.LZZZZZZZ.jpg",
+      "description": "先行知識がある子も退屈せず、分かりにくい子も算数を好きになる1年生の授業づくり。学級全体で共に学ぶための具体的なポイントをまとめた授業ガイド。",
+      "url": "https://www.toyokan.co.jp/products/4934",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491049343"
+    },
+    {
+      "title": "授業場面でわかる！算数用語ハンドブック",
+      "author": "平川 賢／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491045984.09.LZZZZZZZ.jpg",
+      "description": "分かっているようで分かっていなかった算数用語を、授業場面に即して分かりやすく解説。36の事例と160語の索引を収録した算数用語ハンドブック。",
+      "url": "https://www.toyokan.co.jp/products/4598",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491045984"
+    },
+    {
+      "title": "視覚化で納得！伝わるグラフ指導",
+      "author": "鈴木 純／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491040486.09.LZZZZZZZ.jpg",
+      "description": "小学校6年間のグラフ学習をまとめたグラフ指導の決定版。具体的な授業実践を通じて、データ活用力につながるグラフ読解力を育てる指導方法を提案。",
+      "url": "https://www.toyokan.co.jp/products/4048",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491040486"
+    },
+    {
+      "title": "3つの“感”でつくる算数授業",
+      "author": "森 寛暁／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491037027.09.LZZZZZZZ.jpg",
+      "description": "「安心感」「期待感」「納得感」の3つの“感”を中心に据えた算数授業の実践書。子どもの思いを大切にした授業づくりの方法を具体的な事例を通じて提案する。",
+      "url": "https://www.toyokan.co.jp/products/3702",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491037027"
+    },
+    {
+      "title": "「問いをつくり出す力」を育てる算数の授業開発13の視点",
+      "author": "尾﨑 正彦／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491037256.09.LZZZZZZZ.jpg",
+      "description": "教師が「めあて」を押しつけるだけでは子どもは主体的に学ばない。教材研究・教材に仕込む5つのギャップ・授業展開の4つのアプローチという13の視点で、子どもが自ら問いを生み出す授業づくりを示す。",
+      "url": "https://www.toyokan.co.jp/products/3725",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491037256"
     }
   ]
 }
