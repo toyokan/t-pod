@@ -58,6 +58,11 @@
         "url": "https://lin.ee/UelDzS1"
       }
     ],
+    "bookSale": {
+      "url": "https://www.toyokan.co.jp/discount/ZSK2026?redirect=%2Fcollections%2F250118zensanken",
+      "label": "東洋館出版社 特設販売ページ",
+      "note": "本大会限定の割引販売はこちら"
+    },
     "nextEvent": {
       "showFrom": "2026-08-05T13:00:00+09:00",
       "label": "次回のご案内",
