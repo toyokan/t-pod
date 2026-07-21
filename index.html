@@ -295,6 +295,8 @@
     .view-in-left  { animation: viewInLeft  .22s cubic-bezier(.22,1,.36,1) both; }
     /* アクティブ表示のスライド用インジケータ（ボトムナビ／日付タブ共通の動き） */
     .tab-indicator { position: absolute; transition: transform .25s cubic-bezier(.22,1,.36,1); pointer-events: none; }
+    /* スワイプ追従中は指へ 1:1 で動かすためトランジションを切る（離したら復帰） */
+    #navIndicator.is-dragging-ind { transition: none; }
     /* 日付タブは白ピル、ボトムナビは色付きガラス。文字色はブランド背景とのコントラストで自動選択する。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
     .navbtn[aria-current] .navpill { color: var(--brand-fg); text-shadow: 0 1px rgba(255,255,255,.35); }
@@ -1726,6 +1728,13 @@
           view.classList.remove("is-dragging");
           view.classList.add("is-drag-settling");
         });
+        // ピルはトランジションを戻し、確定なら次タブ位置・非確定なら元位置へ滑らかに戻す
+        const ind = $("navIndicator");
+        if (ind) {
+          ind.classList.remove("is-dragging-ind");
+          const targetIdx = TAB_ORDER.indexOf(oldTab) + (commit ? dragDirection : 0);
+          ind.style.transform = `translate3d(${targetIdx * 100}%, 0, 0)`;
+        }
         dragView.style.transform = `translate3d(${commit ? -dragDirection * dragWidth : 0}px,0,0)`;
         dragView.style.opacity = commit ? "0" : "1";
         if (neighborView) neighborView.style.transform = `translate3d(${commit ? 0 : dragDirection * dragWidth}px,0,0)`;
@@ -1802,6 +1811,14 @@
         if (neighborView) {
           neighborView.style.transform = `translate3d(${offset + dragDirection * dragWidth}px,0,0)`;
           neighborView.style.opacity = String(.72 + progress * .28);
+        }
+        // ボトムナビの選択ピルも指へ比例追従させる。隣タブがある時だけ本移動、
+        // 端（outward）は移動量を抑えたラバーバンドにする
+        const ind = $("navIndicator");
+        if (ind) {
+          ind.classList.add("is-dragging-ind");
+          const frac = neighborView ? dragDirection * progress : direction * progress * .18;
+          ind.style.transform = `translate3d(${(idx + frac) * 100}%, 0, 0)`;
         }
       }, { passive: false });
 
