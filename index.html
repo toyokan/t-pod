@@ -188,7 +188,9 @@
     /* 選択中のピルはブランド色を透かし、白い反射を重ねた色付きガラス（レンズ質感）にする */
     .nav-brand-card {
       background:
-        /* 上端の鋭いスペキュラハイライト（曲面ガラスの反射） */
+        /* 凸面ガラスの放射状グレア（左上から光が差し込む） */
+        radial-gradient(120% 90% at 28% 8%, rgba(255,255,255,.55) 0%, rgba(255,255,255,.14) 32%, transparent 55%),
+        /* 上端の鋭いスペキュラハイライト */
         linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.12) 20%, transparent 40%),
         linear-gradient(155deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.1) 42%, transparent 58%),
         linear-gradient(145deg,
@@ -196,14 +198,24 @@
           color-mix(in srgb, var(--brand) 70%, transparent));
       -webkit-backdrop-filter: blur(12px) saturate(1.3) brightness(1.04);
       backdrop-filter: blur(12px) saturate(1.3) brightness(1.04);
-      /* 縁の白は上を強く・下を弱く（inset で立体感）。scale モーフはオーバーシュート気味に補間 */
+      /* 縁の白は上を強く・下を弱く（inset で立体感）。下端に明るいリムを足して光の屈折を演出。
+         scale モーフはオーバーシュート気味に補間 */
       box-shadow:
         0 8px 18px -11px color-mix(in srgb, var(--brand) 58%, black),
-        inset 0 1.5px rgba(255,255,255,.8),
+        inset 0 1.5px rgba(255,255,255,.85),
         inset 0 0 0 1px rgba(255,255,255,.5),
+        inset 0 -3px 6px -3px rgba(255,255,255,.55),
         inset 0 -2px color-mix(in srgb, var(--brand) 34%, transparent);
       transition: transform .28s cubic-bezier(.34,1.56,.64,1);
       will-change: transform;
+    }
+    /* 対応ブラウザ（Chrome/Android 等）では背後を実際に歪ませてレンズ屈折にする。
+       iOS Safari 等 url() 非対応は上の強化ガラスにフォールバック（この宣言が無効なら前の値が残る） */
+    @supports (backdrop-filter: url(#lensGlass)) or (-webkit-backdrop-filter: url(#lensGlass)) {
+      .nav-brand-card {
+        -webkit-backdrop-filter: blur(9px) saturate(1.32) brightness(1.04) url(#lensGlass);
+        backdrop-filter: blur(9px) saturate(1.32) brightness(1.04) url(#lensGlass);
+      }
     }
     /* セーフエリア（ノッチ端末）対応 */
     .safe-area-top-bg {
@@ -375,6 +387,16 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
   <div class="safe-area-top-bg" aria-hidden="true"></div>
+
+  <!-- 選択ピルの背後を歪ませる屈折フィルタ（対応ブラウザのみ backdrop-filter: url() で使用）。
+       低周波ノイズを変位マップにして液体ガラス風のさざ波＋レンズ屈折を作る -->
+  <svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false">
+    <filter id="lensGlass" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.014" numOctaves="2" seed="11" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="1.6" result="soft"/>
+      <feDisplacementMap in="SourceGraphic" in2="soft" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
 
   <!-- ===== Sticky ヘッダー（テーマ・お知らせベルを統合） ===== -->
   <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe text-brand-fg rounded-b-[32px] relative overflow-hidden">
