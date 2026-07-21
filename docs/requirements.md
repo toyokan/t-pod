@@ -60,6 +60,8 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 
 ## 5. `events/<id>.json`
 
+ルート直下に自己識別用の **`id`（必須）** を持つ。値はファイル名（`events/<id>.json`）および `events.json` のエントリ `id` と一致させる。UI では未使用だが、`scripts/validate_events.py` が不一致・欠落を ERROR とし、既存を複製した際の書き換え忘れや別イベント・別年度の取り違えを機械的に検出する。
+
 ### `eventInfo`
 
 | キー | 内容 |
@@ -96,7 +98,7 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 
 ## 6. イベント追加手順
 
-1. `events/<id>.json` を作成する。Excel ひな形を使う場合は `template/README.md` に従う。
+1. `events/<id>.json` を作成する。Excel ひな形を使う場合は `template/README.md` に従う。ルート `id` はファイル名と一致させる（複製時の書き換え忘れに注意）。既存イベントの編集時は、似た名称・年度違いの取り違えを避けるため `python scripts/find_event.py "<キーワード>"` で対象 id を確定してから着手する。
 2. `events.json` に `id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate` / `brandColor` を追加する。
 3. 会場図があれば `assets/venue-map-<id>.svg` 等を置き、`eventInfo.venue.mapImage` に指定する。外部公開 URL も使用できる。
 4. PWA 名とアイコンを安定させる場合は `assets/icon-<id>.svg` と `events/<id>.webmanifest` を作り、`manifestPath` を設定する。

@@ -473,7 +473,7 @@ class EventWorkbook:
             }
             books.append({key: value for key, value in book.items() if value})
 
-        event_data = {"eventInfo": info, "rooms": rooms, "sessions": sessions, "books": books}
+        event_data = {"id": event_id, "eventInfo": info, "rooms": rooms, "sessions": sessions, "books": books}
         index_entry = {
             "id": event_id,
             "title": info["title"],

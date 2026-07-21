@@ -34,12 +34,19 @@
 | `manifest.json` | PWA 汎用シェル（インストール名・色） | △ 任意 |
 | `assets/` | アイコン・会場マップ（SVG） | △ 任意 |
 
+## 対象イベントの特定（編集前チェック・重要）
+似た名称・年度違いが並存する（「算数」は `2026-zensanken-37`＝全国算数と `2026-math-summer-fes`＝サマーフェスの**両方**に該当。「算数」≠「国語」。年度は `-<回数>` と `sortDate` で識別）。**別イベント・別年度の誤編集を避けるため、着手前に対象を確定する:**
+1. `python scripts/find_event.py "<キーワード>"` で id を確定（曖昧なら警告＋exit 2。`--current`/`--upcoming` あり）。events.json / `docs/event-url-index.md` 参照も可。
+2. **id・title・dateRange・年度**を events.json と照合して宣言してから編集。
+3. 個別 JSON の**ルート `id` がファイル名と一致**することを確認（不一致は取り違え・複製書き換え忘れ。`validate_events.py` が ERROR 検出）。
+4. 終了済み（最終開催日＋7日超）は原則編集しない。
+
 ## 新しいイベントの追加手順（コードは触らない）
 **推奨**: v2 Excelへ入力・目視修正後、`python scripts/import_event_workbook.py "<xlsx>"` で事前検証し、成功後に `--write` を付けて決定的変換する。既存IDは上書きしない。新形式は `docs/event-onboarding-review.md` の台帳へ記録する。
 
 手動で追加する場合:
 
-1. `events/<新id>.json` を作成（既存を複製して中身を書き換え／企画書テキストから生成）。`<新id>` は半角英数・ハイフン・アンダースコアのみ。
+1. `events/<新id>.json` を作成（既存を複製して中身を書き換え／企画書テキストから生成）。`<新id>` は半角英数・ハイフン・アンダースコアのみ。**複製時はルートの `id` を必ず新 id に書き換える**（ファイル名・events.json の id と一致必須。ズレは `validate_events.py` が ERROR 検出）。
 2. `events.json` の `events[]` に1エントリ追記（`id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate`）。手動追加時は `python scripts/generate_event_url_index.py` でURL台帳を更新する（Excel取込時は自動）。
 3. **会場マップ（イベント別・任意）**: `eventInfo.venue.mapImage` で指定。会場はイベント毎に異なるため以下を使い分ける。
    - リポジトリ内の図: `assets/venue-map-<id>.svg`（または `.png` / `.jpg`）として置き、`mapImage` に相対パス指定（アイコンの `icon-<id>.svg` と同じイベント別命名で統一）。

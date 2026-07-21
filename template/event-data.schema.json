@@ -5,8 +5,13 @@
   "description": "events/<id>.json の機械可読な出力契約。AI生成時はこの構造に従い、資料にない値を推測しない。",
   "type": "object",
   "additionalProperties": false,
-  "required": ["eventInfo", "sessions", "books"],
+  "required": ["id", "eventInfo", "sessions", "books"],
   "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "description": "このイベントの識別子。ファイル名（events/<id>.json）および events.json のエントリ id と一致させる。"
+    },
     "eventInfo": { "$ref": "#/$defs/eventInfo" },
     "rooms": {
       "type": "array",

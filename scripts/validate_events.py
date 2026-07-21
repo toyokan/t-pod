@@ -105,6 +105,14 @@ def validate_event_data(
         validator.error(base, "ルートはオブジェクトである必要があります")
         return
 
+    self_id = data.get("id")
+    if self_id != event_id:
+        validator.error(
+            f"{base}.id",
+            f"ファイル名／events.json の id と一致しません（別イベント・別年度の取り違えの可能性）。"
+            f"{event_id!r} を指定してください（現在: {self_id!r}）",
+        )
+
     info = data.get("eventInfo")
     if not isinstance(info, dict):
         validator.error(f"{base}.eventInfo", "オブジェクトが必要です")
