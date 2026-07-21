@@ -11,7 +11,7 @@
     "manifestPath": "events/2026-math-summer-fes.webmanifest",
     "theme": "算数の「深い学び」をどう創るか？　――教師の見つける力、つなぐ力、広げる力",
     "venueName": "筑波大学附属小学校",
-    "dateRange": "2026年７月18日(土) 09:30〜７月19日(日) 15:10",
+    "dateRange": "2026年７月18日(土) 09:30〜７月19日(日) 15:15",
     "organizer": "フェスティバル実行委員／『算数授業研究』編集部（筑波大学附属小学校算数部）",
     "tagline": "算数サマーフェスティバル2026",
     "linePromo": false,
@@ -368,7 +368,7 @@
     {
       "id": "d2-08",
       "dateId": "day2",
-      "start": "15:10",
+      "start": "15:15",
       "end": "",
       "category": "終了予定",
       "items": []
