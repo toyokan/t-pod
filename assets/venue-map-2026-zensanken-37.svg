@@ -1,26 +1,102 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="800" height="520" font-family="'Hiragino Sans','Yu Gothic',sans-serif">
-  <rect width="800" height="520" fill="#f8fafc"/>
-  <text x="400" y="44" font-size="24" font-weight="700" text-anchor="middle" fill="#0f172a">筑波大学附属小学校 会場マップ（イメージ）</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1470 1080" width="1470" height="1080" font-family="'Hiragino Sans','Yu Gothic',sans-serif">
+  <rect width="1470" height="1080" fill="#ffffff"/>
 
-  <!-- 講堂：blueDeep（濃青・タイムテーブルのチップと同色） -->
-  <rect x="60" y="80" width="330" height="180" rx="14" fill="#315875" stroke="#315875" stroke-width="3"/>
-  <text x="225" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#ffffff">講堂</text>
-  <text x="225" y="192" font-size="14" text-anchor="middle" fill="#e8f0f8">３階･講堂</text>
+  <!-- タイトル -->
+  <text x="34" y="66" font-size="38" font-weight="700" fill="#1f2937">第37回 全国算数授業研究大会</text>
+  <text x="34" y="128" font-size="34" font-weight="700" fill="#1f2937">会場案内（簡略図）</text>
+  <text x="34" y="184" font-size="22" fill="#374151">筑波大学附属小学校</text>
 
-  <!-- ２音：greenDeep（濃緑） -->
-  <rect x="410" y="80" width="330" height="180" rx="14" fill="#326650" stroke="#326650" stroke-width="3"/>
-  <text x="575" y="160" font-size="26" font-weight="700" text-anchor="middle" fill="#ffffff">２音</text>
-  <text x="575" y="192" font-size="14" text-anchor="middle" fill="#e6f2ed">西校舎２階･第２音楽室</text>
+  <!-- 凡例 -->
+  <rect x="34" y="228" width="40" height="40" rx="3" fill="#f3901a"/>
+  <text x="90" y="258" font-size="26" font-weight="700" fill="#1f2937">使用教室</text>
 
-  <!-- １体：blue（淡青） -->
-  <rect x="60" y="280" width="330" height="180" rx="14" fill="#e8f0f8" stroke="#4f7fa8" stroke-width="3"/>
-  <text x="225" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#315875">１体</text>
-  <text x="225" y="392" font-size="14" text-anchor="middle" fill="#4f7fa8">１階･第１体育館</text>
+  <!-- ===== 建物の壁（簡略） ===== -->
+  <g fill="none" stroke="#c7ccd4" stroke-width="3">
+    <!-- 3階東ブロックの外郭 -->
+    <path d="M520 150 L520 430 L700 430 L700 150"/>
+    <!-- 3階東と中央をつなぐ廊下 -->
+    <path d="M520 400 L380 400 L380 470"/>
+    <path d="M420 470 L420 610"/>
+    <!-- 3階南ブロックの外郭 -->
+    <path d="M540 470 L1050 470 L1050 640 L540 640 L540 470"/>
+    <!-- 中央ホール〜1階 -->
+    <path d="M380 470 L380 960 L1010 960 L1010 700"/>
+    <path d="M540 640 L540 700 L710 700"/>
+    <!-- 1階（体育館）外郭 -->
+    <path d="M710 700 L1010 700 L1010 890 L710 890 L710 700"/>
+    <!-- 正門アプローチ -->
+    <path d="M380 830 L300 830 L300 960 L500 960"/>
+    <!-- 西校舎 -->
+    <path d="M1175 505 L1360 505 L1360 730 L1175 730 L1175 505 M1175 618 L1360 618"/>
+  </g>
 
-  <!-- １音：green（淡緑） -->
-  <rect x="410" y="280" width="330" height="180" rx="14" fill="#e6f2ed" stroke="#4d9275" stroke-width="3"/>
-  <text x="575" y="360" font-size="26" font-weight="700" text-anchor="middle" fill="#326650">１音</text>
-  <text x="575" y="392" font-size="14" text-anchor="middle" fill="#4d9275">西校舎１階･第１音楽室</text>
+  <!-- フロアラベル -->
+  <g font-size="24" font-weight="700" fill="#374151" text-anchor="middle">
+    <rect x="558" y="94" width="120" height="34" rx="6" fill="#e5e7eb"/>
+    <text x="618" y="118">３階東</text>
+    <rect x="760" y="424" width="120" height="34" rx="6" fill="#e5e7eb"/>
+    <text x="820" y="448">３階南</text>
+    <rect x="1218" y="442" width="120" height="34" rx="6" fill="#e5e7eb"/>
+    <text x="1278" y="466">西校舎</text>
+    <rect x="800" y="662" width="70" height="34" rx="6" fill="#e5e7eb"/>
+    <text x="835" y="686">１階</text>
+  </g>
+  <text x="472" y="676" font-size="24" fill="#6b7280" text-anchor="middle">（中央ホール）</text>
+  <text x="1155" y="562" font-size="24" font-weight="700" fill="#374151" text-anchor="middle">２階</text>
+  <text x="1155" y="700" font-size="24" font-weight="700" fill="#374151" text-anchor="middle">１階</text>
 
-  <text x="400" y="500" font-size="13" text-anchor="middle" fill="#64748b">※ 会場割りは当日の掲示・配布物をご確認ください</text>
+  <!-- ===== 使用教室（オレンジ） ===== -->
+  <g font-weight="700" fill="#ffffff" text-anchor="middle">
+    <!-- 3階東：縦積み4室 -->
+    <rect x="543" y="150" width="150" height="60" fill="#f3901a"/>
+    <text x="618" y="189" font-size="24">社会科教室</text>
+    <rect x="543" y="212" width="150" height="60" fill="#f3901a"/>
+    <text x="618" y="251" font-size="24">１部６年</text>
+    <rect x="543" y="274" width="150" height="60" fill="#f3901a"/>
+    <text x="618" y="313" font-size="24">２部６年</text>
+    <rect x="543" y="336" width="150" height="60" fill="#f3901a"/>
+    <text x="618" y="375" font-size="24">３部６年</text>
+
+    <!-- ICT教室 -->
+    <rect x="393" y="490" width="118" height="58" fill="#f3901a"/>
+    <text x="452" y="527" font-size="23">ICT教室</text>
+
+    <!-- 3階南：4部6年／1部5年／講堂 -->
+    <rect x="558" y="478" width="150" height="66" fill="#f3901a"/>
+    <text x="633" y="519" font-size="24">４部６年</text>
+    <rect x="710" y="478" width="176" height="66" fill="#f3901a"/>
+    <text x="798" y="519" font-size="24">１部５年</text>
+    <rect x="888" y="478" width="150" height="66" fill="#f3901a"/>
+    <text x="963" y="519" font-size="24">講　堂</text>
+
+    <!-- 西校舎 -->
+    <rect x="1198" y="520" width="150" height="70" fill="#f3901a"/>
+    <text x="1273" y="563" font-size="24">第２音楽室</text>
+    <rect x="1198" y="636" width="150" height="70" fill="#f3901a"/>
+    <text x="1273" y="679" font-size="24">第１音楽室</text>
+
+    <!-- 第1体育館 -->
+    <rect x="742" y="712" width="220" height="132" fill="#f3901a"/>
+    <text x="852" y="786" font-size="26">第１体育館</text>
+
+    <!-- 受付 -->
+    <rect x="366" y="722" width="80" height="48" fill="#f3901a"/>
+    <text x="406" y="753" font-size="22">受付</text>
+  </g>
+
+  <!-- 算数教室（書籍販売会場）：濃オレンジ枠＋淡地 -->
+  <rect x="700" y="556" width="250" height="66" fill="#fdecd7" stroke="#dc6b0a" stroke-width="4"/>
+  <text x="825" y="588" font-size="24" font-weight="700" fill="#c05a08" text-anchor="middle">算数教室</text>
+  <text x="825" y="612" font-size="16" font-weight="700" fill="#c05a08" text-anchor="middle">書籍販売会場</text>
+
+  <!-- トイレ表示 -->
+  <g font-size="17" fill="#374151" text-anchor="middle">
+    <rect x="576" y="386" width="84" height="30" rx="3" fill="#ffffff" stroke="#c7ccd4" stroke-width="2"/>
+    <text x="618" y="407">WC女</text>
+    <rect x="404" y="440" width="84" height="30" rx="3" fill="#ffffff" stroke="#c7ccd4" stroke-width="2"/>
+    <text x="446" y="461">WC男</text>
+  </g>
+
+  <!-- 正門 -->
+  <text x="410" y="1010" font-size="26" font-weight="700" fill="#374151" text-anchor="middle" letter-spacing="6">正　門</text>
 </svg>
