@@ -691,6 +691,15 @@
       const m = /^(\d{1,2}):(\d{2})/.exec(String(t || ""));
       return m ? +m[1] * 60 + +m[2] : null;
     };
+    // 回戦制セッション（rounds[] を持つ）で、現在時刻が何回戦目かのラベルを返す（該当なしは ""）
+    const currentRoundLabel = (s, nowMin) => {
+      if (!Array.isArray(s && s.rounds)) return "";
+      for (const r of s.rounds) {
+        const a = toMin(r.start), b = toMin(r.end);
+        if (a !== null && b !== null && nowMin >= a && nowMin < b) return r.label || "";
+      }
+      return "";
+    };
     // 日単位の終了時刻（分）。dates[].time（例 "10:00〜16:15" / "受付8:30/9:00〜17:00"）の
     // 末尾の H:MM を採用（区切り文字に依存しない）。end 無しの最終セッションの終了判定に使う。
     const dayEndMin = (dayObj) => {
@@ -1048,16 +1057,23 @@
             const scaleX = (pct / 100).toFixed(3);
             // 既存バッジがあれば要素を作り直さず transform と残り時間だけ更新（scaleX が滑らかに補間される）
             const existingFill = slot ? slot.querySelector(".now-fill") : null;
+            const roundLabel = currentRoundLabel(s, nowMin);
             if (existingFill) {
               existingFill.style.transform = `scaleX(${scaleX})`;
               const rem = slot.querySelector(".now-remain");
               if (rem) rem.textContent = remain !== null ? ` · あと${remain}分` : "";
+              const rnd = slot.querySelector(".now-round");
+              if (rnd) {
+                rnd.textContent = roundLabel ? `ただいま ${roundLabel}` : "";
+                rnd.classList.toggle("hidden", !roundLabel);
+              }
             } else {
             const html =
               `<div class="now-badge">` +
               `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-700 mb-1">` +
               `<span class="w-2 h-2 rounded-full bg-brand-500"></span>進行中` +
               `<span class="now-remain">${remain !== null ? ` · あと${remain}分` : ""}</span></div>` +
+              `<div class="now-round inline-flex items-center text-[11px] font-black text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-2.5 py-0.5 mb-1.5${roundLabel ? "" : " hidden"}">${roundLabel ? `ただいま ${escapeHtml(roundLabel)}` : ""}</div>` +
               (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full w-full grad-pill rounded-full now-fill" style="transform:scaleX(${scaleX})"></div></div>` : "") +
               `</div>`;
             if (slot) slot.innerHTML = html;
