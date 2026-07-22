@@ -14,16 +14,13 @@
   <g fill="none" stroke="#c7ccd4" stroke-width="3">
     <!-- 3階東ブロックの外郭 -->
     <path d="M520 150 L520 430 L700 430 L700 150"/>
-    <!-- 3階東と中央をつなぐ廊下 -->
     <path d="M520 400 L380 400 L380 470"/>
-    <path d="M420 470 L420 610"/>
     <!-- 3階南ブロックの外郭 -->
-    <path d="M540 470 L1050 470 L1050 640 L540 640 L540 470"/>
-    <!-- 中央ホール〜1階 -->
-    <path d="M380 470 L380 960 L1010 960 L1010 700"/>
-    <path d="M540 640 L540 700 L710 700"/>
-    <!-- 1階（体育館）外郭 -->
-    <path d="M710 700 L1010 700 L1010 890 L710 890 L710 700"/>
+    <path d="M528 464 L1120 464 L1120 700 L528 700 L528 464"/>
+    <!-- 中央ホール〜下フロア -->
+    <path d="M380 470 L380 960 L1120 960 L1120 700"/>
+    <!-- 1階南（体育館）外郭：講堂の真下 -->
+    <path d="M896 700 L1108 700 L1108 872 L896 872 L896 700"/>
     <!-- 正門アプローチ -->
     <path d="M380 830 L300 830 L300 960 L500 960"/>
     <!-- 西校舎 -->
@@ -34,12 +31,12 @@
   <g font-size="24" font-weight="700" fill="#374151" text-anchor="middle">
     <rect x="558" y="94" width="120" height="34" rx="6" fill="#e5e7eb"/>
     <text x="618" y="118">３階東</text>
-    <rect x="760" y="424" width="120" height="34" rx="6" fill="#e5e7eb"/>
-    <text x="820" y="448">３階南</text>
+    <rect x="700" y="424" width="120" height="34" rx="6" fill="#e5e7eb"/>
+    <text x="760" y="448">３階南</text>
     <rect x="1218" y="442" width="120" height="34" rx="6" fill="#e5e7eb"/>
     <text x="1278" y="466">西校舎</text>
-    <rect x="800" y="662" width="70" height="34" rx="6" fill="#e5e7eb"/>
-    <text x="835" y="686">１階</text>
+    <rect x="768" y="720" width="112" height="34" rx="6" fill="#e5e7eb"/>
+    <text x="824" y="744">１階南</text>
   </g>
   <text x="472" y="676" font-size="24" fill="#6b7280" text-anchor="middle">（中央ホール）</text>
   <text x="1155" y="562" font-size="24" font-weight="700" fill="#374151" text-anchor="middle">２階</text>
@@ -57,17 +54,23 @@
     <rect x="543" y="336" width="150" height="60" fill="#f3901a"/>
     <text x="618" y="375" font-size="24">３部６年</text>
 
-    <!-- ICT教室 -->
+    <!-- ICT教室（３階中央） -->
     <rect x="393" y="490" width="118" height="58" fill="#f3901a"/>
     <text x="452" y="527" font-size="23">ICT教室</text>
 
-    <!-- 3階南：4部6年／1部5年／講堂 -->
-    <rect x="558" y="478" width="150" height="66" fill="#f3901a"/>
-    <text x="633" y="519" font-size="24">４部６年</text>
-    <rect x="710" y="478" width="176" height="66" fill="#f3901a"/>
-    <text x="798" y="519" font-size="24">１部５年</text>
-    <rect x="888" y="478" width="150" height="66" fill="#f3901a"/>
-    <text x="963" y="519" font-size="24">講　堂</text>
+    <!-- 3階南：4部6年／1部5年 -->
+    <rect x="548" y="478" width="150" height="66" fill="#f3901a"/>
+    <text x="623" y="519" font-size="24">４部６年</text>
+    <rect x="702" y="478" width="150" height="66" fill="#f3901a"/>
+    <text x="777" y="519" font-size="24">１部５年</text>
+
+    <!-- 講堂：右側の一番大きい会場 -->
+    <rect x="900" y="472" width="200" height="216" fill="#f3901a"/>
+    <text x="1000" y="588" font-size="32">講　堂</text>
+
+    <!-- 第1体育館：講堂の真下（1階南） -->
+    <rect x="900" y="704" width="200" height="164" fill="#f3901a"/>
+    <text x="1000" y="794" font-size="27">第１体育館</text>
 
     <!-- 西校舎 -->
     <rect x="1198" y="520" width="150" height="70" fill="#f3901a"/>
@@ -75,19 +78,15 @@
     <rect x="1198" y="636" width="150" height="70" fill="#f3901a"/>
     <text x="1273" y="679" font-size="24">第１音楽室</text>
 
-    <!-- 第1体育館 -->
-    <rect x="742" y="712" width="220" height="132" fill="#f3901a"/>
-    <text x="852" y="786" font-size="26">第１体育館</text>
-
     <!-- 受付 -->
     <rect x="366" y="722" width="80" height="48" fill="#f3901a"/>
     <text x="406" y="753" font-size="22">受付</text>
   </g>
 
   <!-- 算数教室（書籍販売会場）：濃オレンジ枠＋淡地 -->
-  <rect x="700" y="556" width="250" height="66" fill="#fdecd7" stroke="#dc6b0a" stroke-width="4"/>
-  <text x="825" y="588" font-size="24" font-weight="700" fill="#c05a08" text-anchor="middle">算数教室</text>
-  <text x="825" y="612" font-size="16" font-weight="700" fill="#c05a08" text-anchor="middle">書籍販売会場</text>
+  <rect x="548" y="548" width="304" height="64" fill="#fdecd7" stroke="#dc6b0a" stroke-width="4"/>
+  <text x="700" y="580" font-size="24" font-weight="700" fill="#c05a08" text-anchor="middle">算数教室</text>
+  <text x="700" y="604" font-size="16" font-weight="700" fill="#c05a08" text-anchor="middle">書籍販売会場</text>
 
   <!-- トイレ表示 -->
   <g font-size="17" fill="#374151" text-anchor="middle">
