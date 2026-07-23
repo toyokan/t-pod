@@ -33,7 +33,7 @@ EVENTS_DIR = ROOT / "events"
 ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 TIME_RE = re.compile(r"^(?:[01]?\d|2[0-3]):[0-5]\d$")
-ROOM_COLORS = {"blue", "blueDeep", "green", "greenDeep", "orange", "purple"}
+ROOM_COLORS = {"blue", "blueDeep", "green", "greenDeep", "orange", "orangeDeep", "purple", "purpleDeep"}
 NOTICE_LEVELS = {"important", "info"}
 PLACEHOLDER_MARKERS = ("example", "xxxx", "your-", "<id>")
 

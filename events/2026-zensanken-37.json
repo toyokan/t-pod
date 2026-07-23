@@ -90,22 +90,22 @@
     {
       "id": "講堂",
       "name": "３階南・講堂",
-      "color": "blueDeep"
+      "color": "orangeDeep"
     },
     {
       "id": "１体",
       "name": "１階南・第１体育館",
-      "color": "blue"
+      "color": "orange"
     },
     {
       "id": "１音",
       "name": "西校舎１階・第１音楽室",
-      "color": "green"
+      "color": "purple"
     },
     {
       "id": "２音",
       "name": "西校舎２階・第２音楽室",
-      "color": "greenDeep"
+      "color": "purpleDeep"
     }
   ],
   "sessions": [
