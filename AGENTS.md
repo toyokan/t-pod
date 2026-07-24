@@ -91,4 +91,4 @@ GitHub **Settings → Pages → Source: `main` / `/ (root)`** → `https://<user
 - `index.html` に特定イベントの固有文言を書かない（汎用シェルを維持）。
 - 配布資料の実ファイル（PDF/Word 等）はリポジトリに置かず、外部公開リンク（Google Drive 等）を JSON に記述する。
 - フォーム類は PWA 内処理せず外部（Google フォーム等）へ誘導。
-- コミットメッセージ・PR・コード・コメント等に **モデル識別子（`Codex-opus-4-8` 等）を含めない**。
+- コミットメッセージ・PR・コード・コメント等に **モデル識別子（`gpt-5.6-sol` 等）を含めない**。
