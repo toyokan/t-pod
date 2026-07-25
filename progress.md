@@ -416,3 +416,16 @@
 - **アクセシビリティ（`index.html`）**: モーダルに Tab フォーカストラップを追加（背面への抜けを防止）。オフラインバナーに `role="status"`。`applyAppIdentity()` を try/catch で保護し、失敗しても表示継続。reduced-motion 判定を `reduceMotionQuery` に一本化。
 - **スクリプト堅牢化**: `validate_events.py`／`generate_event_url_index.py`／`import_event_workbook.py` に UTF-8 出力の `reconfigure` を追加（Windows cp932 端末での文字化け・例外落ち防止）。`import_event_workbook.py` の生成アイコン文字色を白固定から輝度判定（`index.html` と同式・閾値 0.55）に変更し、検証失敗時に生成物をロールバックする処理を追加。`find_event.py` のデッド三項と `validate_events.py` の `brandColor` None 安全化。
 - 一連のシェル変更に伴い Service Worker の `CACHE_VERSION` を **v74→v77** に更新。
+
+### 2026-07-25 右下のドット絵マスコット「ふせんネコ」
+
+タイムテーブルを読み解かなくても「あと何日か」「いま何の時間か」「明日は何時からか」が伝わるよう、
+イベントページの右下に 24×24 のローピクセル・マスコットと吹き出しを常駐させた。
+
+- **ドット絵は実行時生成**: `CAT_BASE`（24行×24文字）＋差分パッチ（`CAT_TAIL_UP` / `CAT_BLINK`）を JS に持ち、`buildCatSvg()` が横方向のランレングス結合で `<rect>` にまとめて SVG 文字列を返す。6コマを横一列に並べ、`translate3d` + `steps(6)` でコマ送りする（`transform` のみ・GPU 合成）。バイナリ資産は追加していない。
+- **ブランド色に追従**: 塗りは `<style>` の `.cat-*` クラスが持ち、輪郭は `color-mix(in srgb, var(--brand) 34%, #2b2118)`、体色は `var(--brand)`。`eventInfo.brandColor` を変えるだけで体色が変わる（ほっぺと目は固定色）。`applyBrandColor()` 後の再生成は不要。
+- **文言は純関数**: `mascotLines(now = new Date())` が `eventInfo.dates[]` と `sessions[]` から算出する。開催前は「あと◯日だよ！」、当日は「いまは『◯◯』の時間だよ／あと◯分だよ／つぎは ◯:◯◯ から…」、当日終了後は「あしたは ◯:◯◯ からだよ」、全日程終了後は `nextEvent.date` を案内し、終了済み（最終日+7日超・`_status` 優先）は「また来年も参加してね！」。`now` を引数で差し替えられるため、デバッグ用の UI やクエリを足さずにコンソールから全分岐を確認できる。
+- **「進行中」判定の改善**: 開始時刻を持たない末尾の行（理事・幹事会など）があると `updateNowMarker()` 由来の「最後の要素か」判定が効かず、`end` 無しの最終セッションが延々と「進行中」のままになる。マスコット側は「以降に開始時刻を持つ行が無いか」で判定し、`end` が無い場合は `dates[].time` の終了時刻（無ければ開始+30分）で締める。
+- **表示条件と操作**: イベントページ（`?id=` あり）のみ。`eventInfo.mascot: false` でイベント単位のオプトアウト。タップで吹き出しを畳み、状態は `localStorage["t-pod:mascot-folded"]` に保持。文言は7秒ごとに切り替え、同じタイマーで文言自体も作り直す（`setInterval` は1本）。
+- **配置とアクセシビリティ**: `z-20`（ボトムナビ `z-30`・モーダル `z-40` より下）でボトムナビの上に固定。吹き出しは白地＋`text-slate-700` でブランド色ベタ塗りは使わない。7秒ごとに変わる装飾的な一言のため `aria-live` は付けない。`prefers-reduced-motion` ではコマ送りを停止し1コマ目で静止する。
+- シェル変更のため Service Worker の `CACHE_VERSION` を **v81→v82** に更新。
