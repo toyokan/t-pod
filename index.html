@@ -632,7 +632,8 @@
     <!-- 背面の白いセッションカードに埋もれないよう、枠線を濃く・影を強くし、::after で三角のしっぽを出す -->
     <p id="mascotBubble" class="max-w-[min(52vw,17rem)] px-1.5 py-0.5 text-[13px] font-normal text-slate-800 leading-relaxed"></p>
     <button id="mascotBtn" type="button" aria-label="マスコット（タップで吹き出しを開閉）"
-      class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition">
+      aria-expanded="true" aria-controls="mascotBubble"
+      class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
       <!-- コマ送り（横）と呼吸（縦）は別要素に持たせる。同一要素では transform が競合するため -->
       <span id="mascotBob" class="block w-full h-full">
         <span id="mascotStrip" class="flex w-[1600%] h-full items-center"></span>
@@ -852,11 +853,17 @@
       2: "____..________..________",
       3: "___KKKK______KKKK_______",
     };
-    // よそ見：両目を 1 ドット右へ寄せる（左右そろって動くので小さくても分かる）
+    // よそ見：両目を 1 ドット右（しっぽ側）へ寄せる（左右そろって動くので小さくても分かる）
     const CAT_LOOK = {
       10: "_____BEE_____BEE________",
       11: "_____BEE_____BEE________",
       12: "_____BEE_____BEE________",
+    };
+    // 吹き出しの方（左）を見る
+    const CAT_LOOK_L = {
+      10: "____EEB_____EEB_________",
+      11: "____EEB_____EEB_________",
+      12: "____EEB_____EEB_________",
     };
     // 上を見る：目を 1 行上へずらす。来客を目で追わせるのに使う
     const CAT_LOOK_UP = {
@@ -930,6 +937,7 @@
       surprise: [[CAT_SURPRISE]],
       ears: [[CAT_EARS_DOWN]],
       look: [[CAT_LOOK], [CAT_LOOK]],
+      lookL: [[CAT_LOOK_L], [CAT_LOOK_L]],
       sparkle: [[CAT_SMILE, CAT_SPARK_A], [CAT_SMILE, CAT_SPARK_B]],
       yawn: [[CAT_BLINK, CAT_YAWN], [CAT_BLINK, CAT_YAWN]],
     };
@@ -964,11 +972,11 @@
     // 場面ごとの出やすさ（同じ名前を並べて重み付けする）。
     // 開催中ははしゃぎ気味に、終了後は落ち着いてまばたき・あくび中心にする。
     const CAT_ACCENT_POOL = {
-      live: ["surprise", "smile", "smile", "sparkle", "blink", "ears", "look"],
-      today: ["smile", "sparkle", "blink", "blink", "ears", "look", "surprise"],
-      before: ["blink", "blink", "smile", "ears", "look", "look", "surprise"],
-      after: ["blink", "blink", "yawn", "smile", "ears", "look"],
-      ended: ["blink", "blink", "yawn", "yawn", "ears", "look"],
+      live: ["surprise", "smile", "smile", "sparkle", "blink", "ears", "look", "lookL"],
+      today: ["smile", "sparkle", "blink", "blink", "ears", "look", "lookL", "surprise"],
+      before: ["blink", "blink", "smile", "ears", "look", "lookL", "look", "surprise"],
+      after: ["blink", "blink", "yawn", "smile", "ears", "look", "lookL"],
+      ended: ["blink", "blink", "yawn", "yawn", "ears", "look", "lookL"],
     };
     // 来客は 1 周につき最大 1 回、この確率でだけ現れる（既定 4.8 秒／周なので 1 分半に 1 回くらい）
     const CAT_RARE_CHANCE = 0.07;
@@ -1652,7 +1660,15 @@
     function updateMascot() {
       const box = $("mascot");
       const next = mascotState();
-      if (box.dataset.mood !== next.mood) box.dataset.mood = next.mood;
+      if (box.dataset.mood !== next.mood) {
+        box.dataset.mood = next.mood;
+        // mood が変わると CSS が周期を差し替えるので、コマ送りも呼吸も先頭から仕切り直す。
+        // そのままだと累計経過の再解釈で iteration がまとめて発火し、コマが飛ぶ。
+        catBobMood = null;
+        if (!reduceMotionQuery.matches && $("mascotStrip").children.length) {
+          restartCatAnim($("mascotStrip"), "catIdle");
+        }
+      }
       if (next.lines.join("\n") === mascotMsgs.join("\n")) return false;
       mascotMsgs = next.lines;
       mascotMsgIdx = 0;
@@ -1667,7 +1683,19 @@
 
     // ---- 待機アニメのコマ組み立て（1 周ごとにランダム） ----
     let catSlotKeys = [];
+    let catTailTrackIdx = -1;
     const randInt = (n) => Math.floor(Math.random() * n);
+
+    // CSS アニメは「累計経過 ÷ 周期」で回数を数え直すため、走行中に周期を変えると
+    // iteration がまとめて消化されてコマが飛ぶ。name を一度 none にして強制リフローで
+    // 確定させ、累計経過ごとリセットしてから入れ直す。
+    function restartCatAnim(el, name, duration) {
+      if (!el) return;
+      el.style.animationName = "none";
+      void el.offsetHeight;
+      if (duration) el.style.animationDuration = duration;
+      el.style.animationName = name;
+    }
     const pickOne = (arr) => arr[randInt(arr.length)];
 
     // しっぽのリズムを 1 本選び、空いているコマへ動きを置く。
@@ -1680,16 +1708,29 @@
       if (reduceMotionQuery.matches && catSlotKeys.length) return;
 
       const mood = $("mascot").dataset.mood;
-      const track = pickOne(CAT_TAIL_TRACKS);
+      // 同じリズムが 2 周続くと「また同じ」と見えるので、前回とは違う 1 本を引く
+      let trackIdx = randInt(CAT_TAIL_TRACKS.length);
+      if (trackIdx === catTailTrackIdx) {
+        trackIdx = (trackIdx + 1 + randInt(CAT_TAIL_TRACKS.length - 1)) % CAT_TAIL_TRACKS.length;
+      }
+      catTailTrackIdx = trackIdx;
+      const track = CAT_TAIL_TRACKS[trackIdx];
       // slots[i] = [動きの名前, その動きの何コマ目か]。null は素の顔
       const slots = new Array(CAT_SLOTS).fill(null);
-      // 先頭コマは常に素の顔にする（周の切れ目で表情が飛び込んで見えないように）
+      // 先頭コマは常に素の顔にする（周の切れ目で表情が飛び込んで見えないように）。
+      // place は空きが見つかるまで数回やり直す——1 回で諦めると、置こうとした動きの
+      // 2 割強が衝突で消えて「思ったより何も起きない」周ができてしまう。
       const place = (name, frames) => {
         const len = frames.length;
-        const start = 1 + randInt(CAT_SLOTS - len - 1);
-        for (let i = 0; i < len; i++) if (slots[start + i]) return false;
-        for (let i = 0; i < len; i++) slots[start + i] = [name, i];
-        return true;
+        for (let t = 0; t < 6; t++) {
+          const start = 1 + randInt(CAT_SLOTS - len - 1);
+          let free = true;
+          for (let i = 0; i < len; i++) if (slots[start + i]) free = false;
+          if (!free) continue;
+          for (let i = 0; i < len; i++) slots[start + i] = [name, i];
+          return true;
+        }
+        return false;
       };
 
       if (Math.random() < CAT_RARE_CHANCE) {
@@ -1709,6 +1750,7 @@
         const tailKey = tail === CAT_TAIL_UP ? "up" : tail === CAT_TAIL_DOWN ? "down" : "mid";
         const actKey = act ? act[0] + act[1] : "";
         const key = tailKey + "/" + actKey;
+        if (!strip.children[i]) break; // 何かにコマ枠を触られていても壊れないようにする
         if (catSlotKeys[i] === key) continue; // 前の周と同じ絵なら触らない
         catSlotKeys[i] = key;
         const patches = tail ? [tail] : [];
@@ -1718,6 +1760,21 @@
         }
         strip.children[i].innerHTML = catSvgFor(tailKey, actKey, patches);
       }
+    }
+
+    // つつかれたときの反応。先頭コマへ反応の絵を入れてコマ送りを先頭から回し直すので、
+    // 「いま何コマ目か」を調べる必要がない。1 周終われば shuffleCatFrames() が普段の絵に戻す。
+    const CAT_REACTIONS = ["surprise", "smile", "sparkle"];
+    function reactCatFrames() {
+      const strip = $("mascotStrip");
+      if (!strip || !strip.children.length || reduceMotionQuery.matches) return;
+      const name = pickOne(CAT_REACTIONS);
+      const frames = CAT_ACCENTS[name];
+      for (let i = 0; i < frames.length && strip.children[i]; i++) {
+        catSlotKeys[i] = "mid/" + name + i;
+        strip.children[i].innerHTML = catSvgFor("mid", name + i, frames[i]);
+      }
+      restartCatAnim(strip, "catIdle");
     }
 
     // 体の上下は「間隔」でバリエーションを作る。1 回沈むごとに次までの間を大きく振り直し、
@@ -1735,14 +1792,9 @@
         catBobBase = parseFloat(getComputedStyle(bob).animationDuration) || 7;
         catBobMood = mood;
       }
-      // 走行中に animation-duration を変えると「累計経過 ÷ 新しい周期」で回数が計算し直され、
-      // 短くした瞬間に iteration がまとめて消化されてしまう（＝間隔 0 秒で何度も沈む）。
-      // いったん name を none にして強制リフローで確定させ、累計経過ごとリセットしてから入れ直す。
-      bob.style.animationName = "none";
-      void bob.offsetHeight;
       // 0.7〜1.7 倍。基準 7 秒なら次に沈むまで 5〜12 秒とかなり幅が出る
-      bob.style.animationDuration = (catBobBase * (0.7 + Math.random())).toFixed(2) + "s";
-      bob.style.animationName = Math.random() < CAT_BOB2_CHANCE ? "catBob2" : "catBob";
+      restartCatAnim(bob, Math.random() < CAT_BOB2_CHANCE ? "catBob2" : "catBob",
+        (catBobBase * (0.7 + Math.random())).toFixed(2) + "s");
     }
 
     function setupMascot() {
@@ -1755,18 +1807,6 @@
 
       // アクセントの重み付けに使うので、コマを組む前に mood を確定させておく
       box.dataset.mood = mascotState().mood;
-      // 空のコマ枠を並べてから中身を流し込む（以降は 1 周ごとに中身だけ差し替える）
-      strip.innerHTML = Array.from({ length: CAT_SLOTS }, () => '<span class="cat-frame"></span>').join("");
-      shuffleCatFrames();
-      // 1 周し終わるたびにコマを選び直す。この瞬間はコマ送りが先頭へ戻った直後なので、
-      // 中身を入れ替えても見た目が飛ばない。タブが非表示の間はイベント自体が来ない。
-      // アニメーションイベントは親へ上がるため、どのアニメーションかを名前で見分ける。
-      strip.addEventListener("animationiteration", (e) => {
-        if (e.animationName === "catIdle") shuffleCatFrames();
-      });
-      $("mascotBob").addEventListener("animationiteration", (e) => {
-        if (e.animationName === "catBob" || e.animationName === "catBob2") jitterCatBob();
-      });
 
       // 吹き出しの枠と三角も、ネコの輪郭（.cat-k と同じ 60%＋黒）で実行時に描く
       const line = mixWithBlack(resolvedBrand(), 0.6);
@@ -1774,15 +1814,16 @@
       box.style.setProperty("--cat-frame", buildDotDataUri(BUBBLE_FRAME, frameColor));
       box.style.setProperty("--cat-arrow", buildDotDataUri(BUBBLE_ARROW, frameColor));
 
-      box.classList.remove("hidden");
-      box.classList.add("flex");
-
+      const btn = $("mascotBtn");
       let folded = false;
       try { folded = localStorage.getItem(MASCOT_FOLD_KEY) === "1"; } catch (e) {}
       box.classList.toggle("is-folded", folded);
-      $("mascotBtn").addEventListener("click", () => {
+      btn.setAttribute("aria-expanded", String(!folded));
+      btn.addEventListener("click", () => {
         const on = box.classList.toggle("is-folded");
+        btn.setAttribute("aria-expanded", String(!on));
         try { localStorage.setItem(MASCOT_FOLD_KEY, on ? "1" : "0"); } catch (e) {}
+        reactCatFrames(); // つついたら反応する
       });
 
       updateMascot();
@@ -1794,6 +1835,25 @@
         mascotMsgIdx = (mascotMsgIdx + 1) % mascotMsgs.length;
         setMascotText(mascotMsgs[mascotMsgIdx]);
       }, 7000);
+
+      // 16 コマぶんの SVG 解析は実測で 7ms 前後かかる。タイムテーブルの初回描画を
+      // 遅らせないよう次のフレームへ回し、組み上がってから pop-in で出す。
+      requestAnimationFrame(() => {
+        strip.innerHTML = Array.from({ length: CAT_SLOTS }, () => '<span class="cat-frame"></span>').join("");
+        shuffleCatFrames();
+        // 1 周し終わるたびにコマを選び直す。この瞬間はコマ送りが先頭へ戻った直後なので、
+        // 中身を入れ替えても見た目が飛ばない。タブが非表示の間はイベント自体が来ない。
+        // アニメーションイベントは親へ上がるため、どのアニメーションかを名前で見分ける。
+        strip.addEventListener("animationiteration", (e) => {
+          if (e.animationName === "catIdle") shuffleCatFrames();
+        });
+        $("mascotBob").addEventListener("animationiteration", (e) => {
+          if (e.animationName === "catBob" || e.animationName === "catBob2") jitterCatBob();
+        });
+        box.classList.remove("hidden");
+        box.classList.add("flex");
+        btn.classList.add("pop-in");
+      });
     }
 
     // ---- 資料タブ ----
