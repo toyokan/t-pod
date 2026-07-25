@@ -353,6 +353,27 @@
     /* hidden 切替の登場を柔らかく（fade+scale） */
     @keyframes popIn { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
     .pop-in { animation: popIn .2s cubic-bezier(.22,1,.36,1) both; }
+    /* ===== 右下マスコット（ふせんネコ） =====
+       24×24 のドット絵を実行時に SVG 生成し、6 コマを横一列に並べて translate3d でコマ送りする。
+       ボトムナビ（z-30）より下・本文より上の z-20。ナビの高さ（約 81px）＋余白ぶん持ち上げる。
+       ナビ自身も pb-safe を持つので、セーフエリアの inset はこちらでも別に足す。 */
+    #mascot { bottom: calc(env(safe-area-inset-bottom) + 5.5rem); }
+    @keyframes catIdle { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-100%, 0, 0); } }
+    #mascotStrip { animation: catIdle 2.4s steps(6) infinite; will-change: transform; }
+    .cat-frame { flex: 0 0 16.6667%; }
+    .cat-frame svg { display: block; width: 100%; height: auto; }
+    /* ドットのパレット。輪郭・折れ角の陰はブランド色から生成し、目とほっぺは固定色。
+       fill を CSS 側に置くことで color-mix / var() を SVG 属性に書かずに済ませる。 */
+    .cat-k { fill: color-mix(in srgb, var(--brand) 34%, #2b2118); }
+    .cat-b { fill: var(--brand); }
+    .cat-s { fill: color-mix(in srgb, var(--brand) 70%, black); }
+    .cat-w { fill: #fff; }
+    .cat-p { fill: #f4849b; }
+    .cat-e { fill: #2b2118; }
+    /* 吹き出しはタップで畳む。文言差し替え時は opacity だけを触る */
+    #mascotBubble { transition: opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1); transform-origin: right bottom; }
+    #mascot.is-folded #mascotBubble { opacity: 0; transform: scale(.9) translate3d(6px, 0, 0); }
+    #mascotBubble.is-swapping { opacity: 0; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: .01ms !important;
@@ -373,6 +394,9 @@
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
       #appHeader::before { transform: none !important; will-change: auto; }
       #appHeader .deco-right-lg, #appHeader .deco-right-sm { transform: none !important; will-change: auto; }
+      /* コマ送りを止めて 1 コマ目で静止させる（* の duration 短縮だけでは点滅して見えるため） */
+      #mascotStrip { animation: none; will-change: auto; }
+      #mascotBubble { transition: none; }
     }
     /* OS で透明効果を抑えている場合は、ガラス面を不透明にして可読性と描画負荷を優先 */
     @media (prefers-reduced-transparency: reduce) {
@@ -541,6 +565,18 @@
     <p class="mt-6 text-center text-[10px] font-normal text-slate-300">App by TOYOKAN PUBLISHING CO., LTD.</p>
   </main>
 
+  <!-- ===== 右下マスコット（ふせんネコ） =====
+       ドット絵は setupMascot() が CAT_BASE / CAT_FRAMES から実行時生成する。
+       文言は mascotLines() がイベントデータと現在時刻から組み立てるため、ここには固有文言を書かない。 -->
+  <div id="mascot" class="hidden fixed inset-x-0 z-20 max-w-2xl mx-auto px-3 justify-end items-center gap-1.5 pointer-events-none">
+    <!-- 7秒ごとに差し替わる装飾的な一言なので aria-live は付けない（読み上げが繰り返されるのを避ける） -->
+    <p id="mascotBubble" class="max-w-[min(52vw,17rem)] bg-white border border-slate-200/80 rounded-2xl rounded-br-sm shadow-card px-3 py-1.5 text-[11px] font-bold text-slate-700 leading-snug"></p>
+    <button id="mascotBtn" type="button" aria-label="マスコット（タップで吹き出しを開閉）"
+      class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition">
+      <span id="mascotStrip" class="flex w-[600%] h-full items-center"></span>
+    </button>
+  </div>
+
   <!-- ===== ボトムナビ（3タブ） ===== -->
   <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/[.74] border-t border-white/70 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
     <!-- 選択タブはヘッダーの明部に合わせたブランド色グラデーション＋白文字 -->
@@ -686,6 +722,73 @@
       return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${ICONS[name] || ""}</svg>`;
     }
 
+    // ---- マスコット「ふせんネコ」のドット絵（24×24・1文字=1ドット） ----
+    // K=輪郭 / B=体 / S=折れ角の陰 / W=白 / P=ほっぺ / E=目・口 / .=透過。
+    // 実際の色は <style> の .cat-* クラスが持ち、輪郭と陰は --brand から生成されるため
+    // brandColor を変えるだけでイベント毎の体色になる（再生成は不要）。
+    const CAT_BASE = [
+      "........................",
+      "....KK........KK........",
+      "...KBBK......KBBK.......",
+      "..KBBBBK....KBBBBK......",
+      "..KBBBBBKKKKBBBBBK......",
+      "..KBBBBBBBBBBSSSSK......",
+      "..KBBBBBBBBBBBSSSK......",
+      "..KBBBBBBBBBBBBSSK......",
+      "..KBBBBBBBBBBBBBSK......",
+      "..KBBEEBBBBBBEEBBK......",
+      "..KBBEEBBBBBBEEBBK......",
+      "..KBBEEBBBBBBEEBBK......",
+      "..KPPBBBEBEBEBBPPK.KKKK.",
+      "..KPPBBBBEBEBBBPPK.KBBK.",
+      "..KBBBBBBBBBBBBBBK.KBBK.",
+      "..KBBBBBBBBBBBBBBK.KBBK.",
+      "..KBBBBBBBBBBBBBBKKBBBK.",
+      "..KBBBBBBBBBBBBBBBBBBBK.",
+      "..KBBBBBBBBBBBBBBKKKKKK.",
+      "..KBBBBBBBBBBBBBBK......",
+      "..KBBBBBBBBBBBBBBK......",
+      "..KKKKKKKKKKKKKKKK......",
+      "........................",
+      "........................",
+    ];
+    // 待機アニメの差分。キー=行 index、値=その行を丸ごと置き換える 24 文字。
+    // ベース全面を6枚持たず、しっぽ（上下）と目（まばたき）だけを差し替える。
+    const CAT_TAIL_UP = {
+      11: "..KBBEEBBBBBBEEBBK.KKKK.",
+      12: "..KPPBBBEBEBEBBPPK.KBBK.",
+      15: "..KBBBBBBBBBBBBBBKKBBBK.",
+      16: "..KBBBBBBBBBBBBBBBBBBBK.",
+      17: "..KBBBBBBBBBBBBBBKKKKKK.",
+      18: "..KBBBBBBBBBBBBBBK......",
+    };
+    const CAT_BLINK = {
+      9: "..KBBBBBBBBBBBBBBK......",
+      10: "..KBBBBBBBBBBBBBBK......",
+    };
+    // 6コマ（2.4秒で一巡）: 静止 → しっぽを上げる → 静止 → まばたき
+    const CAT_FRAMES = [null, null, CAT_TAIL_UP, CAT_TAIL_UP, null, CAT_BLINK];
+    const CAT_FILL = { K: "cat-k", B: "cat-b", S: "cat-s", W: "cat-w", P: "cat-p", E: "cat-e" };
+
+    // ドット列を SVG 文字列にする。横に連続する同色は 1 つの <rect> にまとめて要素数を抑える。
+    // 入力は上の定数のみ（外部入力を含まない）ため escapeHtml は不要。
+    function buildCatSvg(patch) {
+      let rects = "";
+      CAT_BASE.forEach((baseRow, y) => {
+        const row = (patch && patch[y]) || baseRow;
+        let x = 0;
+        while (x < row.length) {
+          const ch = row[x];
+          let w = 1;
+          while (row[x + w] === ch) w++;
+          const cls = CAT_FILL[ch];
+          if (cls) rects += `<rect class="${cls}" x="${x}" y="${y}" width="${w}" height="1"/>`;
+          x += w;
+        }
+      });
+      return `<svg viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+    }
+
     // ---- 状態 ----
     let DATA = null;
     let activeDateId = null;
@@ -776,6 +879,8 @@
       $("noticeBtn").classList.toggle("flex", isEvent);
       $("view-list").classList.toggle("hidden", isEvent);
       $("view-program").classList.toggle("hidden", !isEvent);
+      // マスコットはイベントページ限定。表示開始は setupMascot()（データ取得後）が行う
+      if (!isEvent) { $("mascot").classList.add("hidden"); $("mascot").classList.remove("flex"); }
       document.querySelector("main").classList.toggle("pb-32", isEvent);
       document.querySelector("main").classList.toggle("pb-8", !isEvent);
     }
@@ -848,6 +953,7 @@
       renderNextEvent();
       renderNoticeBadge();
       setTab("program");
+      setupMascot();
       showInstallBanner();
     }
 
@@ -1123,6 +1229,167 @@
         didAutoScroll = true;
         requestAnimationFrame(() => scrollToRow(currentRows[idx]));
       }
+    }
+
+    // ---- 右下マスコットの文言 ----
+    // イベントデータと現在時刻から短い一言の配列を作る純関数。now を引数で差し替えられるので、
+    // デバッグ用の UI やクエリを足さずにコンソールから全分岐を確認できる。
+    // 例: mascotLines(new Date("2026-08-04T11:00+09:00"))
+    const MASCOT_FOLD_KEY = "t-pod:mascot-folded";
+    function mascotLines(now = new Date()) {
+      const info = (DATA && DATA.eventInfo) || {};
+      const dates = (info.dates || [])
+        .filter((d) => d && d.date)
+        .slice()
+        .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+      if (!dates.length) return [];
+
+      const today = localDateStr(now);
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const lastDay = dates[dates.length - 1];
+      const sessionsOf = (dayId) => (DATA.sessions || []).filter((s) => s.dateId === dayId);
+      // その日の最初のセッション開始時刻（"9:30" 等）。無ければ空文字
+      const openAt = (dayObj) => {
+        const first = sessionsOf(dayObj.id).find((s) => toMin(s.start) !== null);
+        return first ? String(first.start) : "";
+      };
+      // ローカル時刻での日数差（b - a）。時刻の影響を受けないよう 0 時基準で引く
+      const dayDiff = (a, b) => Math.round((Date.parse(b + "T00:00:00") - Date.parse(a + "T00:00:00")) / 86400000);
+
+      // 終了済み（ルートの _status が最優先。無ければ最終開催日 +7 日で判定）
+      const elapsed = dayDiff(lastDay.date, today);
+      const status = DATA && DATA._status;
+      if (status === "ended" || (status !== "active" && elapsed > 7)) return ["また来年も参加してね！"];
+
+      // 全日程を終えた直後（〜+7日）
+      const lastEnd = dayEndMin(lastDay);
+      if (elapsed > 0 || (elapsed === 0 && lastEnd !== null && nowMin >= lastEnd)) {
+        const neDate = String(((info.nextEvent || {}).date) || "").trim();
+        return ["おつかれさま！", neDate ? `つぎは ${neDate} だよ` : "また会おうね"];
+      }
+
+      // 開催当日（表示中の日付タブではなく実日付で判定する）
+      const todayObj = dates.find((d) => d.date === today);
+      if (todayObj) {
+        const list = sessionsOf(todayObj.id);
+        const catOf = (s) => String((s && s.category) || "").trim();
+        const nextOf = (i) => list.slice(i + 1).find((s) => toMin(s.start) !== null);
+
+        // 開始済みのうち最後のものが「進行中」。時刻を持たない末尾の行（理事会など）は数に入れないため、
+        // 「これ以降に開始時刻を持つ行が無いか」で最終セッションを判定する。
+        let idx = -1;
+        list.forEach((s, i) => { const st = toMin(s.start); if (st !== null && st <= nowMin) idx = i; });
+        if (idx >= 0 && !nextOf(idx)) {
+          const en = toMin(list[idx].end);
+          // end 無しの最終セッションは、その日の終了時刻（dates[].time）で締める。
+          // 終了時刻も無い／既に過ぎている場合は開始 +30 分を猶予にする（閉会・事務連絡など）
+          const endMin = en !== null ? en : Math.max(dayEndMin(todayObj) || 0, toMin(list[idx].start) + 30);
+          if (nowMin >= endMin) idx = -1;
+        }
+
+        if (idx >= 0) {
+          const s = list[idx];
+          const lines = [];
+          const cat = catOf(s);
+          lines.push(cat ? `いまは「${cat}」の時間だよ` : "いま進行中だよ");
+          const round = currentRoundLabel(s, nowMin);
+          if (round) lines.push(`ただいま ${round}`);
+          const en = toMin(s.end);
+          if (en !== null && en > nowMin) lines.push(`あと${en - nowMin}分だよ`);
+          const nx = nextOf(idx);
+          if (nx) lines.push(catOf(nx) ? `つぎは ${nx.start} から「${catOf(nx)}」だよ` : `つぎは ${nx.start} からだよ`);
+          return lines;
+        }
+
+        const first = list.find((s) => toMin(s.start) !== null);
+        if (first && toMin(first.start) > nowMin) {
+          const lines = [`きょうは ${first.start} からだよ`];
+          if (toMin(first.start) - nowMin <= 60) lines.push("もうすぐはじまるよ！");
+          return lines;
+        }
+        // 本日の予定は終了。翌日があれば翌日の開始を案内する
+        const tomorrow = dates.find((d) => d.date > today);
+        if (tomorrow) {
+          const st = openAt(tomorrow);
+          return ["きょうはおつかれさま！", st ? `あしたは ${st} からだよ` : "あしたも会おうね"];
+        }
+        return ["きょうはおつかれさま！"];
+      }
+
+      // 開催前、または開催日の間の中日
+      const upcoming = dates.find((d) => d.date > today);
+      if (upcoming) {
+        const d = dayDiff(today, upcoming.date);
+        const st = openAt(upcoming);
+        if (!Number.isFinite(d)) return []; // 日付が壊れている JSON で「あとNaN日」を出さない
+        if (d === 1) return [st ? `あしたは ${st} からだよ` : "あしたはいよいよ本番だよ", "たのしみだね！"];
+        return [`あと${d}日だよ！`, `${fmtMD(upcoming.date)}に会おうね`];
+      }
+      return [];
+    }
+
+    // ---- 右下マスコットの表示 ----
+    let mascotMsgs = [];
+    let mascotMsgIdx = 0;
+    let mascotTimer = null;
+
+    // 文言差し替えは opacity のフェードを挟む。textContent で入れるので innerHTML の混入は無い
+    function setMascotText(text) {
+      const bubble = $("mascotBubble");
+      if (!bubble || bubble.textContent === text) return;
+      if (!bubble.textContent) { bubble.textContent = text; return; }
+      bubble.classList.add("is-swapping");
+      setTimeout(() => {
+        bubble.textContent = text;
+        bubble.classList.remove("is-swapping");
+      }, 180);
+    }
+
+    // 文言を作り直す。内容が変わったら先頭から表示し直し、true を返す
+    function updateMascot() {
+      const next = mascotLines();
+      if (next.join("\n") === mascotMsgs.join("\n")) return false;
+      mascotMsgs = next;
+      mascotMsgIdx = 0;
+      if (!mascotMsgs.length) {
+        const box = $("mascot");
+        box.classList.add("hidden");
+        box.classList.remove("flex");
+      } else {
+        setMascotText(mascotMsgs[0]);
+      }
+      return true;
+    }
+
+    function setupMascot() {
+      const box = $("mascot");
+      const strip = $("mascotStrip");
+      if (!box || !strip || mascotTimer) return;
+      // イベント側で不要な場合は eventInfo.mascot: false で止められる
+      if ((DATA.eventInfo || {}).mascot === false) return;
+      if (!mascotLines().length) return;
+
+      strip.innerHTML = CAT_FRAMES.map((patch) => `<span class="cat-frame">${buildCatSvg(patch)}</span>`).join("");
+      box.classList.remove("hidden");
+      box.classList.add("flex");
+
+      let folded = false;
+      try { folded = localStorage.getItem(MASCOT_FOLD_KEY) === "1"; } catch (e) {}
+      box.classList.toggle("is-folded", folded);
+      $("mascotBtn").addEventListener("click", () => {
+        const on = box.classList.toggle("is-folded");
+        try { localStorage.setItem(MASCOT_FOLD_KEY, on ? "1" : "0"); } catch (e) {}
+      });
+
+      updateMascot();
+      // タイマーは1本。まず文言を作り直し、変化が無ければ次の一言へ送る
+      mascotTimer = setInterval(() => {
+        if (document.hidden) return;
+        if (updateMascot()) return;
+        if (mascotMsgs.length < 2) return;
+        mascotMsgIdx = (mascotMsgIdx + 1) % mascotMsgs.length;
+        setMascotText(mascotMsgs[mascotMsgIdx]);
+      }, 7000);
     }
 
     // ---- 資料タブ ----
