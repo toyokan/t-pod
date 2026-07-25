@@ -354,21 +354,36 @@
     @keyframes popIn { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
     .pop-in { animation: popIn .2s cubic-bezier(.22,1,.36,1) both; }
     /* ===== 右下マスコット（ふせんネコ） =====
-       24×24 のドット絵を実行時に SVG 生成し、6 コマを横一列に並べて translate3d でコマ送りする。
+       24×24 のドット絵を実行時に SVG 生成し、16 コマを横一列に並べて translate3d でコマ送りする。
        ボトムナビ（z-30）より下・本文より上の z-20。ナビの高さ（約 81px）＋余白ぶん持ち上げる。
        ナビ自身も pb-safe を持つので、セーフエリアの inset はこちらでも別に足す。 */
     #mascot { bottom: calc(env(safe-area-inset-bottom) + 5.5rem); }
     @keyframes catIdle { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-100%, 0, 0); } }
-    #mascotStrip { animation: catIdle 2.8s steps(8) infinite; will-change: transform; }
-    .cat-frame { flex: 0 0 12.5%; }
+    #mascotStrip { animation: catIdle 4.8s steps(16) infinite; will-change: transform; }
+    .cat-frame { flex: 0 0 6.25%; }
     .cat-frame svg { display: block; width: 100%; height: auto; }
-    /* ドットのパレット。黒に近い色は使わず、輪郭・目・口を同系の濃色 1 色にまとめて
-       全体を淡いパステルに揃える。fill を CSS 側に置くことで color-mix / var() を
-       SVG 属性に書かずに済ませる。 */
+    /* 呼吸（体の上下）。コマ送りが #mascotStrip の translateX を使っているので、
+       同一要素で transform を二重に持てない。入れ子のラッパーに縦の動きを持たせる。
+       表示は 48px＝24ドットの2倍なので 2px ＝ ちょうど 1 ドット（半端な位置に来ない）。
+       コマ送り 4.8 秒と割り切れない 2.2 秒で回し、組み合わせのループ感を薄める。 */
+    /* steps(2) は 0 と半分（＝2px）だけを取り、4px には到達しない。補間が挟まらず必ず整数ドットに乗る */
+    @keyframes catBob { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 4px, 0); } }
+    #mascotBob { animation: catBob 2.2s steps(2) infinite; will-change: transform; }
+    /* 場面（mascotState() の mood）で速さだけ変える。開催中は速く、終了後はのんびり */
+    #mascot[data-mood="live"]  #mascotStrip { animation-duration: 3s; }
+    #mascot[data-mood="live"]  #mascotBob   { animation-duration: 1.6s; }
+    #mascot[data-mood="today"] #mascotStrip { animation-duration: 4.2s; }
+    #mascot[data-mood="after"] #mascotStrip { animation-duration: 6.4s; }
+    #mascot[data-mood="after"] #mascotBob   { animation-duration: 3.2s; }
+    #mascot[data-mood="ended"] #mascotStrip { animation-duration: 8s; }
+    #mascot[data-mood="ended"] #mascotBob   { animation-duration: 3.6s; }
+    /* ドットのパレット。黒に近い色は使わず、「体（淡）→ 輪郭 → 目・口（濃）」の 3 段に
+       揃える（輪郭だけ濃くすると顔が沈むため、目・口はさらに一段濃くする）。
+       fill を CSS 側に置くことで color-mix / var() を SVG 属性に書かずに済ませる。 */
     .cat-b { fill: color-mix(in srgb, var(--brand) 52%, white); }
     .cat-s { fill: var(--brand); }
-    .cat-k,
-    .cat-e { fill: color-mix(in srgb, var(--brand) 70%, black); }
+    .cat-k { fill: color-mix(in srgb, var(--brand) 60%, black); }
+    .cat-e { fill: color-mix(in srgb, var(--brand) 50%, black); }
     .cat-w { fill: #fff; }
     .cat-p { fill: #f7a8b8; }
     /* 吹き出しはタップで畳む。文言差し替え時は opacity だけを触る */
@@ -402,8 +417,8 @@
       #appHeader .hd, #appHeader #eventTitle { transition: none; }
       #appHeader::before { transform: none !important; will-change: auto; }
       #appHeader .deco-right-lg, #appHeader .deco-right-sm { transform: none !important; will-change: auto; }
-      /* コマ送りを止めて 1 コマ目で静止させる（* の duration 短縮だけでは点滅して見えるため） */
-      #mascotStrip { animation: none; will-change: auto; }
+      /* コマ送りと呼吸を止めて 1 コマ目で静止させる（* の duration 短縮だけでは点滅して見えるため） */
+      #mascotStrip, #mascotBob { animation: none; will-change: auto; }
       #mascotBubble { transition: none; }
     }
     /* OS で透明効果を抑えている場合は、ガラス面を不透明にして可読性と描画負荷を優先 */
@@ -582,7 +597,10 @@
     <p id="mascotBubble" class="max-w-[min(52vw,17rem)] bg-white border border-slate-300 rounded-2xl shadow-[0_6px_18px_-4px_rgba(15,23,42,0.28)] px-3 py-1.5 text-[11px] font-bold text-slate-700 leading-snug"></p>
     <button id="mascotBtn" type="button" aria-label="マスコット（タップで吹き出しを開閉）"
       class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition">
-      <span id="mascotStrip" class="flex w-[800%] h-full items-center"></span>
+      <!-- コマ送り（横）と呼吸（縦）は別要素に持たせる。同一要素では transform が競合するため -->
+      <span id="mascotBob" class="block w-full h-full">
+        <span id="mascotStrip" class="flex w-[1600%] h-full items-center"></span>
+      </span>
     </button>
   </div>
 
@@ -747,17 +765,17 @@
       "..KBBBBBKKKKBBBBBK......",
       "..KBBBBBBBBBBSSSSK......",
       "..KBBBBBBBBBBBSSSK......",
-      "..KBBBBBBBBBBBBSSK..KKK.",
-      "..KBBBBBBBBBBBBBSK.KBBBK",
+      "..KBBBBBBBBBBBBSSK......",
+      "..KBBBBBBBBBBBBBSK......",
+      "..KBBEEBBBBBBEEBBK..KKK.",
       "..KBBEEBBBBBBEEBBK.KBBBK",
       "..KBBEEBBBBBBEEBBK.KBBBK",
-      "..KBBEEBBBBBBEEBBK.KBBBK",
-      "..KPPBBBEBEBEBBPPKKBBBK.",
-      "..KPPBBBBEBEBBBPPBBBBK..",
+      "..KPPBBBEBEBEBBPPK.KBBBK",
+      "..KPPBBBBEBEBBBPPK.KBBBK",
+      "..KBBBBBBBBBBBBBBKKBBBK.",
+      "..KBBBBBBBBBBBBBBBBBBK..",
       "..KBBBBBBBBBBBBBBBBBK...",
       "..KBBBBBBBBBBBBBBKKK....",
-      "..KBBBBBBBBBBBBBBK......",
-      "..KBBBBBBBBBBBBBBK......",
       "..KBBBBBBBBBBBBBBK......",
       "..KKKKKKKKKKKKKKKK......",
       "........................",
@@ -768,29 +786,43 @@
     // `.` は「そこを透過にする」。セル単位で重ねられるので、しっぽの振りとまばたきを
     // 同じコマに同時に適用できる。しっぽのポーズは col 18 以降だけを書き換える。
     const CAT_TAIL_UP = {
-      6: "__________________..KKK.",
-      7: "__________________.KBBBK",
-      8: "__________________.KBBBK",
+      8: "__________________..KKK.",
       9: "__________________.KBBBK",
       10: "__________________.KBBBK",
-      11: "__________________.KBBBK",
-      12: "__________________.KBBBK",
     };
     const CAT_TAIL_DOWN = {
-      8: "__________________......",
-      9: "__________________......",
-      10: "__________________..KKK.",
-      11: "__________________.KBBBK",
-      12: "__________________.KBBBK",
+      10: "__________________......",
+      11: "__________________......",
+      12: "__________________..KKK.",
     };
     const CAT_BLINK = {
       10: "_____BB______BB_________",
       11: "_____BB______BB_________",
     };
-    // 8コマ（2.8秒で一巡）。しっぽを 中→上→中→下 と往復させ、途中で1回まばたきする
+    // にっこり：目を「^」の弧にする（左は col 4–6、右は col 12–14 を使う）
+    const CAT_SMILE = {
+      10: "____BEB_____BEB_________",
+      11: "____EBE_____EBE_________",
+      12: "____BBB_____BBB_________",
+    };
+    // びっくり：目を 1 行上まで伸ばして見開き、口を 2×2 の「o」にする
+    const CAT_SURPRISE = {
+      9: "_____EE______EE_________",
+      13: "________BEEBB___________",
+      14: "_________EEB____________",
+    };
+    // 耳ぴく：耳を 1 ドット縮め、耳先を輪郭で塞ぐ
+    const CAT_EARS_DOWN = {
+      2: "____..________..________",
+      3: "___KKKK______KKKK_______",
+    };
+    // 16コマ（既定 4.8 秒で一巡）。しっぽの往復に、まばたき・にっこり・びっくり・耳ぴくを
+    // 別々の拍で差し込む。速さは #mascot[data-mood] で場面ごとに切り替える。
     const CAT_FRAMES = [
       [], [CAT_TAIL_UP], [], [CAT_TAIL_DOWN],
-      [], [CAT_TAIL_UP], [CAT_BLINK], [CAT_TAIL_DOWN],
+      [], [CAT_BLINK], [], [CAT_TAIL_UP],
+      [CAT_TAIL_UP, CAT_SMILE], [CAT_SMILE], [], [CAT_TAIL_DOWN],
+      [CAT_EARS_DOWN], [], [CAT_TAIL_UP, CAT_SURPRISE], [CAT_TAIL_DOWN],
     ];
     const CAT_FILL = { K: "cat-k", B: "cat-b", S: "cat-s", W: "cat-w", P: "cat-p", E: "cat-e" };
 
@@ -1269,18 +1301,20 @@
       }
     }
 
-    // ---- 右下マスコットの文言 ----
-    // イベントデータと現在時刻から短い一言の配列を作る純関数。now を引数で差し替えられるので、
+    // ---- 右下マスコットの文言と場面（mood） ----
+    // イベントデータと現在時刻から { mood, lines } を作る純関数。now を引数で差し替えられるので、
     // デバッグ用の UI やクエリを足さずにコンソールから全分岐を確認できる。
-    // 例: mascotLines(new Date("2026-08-04T11:00+09:00"))
+    // mood は待機アニメの速さにだけ使う（ended=のんびり / live=速い など）。
+    // 例: mascotState(new Date("2026-08-04T11:00+09:00")) / mascotLines(...) は lines だけ返す
     const MASCOT_FOLD_KEY = "t-pod:mascot-folded";
-    function mascotLines(now = new Date()) {
+    function mascotState(now = new Date()) {
       const info = (DATA && DATA.eventInfo) || {};
       const dates = (info.dates || [])
         .filter((d) => d && d.date)
         .slice()
         .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-      if (!dates.length) return [];
+      const state = (mood, lines) => ({ mood, lines });
+      if (!dates.length) return state("before", []);
 
       const today = localDateStr(now);
       const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -1297,13 +1331,13 @@
       // 終了済み（ルートの _status が最優先。無ければ最終開催日 +7 日で判定）
       const elapsed = dayDiff(lastDay.date, today);
       const status = DATA && DATA._status;
-      if (status === "ended" || (status !== "active" && elapsed > 7)) return ["また来年も参加してね！"];
+      if (status === "ended" || (status !== "active" && elapsed > 7)) return state("ended", ["また来年も参加してね！"]);
 
       // 全日程を終えた直後（〜+7日）
       const lastEnd = dayEndMin(lastDay);
       if (elapsed > 0 || (elapsed === 0 && lastEnd !== null && nowMin >= lastEnd)) {
         const neDate = String(((info.nextEvent || {}).date) || "").trim();
-        return ["おつかれさま！", neDate ? `つぎは ${neDate} だよ` : "また会おうね"];
+        return state("after", ["おつかれさま！", neDate ? `つぎは ${neDate} だよ` : "また会おうね"]);
       }
 
       // 開催当日（表示中の日付タブではなく実日付で判定する）
@@ -1336,22 +1370,22 @@
           if (en !== null && en > nowMin) lines.push(`あと${en - nowMin}分だよ`);
           const nx = nextOf(idx);
           if (nx) lines.push(catOf(nx) ? `つぎは ${nx.start} から「${catOf(nx)}」だよ` : `つぎは ${nx.start} からだよ`);
-          return lines;
+          return state("live", lines);
         }
 
         const first = list.find((s) => toMin(s.start) !== null);
         if (first && toMin(first.start) > nowMin) {
           const lines = [`きょうは ${first.start} からだよ`];
           if (toMin(first.start) - nowMin <= 60) lines.push("もうすぐはじまるよ！");
-          return lines;
+          return state("today", lines);
         }
         // 本日の予定は終了。翌日があれば翌日の開始を案内する
         const tomorrow = dates.find((d) => d.date > today);
         if (tomorrow) {
           const st = openAt(tomorrow);
-          return ["きょうはおつかれさま！", st ? `あしたは ${st} からだよ` : "あしたも会おうね"];
+          return state("today", ["きょうはおつかれさま！", st ? `あしたは ${st} からだよ` : "あしたも会おうね"]);
         }
-        return ["きょうはおつかれさま！"];
+        return state("today", ["きょうはおつかれさま！"]);
       }
 
       // 開催前、または開催日の間の中日
@@ -1359,11 +1393,16 @@
       if (upcoming) {
         const d = dayDiff(today, upcoming.date);
         const st = openAt(upcoming);
-        if (!Number.isFinite(d)) return []; // 日付が壊れている JSON で「あとNaN日」を出さない
-        if (d === 1) return [st ? `あしたは ${st} からだよ` : "あしたはいよいよ本番だよ", "たのしみだね！"];
-        return [`あと${d}日だよ！`, `${fmtMD(upcoming.date)}に会おうね`];
+        if (!Number.isFinite(d)) return state("before", []); // 日付が壊れている JSON で「あとNaN日」を出さない
+        if (d === 1) return state("today", [st ? `あしたは ${st} からだよ` : "あしたはいよいよ本番だよ", "たのしみだね！"]);
+        return state("before", [`あと${d}日だよ！`, `${fmtMD(upcoming.date)}に会おうね`]);
       }
-      return [];
+      return state("before", []);
+    }
+
+    // 文言だけを返す薄いラッパー（コンソールからの確認手順を変えないために残す）
+    function mascotLines(now = new Date()) {
+      return mascotState(now).lines;
     }
 
     // ---- 右下マスコットの表示 ----
@@ -1383,14 +1422,16 @@
       }, 180);
     }
 
-    // 文言を作り直す。内容が変わったら先頭から表示し直し、true を返す
+    // 文言と mood を作り直す。文言が変わったら先頭から表示し直し、true を返す。
+    // mood は data 属性に載せるだけで、待機アニメの速さは CSS 側が切り替える。
     function updateMascot() {
-      const next = mascotLines();
-      if (next.join("\n") === mascotMsgs.join("\n")) return false;
-      mascotMsgs = next;
+      const box = $("mascot");
+      const next = mascotState();
+      if (box.dataset.mood !== next.mood) box.dataset.mood = next.mood;
+      if (next.lines.join("\n") === mascotMsgs.join("\n")) return false;
+      mascotMsgs = next.lines;
       mascotMsgIdx = 0;
       if (!mascotMsgs.length) {
-        const box = $("mascot");
         box.classList.add("hidden");
         box.classList.remove("flex");
       } else {
