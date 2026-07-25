@@ -571,3 +571,31 @@
 
 - 開催日をまたいで開いたままにすると、日付タブは開いた時点の日のままになる（マスコットの文言は実日付で動くため、深夜〜翌朝は両者がずれる）。自動で切り替えるとユーザーの操作を奪うため、意図的に据え置いている。
 - マスコットの文言は `mascotState()` の分岐が増えてきているので、イベント側から文言を差し替えたくなった場合は JSON にフックを設ける設計を検討する（現状はコード内の汎用文言のみ）。
+
+### 2026-07-25 PWA アイデンティティまわりの実害バグ修正
+
+「実害のあるバグを探索して修正」の依頼を受け、これまで深く見ていなかった領域（PWA マニフェスト／アイコン生成、インストール導線、スワイプ、スクロールロック、Service Worker、Python ツール）を点検した。`applyAppIdentityInner()` に実害のある不具合が 2 件見つかり、いずれも「ホーム画面に追加」に効くため修正した。
+
+- **`logoMain` を持たないイベントでマニフェストが 404 のまま残る不具合を修正**。`<head>` の inline script は `?id` が妥当なら**実体の有無に関わらず** `events/<id>.webmanifest` を貼る（iOS がパース時に読むためこの設計が要る）。実体の用意は `applyAppIdentityInner()` の責務だが、同関数は `if (!info.logoMain) return;` で**マニフェストに触る前に返って**いたため、`manifest.json` へ戻らなかった。CLAUDE.md / README / requirements はいずれも「`logoMain` 未指定は静的 `manifest.json` にフォールバック」と書いており、**実装が仕様と食い違っていた**。実害は、マニフェストが無いことで **Android の `beforeinstallprompt` が発火せず**、`showInstallBanner()` の条件に落ちて「ホーム画面に追加」バナーが一切出なくなること。現行3イベントはいずれも `logoMain` を持つため潜在だったが、`logoMain` は任意項目なので次に未指定のイベントを足した時点で発現する。マニフェスト解決を早期 return より前へ移し、共通処理 `setManifestHref()` を切り出した。
+- **favicon の `type` が差し替わらない不具合を修正**。静的タグは `type="image/jpeg"` 宣言なのに `href` だけを SVG data URI に替えていた。ブラウザは `type` をアイコン選択のヒントに使うため、宣言と実体の食い違いでイベント別アイコンが採用されず、タブに東洋館ロゴが残ることがある。`type` も一緒に更新するようにした。
+- **存在しない `?id` のエラーページでもマニフェストが 404 のまま**だったのを、同じ `setManifestHref()` で `manifest.json` へ戻すようにした（同根・軽微）。
+
+**修正前後の実測**（一時イベントを作って `link[rel=manifest]` の解決先を fetch して確認）:
+
+| ケース | 修正前 | 修正後 |
+| --- | --- | --- |
+| `logoMain` 無し | `events/_nologo.webmanifest` → **404** | `manifest.json` → **200** |
+| 存在しない `?id` | `events/does-not-exist.webmanifest` → **404** | `manifest.json` → **200** |
+| `manifestPath` あり（現行3件） | `events/<id>.webmanifest` → 200 | 変わらず 200（回帰なし） |
+| favicon の `type` | **`image/jpeg`**（href は SVG data URI で不一致） | `image/svg+xml` |
+
+点検して**問題が無かった**ことを確認した項目:
+
+- **`events/*.webmanifest` の内容**: `start_url` / `scope` の `../` は `events/` 基準でサイトルートへ正しく解決される。3件とも整合。
+- **Service Worker**: `handleNavigate` はキャッシュに素のシェルを入れてから theme-color を差し替えるため、オフライン時も正しく動く。`content-length` の削除も妥当。
+- **スワイプ**: 軸判定の前に `preventDefault()` を呼ばず縦スクロールを妨げない。`{ passive: … }` の指定も適切。
+- **スクロールロック**: 二重ロック・二重解除を防いでおり、LINE ポップアップとモーダルは同時に開かない。
+- **`safeUrl()`**: `javascript:` / `data:` を弾く（`mailto:` / `tel:` も弾くが、現状の用途では意図どおり）。
+- **セッション時刻**: `validate_events.py` の `TIME_RE` が `25:70` や `9:5` を CI で弾いている。
+- **`2026-math-summer-fes` の終了時刻の食い違い**（`dates[].time` 15:10 と実セッション 15:15、`events.json` と個別 JSON の `dateRange` 不一致で CI が WARN 1 件）: どちらが正しいか判断できず、かつ終了したイベントなので**触らない**方針を確認済み。WARN は残る。
+- シェル変更のため Service Worker の `CACHE_VERSION` を **v91→v92** に更新。

@@ -1219,6 +1219,9 @@
       } catch (err) {
         console.error(err);
         setMode("list");
+        // イベントを読めなかったので、inline script が貼った events/<id>.webmanifest
+        // （実体が無ければ 404）は残さず汎用へ戻す
+        setManifestHref("manifest.json");
         $("errorBox").classList.remove("hidden");
         $("errorRetry").onclick = () => location.reload();
       } finally {
@@ -2312,6 +2315,12 @@
         img.src = svgToDataUri(svg);
       });
     }
+    // head の inline script が貼ったマニフェストの行き先を差し替える。
+    // 実体の無い events/<id>.webmanifest を残さないための共通処理
+    function setManifestHref(href) {
+      const link = document.querySelector('link[rel="manifest"]');
+      if (link) link.setAttribute("href", href);
+    }
     async function applyAppIdentity(info) {
       try {
         await applyAppIdentityInner(info);
@@ -2333,7 +2342,19 @@
         document.head.appendChild(appleTitle);
       }
       appleTitle.setAttribute("content", name);
-      if (!info.logoMain) return;
+
+      // head の inline script は ?id が妥当なら**実体の有無に関わらず**
+      // events/<id>.webmanifest を貼る（iOS がパース時に読むためこの設計が要る）。
+      // 実体を用意しないイベントでは 404 が残るので、行き先はここで必ず確定させる。
+      const manifestPath =
+        /^events\/[A-Za-z0-9_-]+\.webmanifest$/.test(info.manifestPath || "") ? info.manifestPath : "";
+      if (!info.logoMain) {
+        // 実行時生成をしないイベント。実体マニフェストがあればそれ、無ければ汎用へ戻す。
+        // ここを飛ばすとマニフェストが 404 のままになり、Android では beforeinstallprompt が
+        // 発火せず「ホーム画面に追加」の導線ごと出なくなる。
+        setManifestHref(manifestPath || "manifest.json");
+        return;
+      }
       const bg = resolvedBrand();
       const svg = buildAppIconSvg(bg, info.iconLabel || info.logoMain);
       const svgUri = svgToDataUri(svg);
@@ -2341,12 +2362,14 @@
       const apple = document.querySelector('link[rel="apple-touch-icon"]');
       if (apple && png512) apple.setAttribute("href", png512);
       const fav = document.querySelector('link[rel="icon"]');
-      if (fav) fav.setAttribute("href", svgUri);
+      // href だけ替えると静的タグの type="image/jpeg" と食い違い、ブラウザが
+      // このアイコンを採用しないことがある。type も一緒に差し替える。
+      if (fav) { fav.setAttribute("type", "image/svg+xml"); fav.setAttribute("href", svgUri); }
 
       const link = document.querySelector('link[rel="manifest"]');
       if (!link) return;
-      if (/^events\/[A-Za-z0-9_-]+\.webmanifest$/.test(info.manifestPath || "")) {
-        link.setAttribute("href", info.manifestPath);
+      if (manifestPath) {
+        link.setAttribute("href", manifestPath);
         return;
       }
       const id = getEventId();
