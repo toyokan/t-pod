@@ -57,6 +57,9 @@
 
   <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- ふせんネコの造形（唯一の定義）。配布用 SVG 資産も同じファイルから生成している。
+       マスコットの組み立て前に必要なので defer は付けない。SW がプリキャッシュする。 -->
+  <script src="assets/fuseneko/fuseneko-grid.js"></script>
   <script>
     tailwind.config = {
   theme: {
@@ -362,7 +365,8 @@
     @keyframes catIdle { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-100%, 0, 0); } }
     #mascotStrip { animation: catIdle 4.8s steps(16) infinite; will-change: transform; }
     .cat-frame { flex: 0 0 6.25%; }
-    .cat-frame svg { display: block; width: 100%; height: auto; }
+    /* crispEdges だけでもドットは割れないが、ブラウザが縮小補間を挟む経路に備えて明示する */
+    .cat-frame svg { display: block; width: 100%; height: auto; image-rendering: pixelated; }
     /* 体の上下。コマ送りが #mascotStrip の translateX を使っているので、
        同一要素で transform を二重に持てない。入れ子のラッパーに縦の動きを持たせる。
        表示は 48px＝24ドットの2倍なので 2px ＝ ちょうど 1 ドット（半端な位置に来ない）。
@@ -397,13 +401,26 @@
     /* ドットのパレット。黒に近い色は使わず、「体（淡）→ 輪郭 → 目・口（濃）」の 3 段に
        揃える（輪郭だけ濃くすると顔が沈むため、目・口はさらに一段濃くする）。
        fill を CSS 側に置くことで color-mix / var() を SVG 属性に書かずに済ませる。 */
-    .cat-b { fill: color-mix(in srgb, var(--brand) 52%, white); }
-    /* 折れ耳（めくれた紙の裏）と内耳。体より一段だけ濃い＝紙が重なった面として読ませる */
-    .cat-s { fill: var(--brand); }
-    .cat-k { fill: color-mix(in srgb, var(--brand) 60%, black); }
-    .cat-e { fill: color-mix(in srgb, var(--brand) 50%, black); }
-    .cat-w { fill: #fff; }
-    .cat-p { fill: #f7a8b8; }
+    /* 塗り分けは --cat-* の 5 変数に集約する。既定値を --brand から作るので、
+       イベント毎の brandColor にそのまま追従する（単体の SVG 資産と同じ計算）。 */
+    /* 混色比は assets/fuseneko/fuseneko.js の MIX が基準。ここの % は「テーマ色の残り」
+       なので 1-ratio になる（base 0.48→52% / outline 0.62→38% / face 0.74→26%）。
+       片方だけ変えるとアプリ内のマスコットと配布用 SVG で色がずれる。 */
+    :root {
+      --cat-base: color-mix(in srgb, var(--brand) 52%, white);
+      /* 折れ角（めくれた紙の裏）。体より一段だけ濃い＝紙が重なった面として読ませる */
+      --cat-fold: var(--brand);
+      --cat-outline: color-mix(in srgb, var(--brand) 38%, black);
+      --cat-face: color-mix(in srgb, var(--brand) 26%, black);
+      --cat-cheek: #f7a8b8;
+      --cat-white: #fff;
+    }
+    .fn-base { fill: var(--cat-base); }
+    .fn-fold { fill: var(--cat-fold); }
+    .fn-outline { fill: var(--cat-outline); }
+    .fn-face { fill: var(--cat-face); }
+    .fn-cheek { fill: var(--cat-cheek); }
+    .fn-white { fill: var(--cat-white); }
     /* 吹き出しもドット風。角の階段と三角のしっぽは setupMascot() が実行時に生成した SVG を
        --cat-frame / --cat-arrow に入れる（色をネコの輪郭と揃えるため）。
        枠は 9×9 の 9 スライスを border-image で使い、border-image-width: 6px＝3マス×2倍にすると
@@ -788,126 +805,27 @@
       return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${cls}" aria-hidden="true">${ICONS[name] || ""}</svg>`;
     }
 
-    // ---- マスコット「ふせんネコ」のドット絵（24×24・1文字=1ドット） ----
-    // K=輪郭 / B=体 / S=折り返し・内耳 / W=白 / P=ほっぺ・鼻 / E=目・口 / .=透過。
-    // 実際の色は <style> の .cat-* クラスが持ち、輪郭と陰は --brand から生成されるため
-    // brandColor を変えるだけでイベント毎の体色になる（再生成は不要）。
-    // ふせんの本体（外枠）は col 2–17 / row 5–20 の 16×16 ＝ 正方形。ここは崩さない。
-    //
-    // 耳: **右上＝折れ耳**（ふせんの角をめくったフラップがそのまま耳になっている）が
-    //   トレードマークなので、左右対称にはしない。フラップは S で塗るだけでなく、
-    //   K の折り目（12,6 → 15,9 の階段）で本体と分ける——色だけ変えていた頃と違い、
-    //   これで「陰」ではなく「めくれた紙」として読める。
-    //   左耳はネコの耳。**内耳（S）は付け根の 2 ドットだけ**にする。耳ぜんぶを S で塗ると
-    //   折れ耳と同じオレンジの塊になり、「もう一つの折れ」に見えてしまう。
-    // 顔: 本体の中央に置く（上下とも row 6–9 / 16–19 の 4 行ずつが余白）。
-    //   鼻（P・col 9–10 の 2×2）を口から独立させ、その真下に ω 型の口を吊る。
-    //   **鼻は 2×2 必要**——1 行だけだと 48px 表示（1ドット2px）で口の一部に埋もれる。
-    // しっぽ: 設定資料どおり**短く細い鉤形**。右辺の下寄り（row 15）から真横へ出て、
-    //   col 20–21 で上へ折れ、row 11 で止まる（col 18–22 / row 11–16 に収まる）。
-    //   **中身は 1 ドット幅**（曲がり角だけ 2 ドット）——太い幹を胴の高さぶん立てると
-    //   ふせん本体より目立ってしまい「気持ち悪い」。長さも本体の 1/3 程度に留める。
-    //   col 18 が本体の輪郭に触れているので「後ろから出ている」と読める。先端を体側（左）へ
-    //   曲げることはできない——本体の右辺 col 17 とぶつかる。
-    const CAT_BASE = [
-      "........................",
-      "........................",
-      "....KK........KK........",
-      "...KBBK......KSSK.......",
-      "..KBSSBK....KSSSSK......",
-      "..KBBBBBKKKKSSSSSK......",
-      "..KBBBBBBBBBKSSSSK......",
-      "..KBBBBBBBBBBKSSSK......",
-      "..KBBBBBBBBBBBKSSK......",
-      "..KBBBBBBBBBBBBKSK......",
-      "..KBBEEBBBBBBEEBBK......",
-      "..KBBEEBBBBBBEEBBK...K..",
-      "..KBBEEBBPPBBEEBBK..KBK.",
-      "..KBBBBBBPPBBBBBBK..KBK.",
-      "..KPPBBEBEEBEBBPPKKKBBK.",
-      "..KPPBBBEBBEBBBPPKBBBK..",
-      "..KBBBBBBBBBBBBBBKKKK...",
-      "..KBBBBBBBBBBBBBBK......",
-      "..KBBBBBBBBBBBBBBK......",
-      "..KBBBBBBBBBBBBBBK......",
-      "..KKKKKKKKKKKKKKKK......",
-      "........................",
-      "........................",
-      "........................",
-    ];
-    // 待機アニメの差分。キー=行 index、値=24 文字。`_` は「下の絵をそのまま残す」、
-    // `.` は「そこを透過にする」。セル単位で重ねられるので、しっぽの振りとまばたきを
-    // 同じコマに同時に適用できる。しっぽのポーズは col 18 以降だけを書き換える。
-    // しっぽの振りは「先端に 1 ドット足す／取る」だけ。根元（row 14–16）は動かさない。
-    // 短い鉤形なので、1 ドットの伸び縮みでも全長の 1/4 が変わり「ぴょこっと跳ねた」と分かる。
-    const CAT_TAIL_UP = {
-      10: "_____________________K__",
-      11: "____________________KBK_",
-    };
-    const CAT_TAIL_DOWN = {
-      11: "_____________________.__",
-      12: "____________________.K._",
-    };
-    const CAT_BLINK = {
-      10: "_____BB______BB_________",
-      11: "_____BB______BB_________",
-    };
-    // にっこり：目を「^」の弧にする（左は col 4–6、右は col 12–14 を使う）
-    const CAT_SMILE = {
-      10: "____BEB_____BEB_________",
-      11: "____EBE_____EBE_________",
-      12: "____BBB_____BBB_________",
-    };
-    // びっくり：目を 1 行上まで伸ばして見開き、口を 2×2 の「o」にする（鼻はそのまま残す）
-    const CAT_SURPRISE = {
-      9: "_____EE______EE_________",
-      14: "_______BBEEBB___________",
-      15: "________BEEB____________",
-    };
-    // 耳ぴく：耳を 1 ドット縮め、耳先を輪郭で塞ぐ。動くのは**左耳だけ**——
-    // 右上はふせんの折れ耳（紙のフラップ）なので、ぴくつくと紙が動いて見えてしまう。
-    const CAT_EARS_DOWN = {
-      2: "____..__________________",
-      3: "___KKKK_________________",
-    };
-    // よそ見：両目を 1 ドット右（しっぽ側）へ寄せる（左右そろって動くので小さくても分かる）
-    const CAT_LOOK = {
-      10: "_____BEE_____BEE________",
-      11: "_____BEE_____BEE________",
-      12: "_____BEE_____BEE________",
-    };
-    // 吹き出しの方（左）を見る
-    const CAT_LOOK_L = {
-      10: "____EEB_____EEB_________",
-      11: "____EEB_____EEB_________",
-      12: "____EEB_____EEB_________",
-    };
-    // 上を見る：目を 1 行上へずらす。来客を目で追わせるのに使う
-    const CAT_LOOK_UP = {
-      9: "_____EE______EE_________",
-      12: "_____BB______BB_________",
-    };
-    // わくわく：頭の外に光を出す（輪郭の外なので小さくても気づかれやすい）。2 コマでちらつかせる
-    const CAT_SPARK_A = {
-      1: "___________________S____",
-      2: "__________________SSS___",
-      3: "___________________S____",
-    };
-    const CAT_SPARK_B = { 2: "___________________S____" };
-    // あくび：口を大きく開ける（まばたきと重ねて眠そうにする）。鼻の下から開くので row 14 から
-    const CAT_YAWN = {
-      14: "_______BBEEBB___________",
-      15: "________EEEE____________",
-      16: "_________EE_____________",
-    };
+    // ---- マスコット「ふせんネコ」 ----
+    // 造形は assets/fuseneko/fuseneko-grid.js が**唯一の定義**として持つ。ここはそれを
+    // 待機アニメ用に束ね直すだけで、ドット列をこのファイルに二重に持たない。
+    // 配布用の SVG 資産（assets/fuseneko/fuseneko-*.svg）も同じ定義から生成されるので、
+    // アプリ内のマスコットと配布アイコンでシルエットがずれない。
+    const FN = window.FusenekoGrid;
+    const FN_EXPR = FN.EXPRESSIONS;
+    const CAT_TAIL_UP = FN.TAIL.up;
+    const CAT_TAIL_DOWN = FN.TAIL.down;
+    // 来客のコマに 1 枚だけ重ねたい表情は、配列から取り出して単体のパッチにしておく
+    const [CAT_LOOK_UP] = FN_EXPR.lookUp;
+    const [CAT_SMILE] = FN_EXPR.smile;
+    const [CAT_SURPRISE] = FN_EXPR.surprise;
 
     // ---- まれな来客 ----
-    // 24×24 は余白が狭いので、来客は「ネコの手前を横切る」前提で置く。
+    // 24×24 は余白が狭いので、来客は「ネコの手前を横切る」前提で置く（重なっても手前と読める）。
     // ちょう＝ピンク 3×3 で弧を描く / とり＝濃色 5×2 で速く直線 /
     // ハート＝ピンク 3×3 で上る / おんぷ＝濃色 3×4 で上る。色と大きさと軌道で描き分ける。
     // 位置が動くので、パッチ 1 行は catRow() で組み立てる（`_` は下の絵を残す）
     function catRow(parts) {
-      const cells = new Array(24).fill("_");
+      const cells = new Array(FN.GRID).fill("_");
       Object.keys(parts).forEach((col) => {
         const s = parts[col];
         for (let i = 0; i < s.length; i++) cells[+col + i] = s[i];
@@ -949,14 +867,14 @@
     })();
     // ふだんの動き。1 要素＝1 コマぶんの重ねるパッチ配列なので、コマごとに絵を変えられる
     const CAT_ACCENTS = {
-      blink: [[CAT_BLINK]],
-      smile: [[CAT_SMILE], [CAT_SMILE]],
-      surprise: [[CAT_SURPRISE]],
-      ears: [[CAT_EARS_DOWN]],
-      look: [[CAT_LOOK], [CAT_LOOK]],
-      lookL: [[CAT_LOOK_L], [CAT_LOOK_L]],
-      sparkle: [[CAT_SMILE, CAT_SPARK_A], [CAT_SMILE, CAT_SPARK_B]],
-      yawn: [[CAT_BLINK, CAT_YAWN], [CAT_BLINK, CAT_YAWN]],
+      blink: [FN_EXPR.blink],
+      smile: [FN_EXPR.smile, FN_EXPR.smile],
+      surprise: [FN_EXPR.surprise],
+      ears: [FN_EXPR.ears],
+      look: [FN_EXPR.lookR, FN_EXPR.lookR],
+      lookL: [FN_EXPR.lookL, FN_EXPR.lookL],
+      sparkle: [FN_EXPR.sparkleA, FN_EXPR.sparkleB],
+      yawn: [FN_EXPR.yawn, FN_EXPR.yawn],
     };
     // まれな来客。コマごとに位置が動き、ネコも目で追う
     const CAT_RARES = {
@@ -978,7 +896,7 @@
         [catHeart(8, 1), CAT_SMILE],
         [catHeart(8, 0), CAT_SMILE],
       ],
-      // しっぽ（row 11 から）と縦線が紛らわしくならないよう、上から 2 行ぶん離して出す
+      // しっぽ（row 13 から）と縦線が紛らわしくならないよう、col 18–20 側を上る
       note: [
         [catNote(18, 4), CAT_SMILE],
         [catNote(18, 2), CAT_SMILE],
@@ -1004,39 +922,12 @@
       after: ["note", "butterfly"],
       ended: ["note", "note", "butterfly"],
     };
-    const CAT_FILL = { K: "cat-k", B: "cat-b", S: "cat-s", W: "cat-w", P: "cat-p", E: "cat-e" };
-
-    // ベースにパッチを順に重ねて 24 行のドット列を作る（`_` の位置は下の絵を残す）
-    function applyCatPatches(patches) {
-      return CAT_BASE.map((baseRow, y) => {
-        let row = baseRow;
-        (patches || []).forEach((p) => {
-          const r = p && p[y];
-          if (!r) return;
-          let merged = "";
-          for (let x = 0; x < row.length; x++) merged += r[x] === "_" ? row[x] : r[x];
-          row = merged;
-        });
-        return row;
-      });
-    }
 
     // ドット列を SVG 文字列にする。横に連続する同色は 1 つの <rect> にまとめて要素数を抑える。
     // 入力は上の定数のみ（外部入力を含まない）ため escapeHtml は不要。
     function buildCatSvg(patches) {
-      let rects = "";
-      applyCatPatches(patches).forEach((row, y) => {
-        let x = 0;
-        while (x < row.length) {
-          const ch = row[x];
-          let w = 1;
-          while (row[x + w] === ch) w++;
-          const cls = CAT_FILL[ch];
-          if (cls) rects += `<rect class="${cls}" x="${x}" y="${y}" width="${w}" height="1"/>`;
-          x += w;
-        }
-      });
-      return `<svg viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+      const rects = FN.toRects(FN.applyPatches(patches), "");
+      return `<svg viewBox="0 0 ${FN.GRID} ${FN.GRID}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
     }
 
     // 組み合わせは「しっぽ 3 種 × アクセント 5 種」しか無いので、作った SVG は使い回す。

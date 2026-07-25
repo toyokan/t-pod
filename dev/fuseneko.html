@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>ふせんネコ 確認ページ</title>
+<style>
+  :root { color-scheme: light; font-family: system-ui, "Hiragino Kaku Gothic ProN", sans-serif; }
+  body { margin: 0; padding: 32px; background: #f6f7f9; color: #1f2937; line-height: 1.7; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  h2 { font-size: 15px; margin: 48px 0 16px; padding-bottom: 6px; border-bottom: 1px solid #d7dbe0; }
+  p.note { margin: 0 0 8px; font-size: 13px; color: #4b5563; }
+  /* ドットを割らないため、拡大は整数倍だけにする */
+  .row { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-end; }
+  .cell { text-align: center; font-size: 12px; color: #4b5563; }
+  .cell figure { margin: 0 0 8px; display: inline-block; }
+  .cell svg { display: block; image-rendering: pixelated; }
+  /* 背景の出し分け。透過は市松模様で「地が抜けている」ことを見せる */
+  .bg-checker {
+    background-image:
+      linear-gradient(45deg, #c9ced6 25%, transparent 25%, transparent 75%, #c9ced6 75%),
+      linear-gradient(45deg, #c9ced6 25%, transparent 25%, transparent 75%, #c9ced6 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 8px 8px;
+    background-color: #eef0f3;
+  }
+  .bg-white { background: #fff; }
+  .bg-dark { background: #1f2430; }
+  .pad { padding: 20px; border-radius: 8px; }
+  code { background: #e7e9ee; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>ふせんネコ 確認ページ</h1>
+<p class="note">
+  造形の定義は <code>assets/fuseneko/fuseneko-grid.js</code> の 1 箇所だけ。
+  ここに並ぶものはすべてそこから実行時に組み立てている（色を変えてもシルエットは 1 ドットも変わらない）。
+  変えられるのは<strong>色と表情だけ</strong>——教科小物や番号バッジは、24px では数ドットしか取れず
+  判別できないため持たせていない。
+</p>
+
+<h2>1. サイズ展開（標準）</h2>
+<p class="note">24px は実運用の最小サイズ。48px は右下マスコットと同じ大きさ。</p>
+<div class="row" id="sizes"></div>
+
+<h2>2. 表情（48px と拡大 192px）</h2>
+<p class="note">SVG 資産にしてある 3 表情。拡大してもドットの境界がぼけないことを確認する。</p>
+<div class="row" id="expressions"></div>
+
+<h2>3. テーマカラー</h2>
+<p class="note">テーマ色 1 色から本体・折り返し・輪郭・目鼻口の濃淡を自動生成する。ほっぺだけ固定のピンク。</p>
+<div class="row" id="colors"></div>
+
+<h2>4. 背景の出し分け</h2>
+<p class="note">背景は透過。白地でも濃色地でも輪郭が沈まないことを確認する。</p>
+<div class="row" id="backgrounds"></div>
+
+<h2>5. 待機アニメで使う表情</h2>
+<p class="note">右下マスコットのコマ。SVG 資産にはしないが、同じ定義から作られる。</p>
+<div class="row" id="anim"></div>
+
+<script src="../assets/fuseneko/fuseneko-grid.js"></script>
+<script src="../assets/fuseneko/variants.js"></script>
+<script src="../assets/fuseneko/fuseneko.js"></script>
+<script>
+  const { createFuseneko } = Fuseneko;
+
+  function cell(parent, label, opts, wrapClass) {
+    const box = document.createElement("div");
+    box.className = "cell";
+    const fig = document.createElement("figure");
+    if (wrapClass) fig.className = wrapClass + " pad";
+    fig.appendChild(createFuseneko(opts));
+    box.appendChild(fig);
+    box.appendChild(document.createTextNode(label));
+    parent.appendChild(box);
+  }
+
+  const $ = (id) => document.getElementById(id);
+
+  [16, 24, 32, 48, 96].forEach((size) => cell($("sizes"), size + "px", { size, ariaLabel: `ふせんネコ ${size}px` }));
+
+  FusenekoVariants.EXPRESSIONS.filter((e) => e.asset).forEach((e) => {
+    cell($("expressions"), e.label + "・48px", { size: 48, expression: e.key, ariaLabel: `ふせんネコ（${e.label}）` });
+    cell($("expressions"), e.label + "・192px", { size: 192, expression: e.key, ariaLabel: `ふせんネコ（${e.label}）` });
+  });
+
+  ["yellow", "blue", "green", "purple", "pink"].forEach((key) => {
+    const c = FusenekoVariants.COLORS.find((x) => x.key === key);
+    cell($("colors"), c.label, { size: 96, color: c.hex, ariaLabel: `ふせんネコ（${c.label}）` });
+  });
+
+  [
+    ["透過", "bg-checker"],
+    ["白背景", "bg-white"],
+    ["濃色背景", "bg-dark"],
+  ].forEach(([label, cls]) => cell($("backgrounds"), label, { size: 96, ariaLabel: `ふせんネコ（${label}）` }, cls));
+
+  FusenekoVariants.EXPRESSIONS.filter((e) => !e.asset).forEach((e) =>
+    cell($("anim"), e.label, { size: 72, expression: e.key, ariaLabel: `ふせんネコ（${e.label}）` })
+  );
+</script>
+</body>
+</html>
