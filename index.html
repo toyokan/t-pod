@@ -359,19 +359,27 @@
        ナビ自身も pb-safe を持つので、セーフエリアの inset はこちらでも別に足す。 */
     #mascot { bottom: calc(env(safe-area-inset-bottom) + 5.5rem); }
     @keyframes catIdle { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-100%, 0, 0); } }
-    #mascotStrip { animation: catIdle 2.4s steps(6) infinite; will-change: transform; }
-    .cat-frame { flex: 0 0 16.6667%; }
+    #mascotStrip { animation: catIdle 2.8s steps(8) infinite; will-change: transform; }
+    .cat-frame { flex: 0 0 12.5%; }
     .cat-frame svg { display: block; width: 100%; height: auto; }
-    /* ドットのパレット。輪郭・折れ角の陰はブランド色から生成し、目とほっぺは固定色。
-       fill を CSS 側に置くことで color-mix / var() を SVG 属性に書かずに済ませる。 */
-    .cat-k { fill: color-mix(in srgb, var(--brand) 34%, #2b2118); }
-    .cat-b { fill: var(--brand); }
-    .cat-s { fill: color-mix(in srgb, var(--brand) 70%, black); }
+    /* ドットのパレット。黒に近い色は使わず、輪郭・目・口を同系の濃色 1 色にまとめて
+       全体を淡いパステルに揃える。fill を CSS 側に置くことで color-mix / var() を
+       SVG 属性に書かずに済ませる。 */
+    .cat-b { fill: color-mix(in srgb, var(--brand) 52%, white); }
+    .cat-s { fill: var(--brand); }
+    .cat-k,
+    .cat-e { fill: color-mix(in srgb, var(--brand) 70%, black); }
     .cat-w { fill: #fff; }
-    .cat-p { fill: #f4849b; }
-    .cat-e { fill: #2b2118; }
+    .cat-p { fill: #f7a8b8; }
     /* 吹き出しはタップで畳む。文言差し替え時は opacity だけを触る */
-    #mascotBubble { transition: opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1); transform-origin: right bottom; }
+    #mascotBubble { position: relative; transition: opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1); transform-origin: right bottom; }
+    /* ネコを指す三角のしっぽ。白いセッションカードの上に重なっても「吹き出し」と分かるようにする */
+    #mascotBubble::after {
+      content: ""; position: absolute; right: -5px; top: 50%;
+      width: 9px; height: 9px; margin-top: -4.5px; background: #fff;
+      border-right: 1px solid rgb(203 213 225); border-top: 1px solid rgb(203 213 225);
+      transform: rotate(45deg);
+    }
     #mascot.is-folded #mascotBubble { opacity: 0; transform: scale(.9) translate3d(6px, 0, 0); }
     #mascotBubble.is-swapping { opacity: 0; }
     @media (prefers-reduced-motion: reduce) {
@@ -568,12 +576,13 @@
   <!-- ===== 右下マスコット（ふせんネコ） =====
        ドット絵は setupMascot() が CAT_BASE / CAT_FRAMES から実行時生成する。
        文言は mascotLines() がイベントデータと現在時刻から組み立てるため、ここには固有文言を書かない。 -->
-  <div id="mascot" class="hidden fixed inset-x-0 z-20 max-w-2xl mx-auto px-3 justify-end items-center gap-1.5 pointer-events-none">
+  <div id="mascot" class="hidden fixed inset-x-0 z-20 max-w-2xl mx-auto px-3 justify-end items-center gap-2.5 pointer-events-none">
     <!-- 7秒ごとに差し替わる装飾的な一言なので aria-live は付けない（読み上げが繰り返されるのを避ける） -->
-    <p id="mascotBubble" class="max-w-[min(52vw,17rem)] bg-white border border-slate-200/80 rounded-2xl rounded-br-sm shadow-card px-3 py-1.5 text-[11px] font-bold text-slate-700 leading-snug"></p>
+    <!-- 背面の白いセッションカードに埋もれないよう、枠線を濃く・影を強くし、::after で三角のしっぽを出す -->
+    <p id="mascotBubble" class="max-w-[min(52vw,17rem)] bg-white border border-slate-300 rounded-2xl shadow-[0_6px_18px_-4px_rgba(15,23,42,0.28)] px-3 py-1.5 text-[11px] font-bold text-slate-700 leading-snug"></p>
     <button id="mascotBtn" type="button" aria-label="マスコット（タップで吹き出しを開閉）"
       class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition">
-      <span id="mascotStrip" class="flex w-[600%] h-full items-center"></span>
+      <span id="mascotStrip" class="flex w-[800%] h-full items-center"></span>
     </button>
   </div>
 
@@ -726,7 +735,11 @@
     // K=輪郭 / B=体 / S=折れ角の陰 / W=白 / P=ほっぺ / E=目・口 / .=透過。
     // 実際の色は <style> の .cat-* クラスが持ち、輪郭と陰は --brand から生成されるため
     // brandColor を変えるだけでイベント毎の体色になる（再生成は不要）。
+    // ふせんの本体（外枠）は col 2–17 / row 5–20 の 16×16 ＝ 正方形。
+    // しっぽは胴体右辺（row 14–15 で col 17 の外枠を開けている）から生え、col 18 を空けて
+    // 立ち上がるので、胴体の輪郭ではなく「生えているしっぽ」として読める。
     const CAT_BASE = [
+      "........................",
       "........................",
       "....KK........KK........",
       "...KBBK......KBBK.......",
@@ -734,48 +747,73 @@
       "..KBBBBBKKKKBBBBBK......",
       "..KBBBBBBBBBBSSSSK......",
       "..KBBBBBBBBBBBSSSK......",
-      "..KBBBBBBBBBBBBSSK......",
-      "..KBBBBBBBBBBBBBSK......",
-      "..KBBEEBBBBBBEEBBK......",
-      "..KBBEEBBBBBBEEBBK......",
-      "..KBBEEBBBBBBEEBBK......",
-      "..KPPBBBEBEBEBBPPK.KKKK.",
-      "..KPPBBBBEBEBBBPPK.KBBK.",
-      "..KBBBBBBBBBBBBBBK.KBBK.",
-      "..KBBBBBBBBBBBBBBK.KBBK.",
-      "..KBBBBBBBBBBBBBBKKBBBK.",
-      "..KBBBBBBBBBBBBBBBBBBBK.",
-      "..KBBBBBBBBBBBBBBKKKKKK.",
+      "..KBBBBBBBBBBBBSSK..KKK.",
+      "..KBBBBBBBBBBBBBSK.KBBBK",
+      "..KBBEEBBBBBBEEBBK.KBBBK",
+      "..KBBEEBBBBBBEEBBK.KBBBK",
+      "..KBBEEBBBBBBEEBBK.KBBBK",
+      "..KPPBBBEBEBEBBPPKKBBBK.",
+      "..KPPBBBBEBEBBBPPBBBBK..",
+      "..KBBBBBBBBBBBBBBBBBK...",
+      "..KBBBBBBBBBBBBBBKKK....",
+      "..KBBBBBBBBBBBBBBK......",
       "..KBBBBBBBBBBBBBBK......",
       "..KBBBBBBBBBBBBBBK......",
       "..KKKKKKKKKKKKKKKK......",
       "........................",
       "........................",
+      "........................",
     ];
-    // 待機アニメの差分。キー=行 index、値=その行を丸ごと置き換える 24 文字。
-    // ベース全面を6枚持たず、しっぽ（上下）と目（まばたき）だけを差し替える。
+    // 待機アニメの差分。キー=行 index、値=24 文字。`_` は「下の絵をそのまま残す」、
+    // `.` は「そこを透過にする」。セル単位で重ねられるので、しっぽの振りとまばたきを
+    // 同じコマに同時に適用できる。しっぽのポーズは col 18 以降だけを書き換える。
     const CAT_TAIL_UP = {
-      11: "..KBBEEBBBBBBEEBBK.KKKK.",
-      12: "..KPPBBBEBEBEBBPPK.KBBK.",
-      15: "..KBBBBBBBBBBBBBBKKBBBK.",
-      16: "..KBBBBBBBBBBBBBBBBBBBK.",
-      17: "..KBBBBBBBBBBBBBBKKKKKK.",
-      18: "..KBBBBBBBBBBBBBBK......",
+      6: "__________________..KKK.",
+      7: "__________________.KBBBK",
+      8: "__________________.KBBBK",
+      9: "__________________.KBBBK",
+      10: "__________________.KBBBK",
+      11: "__________________.KBBBK",
+      12: "__________________.KBBBK",
+    };
+    const CAT_TAIL_DOWN = {
+      8: "__________________......",
+      9: "__________________......",
+      10: "__________________..KKK.",
+      11: "__________________.KBBBK",
+      12: "__________________.KBBBK",
     };
     const CAT_BLINK = {
-      9: "..KBBBBBBBBBBBBBBK......",
-      10: "..KBBBBBBBBBBBBBBK......",
+      10: "_____BB______BB_________",
+      11: "_____BB______BB_________",
     };
-    // 6コマ（2.4秒で一巡）: 静止 → しっぽを上げる → 静止 → まばたき
-    const CAT_FRAMES = [null, null, CAT_TAIL_UP, CAT_TAIL_UP, null, CAT_BLINK];
+    // 8コマ（2.8秒で一巡）。しっぽを 中→上→中→下 と往復させ、途中で1回まばたきする
+    const CAT_FRAMES = [
+      [], [CAT_TAIL_UP], [], [CAT_TAIL_DOWN],
+      [], [CAT_TAIL_UP], [CAT_BLINK], [CAT_TAIL_DOWN],
+    ];
     const CAT_FILL = { K: "cat-k", B: "cat-b", S: "cat-s", W: "cat-w", P: "cat-p", E: "cat-e" };
+
+    // ベースにパッチを順に重ねて 24 行のドット列を作る（`_` の位置は下の絵を残す）
+    function applyCatPatches(patches) {
+      return CAT_BASE.map((baseRow, y) => {
+        let row = baseRow;
+        (patches || []).forEach((p) => {
+          const r = p && p[y];
+          if (!r) return;
+          let merged = "";
+          for (let x = 0; x < row.length; x++) merged += r[x] === "_" ? row[x] : r[x];
+          row = merged;
+        });
+        return row;
+      });
+    }
 
     // ドット列を SVG 文字列にする。横に連続する同色は 1 つの <rect> にまとめて要素数を抑える。
     // 入力は上の定数のみ（外部入力を含まない）ため escapeHtml は不要。
-    function buildCatSvg(patch) {
+    function buildCatSvg(patches) {
       let rects = "";
-      CAT_BASE.forEach((baseRow, y) => {
-        const row = (patch && patch[y]) || baseRow;
+      applyCatPatches(patches).forEach((row, y) => {
         let x = 0;
         while (x < row.length) {
           const ch = row[x];
