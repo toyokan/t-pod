@@ -1157,10 +1157,12 @@
       if (!m || !m.index) return { main: s, sub: "" };
       return { main: s.slice(0, m.index).trim(), sub: s.slice(m.index).trim() };
     };
+    // "YYYY-MM-DD" を「8月4日」「8/4」にする。分解して数値化するだけだと、壊れた値や
+    // ISO 日時（"2026-08-04T10:00"）が「8月NaN日」として表に出てしまうので、形を検査してから使う
     const fmtMD = (d, sep = "月") => {
-      const [, m, day] = String(d || "").split("-");
-      if (!m || !day) return "";
-      return sep === "月" ? `${+m}月${+day}日` : `${+m}${sep}${+day}`;
+      const m = /^\d{4}-(\d{1,2})-(\d{1,2})(?!\d)/.exec(String(d == null ? "" : d).trim());
+      if (!m) return "";
+      return sep === "月" ? `${+m[1]}月${+m[2]}日` : `${+m[1]}${sep}${+m[2]}`;
     };
     // scrollIntoView は使わず、ヘッダー分のオフセットを取って scrollTo する
     function scrollToRow(row) {
@@ -1441,11 +1443,17 @@
       let idx = findNowIdx(currentSessions, currentDayObj);
       const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
       // 当日の最終セッションが終了済みなら「現在」扱いを解除（終了後に強調と▼ボタンが残るのを防ぐ）。
-      // 最終セッションに end が無い（閉会・終了予定など）場合は dates[].time の終了時刻で代替。
-      if (idx === currentSessions.length - 1 && idx >= 0) {
+      // 「配列の末尾か」では判定できない——理事会など**開始時刻を持たない行**が後ろに並ぶと
+      // 末尾に一致せず、end 無しの最終セッションが日付が変わるまで「現在」のまま残ってしまう。
+      // 「これ以降に開始時刻を持つ行が無いか」で最終セッションを見分ける。
+      const hasLater = currentSessions.slice(idx + 1).some((s) => toMin(s.start) !== null);
+      if (idx >= 0 && !hasLater) {
         const lastEnd = toMin(currentSessions[idx].end);
-        const endMin = lastEnd !== null ? lastEnd : dayEndMin(currentDayObj);
-        if (endMin !== null && nowMin >= endMin) idx = -1;
+        // end が無ければ dates[].time の終了時刻。それも無い／既に過ぎているなら開始 +30 分を猶予にする
+        const endMin = lastEnd !== null
+          ? lastEnd
+          : Math.max(dayEndMin(currentDayObj) || 0, toMin(currentSessions[idx].start) + 30);
+        if (nowMin >= endMin) idx = -1;
       }
       let showJump = false;
 
