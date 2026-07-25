@@ -644,7 +644,7 @@
   </main>
 
   <!-- ===== 右下マスコット（ふせんネコ） =====
-       ドット絵は setupMascot() が CAT_BASE / CAT_FRAMES から実行時生成する。
+       ドット絵は setupMascot() が assets/fuseneko/fuseneko-grid.js の定義から実行時生成する。
        文言は mascotLines() がイベントデータと現在時刻から組み立てるため、ここには固有文言を書かない。 -->
   <div id="mascot" class="hidden fixed inset-x-0 z-20 max-w-2xl mx-auto px-3 justify-end items-center gap-2.5 pointer-events-none">
     <!-- 7秒ごとに差し替わる装飾的な一言なので aria-live は付けない（読み上げが繰り返されるのを避ける） -->
@@ -810,14 +810,20 @@
     // 待機アニメ用に束ね直すだけで、ドット列をこのファイルに二重に持たない。
     // 配布用の SVG 資産（assets/fuseneko/fuseneko-*.svg）も同じ定義から生成されるので、
     // アプリ内のマスコットと配布アイコンでシルエットがずれない。
+    // **造形定義が読めなくても本文（タイムテーブル）は死なせない**。
+    // ここは巨大なインライン script の途中なので、undefined を素で触ると
+    // 以降の描画ロジックごと落ちて「読み込み中…」のまま止まる。
+    // 取れなかったときは空で通し、setupMascot() がマスコットだけ出さない。
     const FN = window.FusenekoGrid;
-    const FN_EXPR = FN.EXPRESSIONS;
-    const CAT_TAIL_UP = FN.TAIL.up;
-    const CAT_TAIL_DOWN = FN.TAIL.down;
+    const FN_OK = !!(FN && FN.EXPRESSIONS && FN.TAIL && FN.applyPatches);
+    const FN_EXPR = FN_OK ? FN.EXPRESSIONS : {};
+    const CAT_GRID = FN_OK ? FN.GRID : 24;
+    const CAT_TAIL_UP = FN_OK ? FN.TAIL.up : null;
+    const CAT_TAIL_DOWN = FN_OK ? FN.TAIL.down : null;
     // 来客のコマに 1 枚だけ重ねたい表情は、配列から取り出して単体のパッチにしておく
-    const [CAT_LOOK_UP] = FN_EXPR.lookUp;
-    const [CAT_SMILE] = FN_EXPR.smile;
-    const [CAT_SURPRISE] = FN_EXPR.surprise;
+    const [CAT_LOOK_UP] = FN_EXPR.lookUp || [];
+    const [CAT_SMILE] = FN_EXPR.smile || [];
+    const [CAT_SURPRISE] = FN_EXPR.surprise || [];
 
     // ---- まれな来客 ----
     // 24×24 は余白が狭いので、来客は「ネコの手前を横切る」前提で置く（重なっても手前と読める）。
@@ -825,7 +831,7 @@
     // ハート＝ピンク 3×3 で上る / おんぷ＝濃色 3×4 で上る。色と大きさと軌道で描き分ける。
     // 位置が動くので、パッチ 1 行は catRow() で組み立てる（`_` は下の絵を残す）
     function catRow(parts) {
-      const cells = new Array(FN.GRID).fill("_");
+      const cells = new Array(CAT_GRID).fill("_");
       Object.keys(parts).forEach((col) => {
         const s = parts[col];
         for (let i = 0; i < s.length; i++) cells[+col + i] = s[i];
@@ -875,6 +881,9 @@
       lookL: [FN_EXPR.lookL, FN_EXPR.lookL],
       sparkle: [FN_EXPR.sparkleA, FN_EXPR.sparkleB],
       yawn: [FN_EXPR.yawn, FN_EXPR.yawn],
+      // 設定資料の「うれしい」「ひらめき」。どちらも 2 コマ続けて出して間を持たせる
+      happy: [FN_EXPR.happy, FN_EXPR.happy],
+      idea: [FN_EXPR.idea, FN_EXPR.idea],
     };
     // まれな来客。コマごとに位置が動き、ネコも目で追う
     const CAT_RARES = {
@@ -907,11 +916,11 @@
     // 場面ごとの出やすさ（同じ名前を並べて重み付けする）。
     // 開催中ははしゃぎ気味に、終了後は落ち着いてまばたき・あくび中心にする。
     const CAT_ACCENT_POOL = {
-      live: ["surprise", "smile", "smile", "sparkle", "blink", "ears", "look", "lookL"],
-      today: ["smile", "sparkle", "blink", "blink", "ears", "look", "lookL", "surprise"],
-      before: ["blink", "blink", "smile", "ears", "look", "lookL", "look", "surprise"],
-      after: ["blink", "blink", "yawn", "smile", "ears", "look", "lookL"],
-      ended: ["blink", "blink", "yawn", "yawn", "ears", "look", "lookL"],
+      live: ["surprise", "smile", "smile", "sparkle", "happy", "idea", "blink", "ears", "look", "lookL"],
+      today: ["smile", "sparkle", "happy", "idea", "blink", "blink", "ears", "look", "lookL", "surprise"],
+      before: ["blink", "blink", "smile", "idea", "ears", "look", "lookL", "look", "surprise"],
+      after: ["blink", "blink", "yawn", "smile", "happy", "ears", "look", "lookL"],
+      ended: ["blink", "blink", "yawn", "yawn", "happy", "ears", "look", "lookL"],
     };
     // 来客は 1 周につき最大 1 回、この確率でだけ現れる（既定 4.8 秒／周なので 1 分半に 1 回くらい）
     const CAT_RARE_CHANCE = 0.07;
@@ -927,7 +936,7 @@
     // 入力は上の定数のみ（外部入力を含まない）ため escapeHtml は不要。
     function buildCatSvg(patches) {
       const rects = FN.toRects(FN.applyPatches(patches), "");
-      return `<svg viewBox="0 0 ${FN.GRID} ${FN.GRID}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+      return `<svg viewBox="0 0 ${CAT_GRID} ${CAT_GRID}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
     }
 
     // 組み合わせは「しっぽ 3 種 × アクセント 5 種」しか無いので、作った SVG は使い回す。
@@ -990,7 +999,7 @@
       return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
     }
 
-    // 16進を黒側へ混ぜる（.cat-k の color-mix(var(--brand) p%, black) と同じ計算）。
+    // 16進を黒側へ混ぜる（--cat-outline の color-mix(var(--brand) p%, black) と同じ計算）。
     // #rgb 表記も受け付ける。解釈できない値はグレーにフォールバックする
     function mixWithBlack(hex, p) {
       let s = String(hex || "").trim().replace(/^#/, "");
@@ -1723,13 +1732,18 @@
       if (!box || !strip || mascotTimer) return;
       // イベント側で不要な場合は eventInfo.mascot: false で止められる
       if ((DATA.eventInfo || {}).mascot === false) return;
+      // 造形定義（assets/fuseneko/fuseneko-grid.js）が読めなかった回はマスコットを諦める。
+      // 本文はそのまま出るので、会場の不安定な通信でタイムテーブルまで巻き添えにしない
+      if (!FN_OK) return;
       if (!mascotLines().length) return;
 
       // アクセントの重み付けに使うので、コマを組む前に mood を確定させておく
       box.dataset.mood = mascotState().mood;
 
-      // 吹き出しの枠と三角も、ネコの輪郭（.cat-k と同じ 60%＋黒）で実行時に描く
-      const line = mixWithBlack(resolvedBrand(), 0.6);
+      // 吹き出しの枠と三角も、ネコの輪郭と同じ色で実行時に描く。
+      // 比率は :root の --cat-outline（テーマ色 38%＋黒）に合わせること——
+      // ここだけ古い値のままだと、枠がネコの輪郭より薄くて浮いて見える
+      const line = mixWithBlack(resolvedBrand(), 0.38);
       const frameColor = (ch) => (ch === "K" ? line : ch === "W" ? "#fff" : "");
       box.style.setProperty("--cat-frame", buildDotDataUri(BUBBLE_FRAME, frameColor));
       box.style.setProperty("--cat-arrow", buildDotDataUri(BUBBLE_ARROW, frameColor));

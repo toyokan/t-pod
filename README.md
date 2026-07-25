@@ -12,7 +12,8 @@
 - TIMETABLE / FILES / BOOKS の3画面と、スマートフォン向けのスワイプ操作
 - 当日は該当する日付タブを初期表示し、現在の進行位置へ自動スクロール
 - 半透明の固定ヘッダー／ボトムナビ、短いタブ切替・押下フィードバックなど、軽量なモダンUI（動きを減らす設定にも対応）
-- 右下にドット絵のマスコット（ふせんネコ）。イベントデータと現在時刻から「あと◯日だよ」「いまは◯◯の時間だよ」などを吹き出しで伝える。絵はコードから実行時生成し、色はイベントのブランド色に追従（`eventInfo.mascot: false` で無効化可）
+- 右下にドット絵のマスコット「ふせんネコ」。イベントデータと現在時刻から「あと◯日だよ」「いまは◯◯の時間だよ」などを吹き出しで伝える。造形は 24×24 のグリッド定義 1 箇所から実行時生成し、色はイベントのブランド色に追従（`eventInfo.mascot: false` で無効化可）
+- ふせんネコは配布用の SVG 資産（標準・にっこり・まじめ・うれしい・ひらめき）としても取り出せる。同じ定義から生成しているので、アプリ内の表示と配布アイコンでシルエットがずれない
 - JSON 由来テキスト・URL のサニタイズ、モーダルのフォーカストラップ、通信タイムアウト時の再試行導線など、堅牢性・アクセシビリティに配慮
 - 参加者向けページは検索結果に掲載させず、ルートURLから個別イベントの一覧を公開しない
 
@@ -73,6 +74,24 @@ JSON の構文確認例:
 python3 -m json.tool events.json
 python3 -m json.tool events/2026-zensanken-37.json
 ```
+
+### マスコット「ふせんネコ」
+
+造形の定義は `assets/fuseneko/fuseneko-grid.js` の 1 箇所だけです。配布用の SVG
+（`assets/fuseneko/fuseneko-*.svg`）はそこから生成するため、**手では編集しません**。
+
+```bash
+python3 scripts/build_fuseneko.py            # SVG を生成する
+python3 scripts/build_fuseneko.py --check    # 生成物が定義とずれていないか調べる
+python3 scripts/build_fuseneko.py --preview  # ターミナルにドット絵を描く
+python3 scripts/build_fuseneko.py --preview FN_HAPPY   # 表情を重ねて描く
+```
+
+サイズ・表情・色・背景を並べた確認ページ: `http://localhost:8080/dev/fuseneko.html`
+
+ページに埋め込むときは `fuseneko-grid.js` → `fuseneko.js` の順に読み込み、
+`createFuseneko({ size, color, expression, ariaLabel })` を呼びます。
+色は 1 色（テーマ色）だけ渡せば、本体・折り返し・輪郭・目鼻口の濃淡が自動で決まります。
 
 ## ドキュメント
 

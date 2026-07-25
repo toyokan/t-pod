@@ -25,11 +25,13 @@
     { key: "cyan", label: "水色（ICT）", hex: "#49bcd8" },
   ];
 
-  // SVG 資産にしてある 3 表情と、待機アニメが使う表情
+  // 設定資料の 6 表情（＝ SVG 資産にしてあるもの）と、待機アニメだけで使う表情
   const FUSENEKO_EXPRESSION_LIST = [
     { key: "standard", label: "標準", asset: true },
     { key: "smile", label: "にっこり", asset: true },
     { key: "serious", label: "まじめ", asset: true },
+    { key: "happy", label: "うれしい", asset: true },
+    { key: "idea", label: "ひらめき", asset: true },
     { key: "blink", label: "まばたき" },
     { key: "surprise", label: "びっくり" },
     { key: "yawn", label: "あくび" },

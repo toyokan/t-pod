@@ -79,6 +79,23 @@ class FusenekoGridTest(unittest.TestCase):
                 self.assertNotIn("K", (row[col - 1], row[col + 1]),
                                  f"row {row_index} col {col} のほっぺが輪郭に接触している")
 
+    def test_every_expression_keeps_the_nose(self):
+        """どの表情でも鼻（col 9 / row 14）を塗り潰さない。
+
+        口を差し替えるパッチで rows 14 をまとめて上書きすると鼻ごと消え、
+        猫の顔に見えなくなる。表情を足すたびに踏みやすいのでここで止める。
+        """
+        nose_col, nose_row = 9, 14
+        for name, patch in self.parsed["patches"].items():
+            if name in {"FUSENEKO_TAIL"}:  # しっぽは顔に触れない
+                continue
+            rows = apply_patches(self.base, [patch])
+            self.assertEqual(
+                rows[nose_row][nose_col],
+                "E",
+                f"{name} が鼻（col {nose_col} / row {nose_row}）を消している",
+            )
+
     def test_committed_svgs_match_the_grid(self):
         """生成物が fuseneko-grid.js とずれていないか。
 
