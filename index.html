@@ -367,7 +367,8 @@
        同一要素で transform を二重に持てない。入れ子のラッパーに縦の動きを持たせる。
        表示は 48px＝24ドットの2倍なので 2px ＝ ちょうど 1 ドット（半端な位置に来ない）。
        常時ゆれると「ぶれ」に見えて疲れるので、**ふだんは静止し、1 周に一度だけ短く沈む**。
-       バリエーションは沈む間隔（＝周期）と、1 回沈むか 2 回続けて沈むかで作る。
+       沈んでいる時間は 1 周の 8% ほどなので、間隔が短めでも「ぶれ」には見えない。
+       間隔はほぼ一定（±12%）にして規則正しい呼吸に見せ、たまに 2 回続けて沈む型を混ぜる。
        steps(1, end) は各区間で開始値を保持して終わりで飛ぶので、補間が挟まらず整数ドットに乗る。 */
     @keyframes catBob {
       0% { transform: translate3d(0, 0, 0); }
@@ -383,16 +384,16 @@
       88% { transform: translate3d(0, 0, 0); }
       100% { transform: translate3d(0, 0, 0); }
     }
-    #mascotBob { animation: catBob 7s steps(1, end) infinite; will-change: transform; }
+    #mascotBob { animation: catBob 5s steps(1, end) infinite; will-change: transform; }
     /* 場面（mascotState() の mood）で速さだけ変える。開催中は速く、終了後はのんびり */
     #mascot[data-mood="live"]  #mascotStrip { animation-duration: 3s; }
-    #mascot[data-mood="live"]  #mascotBob   { animation-duration: 5.5s; }
+    #mascot[data-mood="live"]  #mascotBob   { animation-duration: 4s; }
     #mascot[data-mood="today"] #mascotStrip { animation-duration: 4.2s; }
-    #mascot[data-mood="today"] #mascotBob   { animation-duration: 6.5s; }
+    #mascot[data-mood="today"] #mascotBob   { animation-duration: 4.5s; }
     #mascot[data-mood="after"] #mascotStrip { animation-duration: 6.4s; }
-    #mascot[data-mood="after"] #mascotBob   { animation-duration: 9.5s; }
+    #mascot[data-mood="after"] #mascotBob   { animation-duration: 6.5s; }
     #mascot[data-mood="ended"] #mascotStrip { animation-duration: 8s; }
-    #mascot[data-mood="ended"] #mascotBob   { animation-duration: 12s; }
+    #mascot[data-mood="ended"] #mascotBob   { animation-duration: 8s; }
     /* ドットのパレット。黒に近い色は使わず、「体（淡）→ 輪郭 → 目・口（濃）」の 3 段に
        揃える（輪郭だけ濃くすると顔が沈むため、目・口はさらに一段濃くする）。
        fill を CSS 側に置くことで color-mix / var() を SVG 属性に書かずに済ませる。 */
@@ -1777,10 +1778,11 @@
       restartCatAnim(strip, "catIdle");
     }
 
-    // 体の上下は「間隔」でバリエーションを作る。1 回沈むごとに次までの間を大きく振り直し、
-    // たまに 2 回続けて沈む型（catBob2）へ差し替える。回数は増やさず、来るタイミングだけ読めなくする。
+    // 体の上下は規則正しい呼吸に見せる。間隔は ±12% しか振らず、たまに 2 回続けて沈む型
+    // （catBob2）を混ぜる程度に留める。沈んでいる時間は 1 周の 8% ほどなので、
+    // 間隔が短めでも「細かくぶれている」ようには見えない。
     // 基準値は CSS（#mascot[data-mood] …）が持っているので、mood が変わった時だけ読み直す。
-    const CAT_BOB2_CHANCE = 0.15;
+    const CAT_BOB2_CHANCE = 0.12;
     let catBobBase = 0;
     let catBobMood = null;
     function jitterCatBob() {
@@ -1789,12 +1791,12 @@
       const mood = $("mascot").dataset.mood || "";
       if (catBobMood !== mood) {
         bob.style.removeProperty("animation-duration");
-        catBobBase = parseFloat(getComputedStyle(bob).animationDuration) || 7;
+        catBobBase = parseFloat(getComputedStyle(bob).animationDuration) || 5;
         catBobMood = mood;
       }
-      // 0.7〜1.7 倍。基準 7 秒なら次に沈むまで 5〜12 秒とかなり幅が出る
+      // ±12%。基準 5 秒なら次に沈むまで 4.4〜5.6 秒。機械的にならない程度の揺らぎに留める
       restartCatAnim(bob, Math.random() < CAT_BOB2_CHANCE ? "catBob2" : "catBob",
-        (catBobBase * (0.7 + Math.random())).toFixed(2) + "s");
+        (catBobBase * (0.88 + Math.random() * 0.24)).toFixed(2) + "s");
     }
 
     function setupMascot() {
