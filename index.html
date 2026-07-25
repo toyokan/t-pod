@@ -837,6 +837,64 @@
       2: "____..________..________",
       3: "___KKKK______KKKK_______",
     };
+    // よそ見：両目を 1 ドット右へ寄せる（左右そろって動くので小さくても分かる）
+    const CAT_LOOK = {
+      10: "_____BEE_____BEE________",
+      11: "_____BEE_____BEE________",
+      12: "_____BEE_____BEE________",
+    };
+    // 上を見る：目を 1 行上へずらす。来客を目で追わせるのに使う
+    const CAT_LOOK_UP = {
+      9: "_____EE______EE_________",
+      12: "_____BB______BB_________",
+    };
+    // わくわく：頭の外に光を出す（輪郭の外なので小さくても気づかれやすい）。2 コマでちらつかせる
+    const CAT_SPARK_A = {
+      1: "___________________S____",
+      2: "__________________SSS___",
+      3: "___________________S____",
+    };
+    const CAT_SPARK_B = { 2: "___________________S____" };
+    // あくび：口を大きく開ける（まばたきと重ねて眠そうにする）
+    const CAT_YAWN = {
+      13: "________BEEBB___________",
+      14: "________EEEE____________",
+      15: "_________EE_____________",
+    };
+
+    // ---- まれな来客 ----
+    // 24×24 は余白が狭いので、来客は「ネコの手前を横切る」前提で置く。
+    // ちょう＝ピンク 3×3 で弧を描く / とり＝濃色 5×2 で速く直線 /
+    // ハート＝ピンク 3×3 で上る / おんぷ＝濃色 3×4 で上る。色と大きさと軌道で描き分ける。
+    // 位置が動くので、パッチ 1 行は catRow() で組み立てる（`_` は下の絵を残す）
+    function catRow(parts) {
+      const cells = new Array(24).fill("_");
+      Object.keys(parts).forEach((col) => {
+        const s = parts[col];
+        for (let i = 0; i < s.length; i++) cells[+col + i] = s[i];
+      });
+      return cells.join("");
+    }
+    const catButterfly = (c, r, open) => ({
+      [r]: catRow({ [c]: open ? "P.P" : ".P." }),
+      [r + 1]: catRow({ [c]: "PEP" }),
+      [r + 2]: catRow({ [c]: open ? "P.P" : ".P." }),
+    });
+    const catBird = (c, r, up) => ({
+      [r]: catRow({ [c]: up ? "E...E" : ".EEE." }),
+      [r + 1]: catRow({ [c]: up ? ".EEE." : "E...E" }),
+    });
+    const catHeart = (c, r) => ({
+      [r]: catRow({ [c]: "P.P" }),
+      [r + 1]: catRow({ [c]: "PPP" }),
+      [r + 2]: catRow({ [c + 1]: "P" }),
+    });
+    const catNote = (c, r) => ({
+      [r]: catRow({ [c + 1]: "EE" }),
+      [r + 1]: catRow({ [c + 1]: "E" }),
+      [r + 2]: catRow({ [c + 1]: "E" }),
+      [r + 3]: catRow({ [c]: "EE" }),
+    });
     // 待機アニメは 16 コマ（既定 4.8 秒で一巡）。コマの中身は固定せず、
     // 1 周ごとに shuffleCatFrames() が「しっぽのリズム」＋「表情・耳のアクセント」を選び直す。
     const CAT_SLOTS = 16;
@@ -850,21 +908,61 @@
         [_, _, _, U, U, U, _, _, _, _, D, D, _, _, U, _], // ときどき止まる
       ];
     })();
-    // 表情・耳のアクセント。len はコマ数（にっこりだけ少し長く見せる）
+    // ふだんの動き。1 要素＝1 コマぶんの重ねるパッチ配列なので、コマごとに絵を変えられる
     const CAT_ACCENTS = {
-      blink: { patch: CAT_BLINK, len: 1 },
-      smile: { patch: CAT_SMILE, len: 2 },
-      surprise: { patch: CAT_SURPRISE, len: 1 },
-      ears: { patch: CAT_EARS_DOWN, len: 1 },
+      blink: [[CAT_BLINK]],
+      smile: [[CAT_SMILE], [CAT_SMILE]],
+      surprise: [[CAT_SURPRISE]],
+      ears: [[CAT_EARS_DOWN]],
+      look: [[CAT_LOOK], [CAT_LOOK]],
+      sparkle: [[CAT_SMILE, CAT_SPARK_A], [CAT_SMILE, CAT_SPARK_B]],
+      yawn: [[CAT_BLINK, CAT_YAWN], [CAT_BLINK, CAT_YAWN]],
+    };
+    // まれな来客。コマごとに位置が動き、ネコも目で追う
+    const CAT_RARES = {
+      butterfly: [
+        [catButterfly(19, 3, true)],
+        [catButterfly(15, 1, false), CAT_LOOK_UP],
+        [catButterfly(10, 0, true), CAT_LOOK_UP],
+        [catButterfly(6, 1, false), CAT_LOOK_UP],
+        [catButterfly(2, 3, true), CAT_SMILE],
+      ],
+      bird: [
+        [catBird(18, 0, true), CAT_LOOK_UP],
+        [catBird(12, 0, false), CAT_LOOK_UP],
+        [catBird(6, 0, true), CAT_LOOK_UP],
+        [catBird(0, 0, false), CAT_SURPRISE],
+      ],
+      heart: [
+        [catHeart(8, 3), CAT_SMILE],
+        [catHeart(8, 1), CAT_SMILE],
+        [catHeart(8, 0), CAT_SMILE],
+      ],
+      // しっぽ（row 10 から）と縦線が紛らわしくならないよう、上から 2 行ぶん離して出す
+      note: [
+        [catNote(18, 4), CAT_SMILE],
+        [catNote(18, 2), CAT_SMILE],
+        [catNote(19, 1), CAT_SMILE],
+        [catNote(18, 0), CAT_SMILE],
+      ],
     };
     // 場面ごとの出やすさ（同じ名前を並べて重み付けする）。
-    // 開催中ははしゃぎ気味に、終了後は落ち着いてまばたき中心にする。
+    // 開催中ははしゃぎ気味に、終了後は落ち着いてまばたき・あくび中心にする。
     const CAT_ACCENT_POOL = {
-      live: ["surprise", "smile", "smile", "blink", "ears"],
-      today: ["smile", "blink", "blink", "ears", "surprise"],
-      before: ["blink", "blink", "smile", "ears", "surprise"],
-      after: ["blink", "blink", "blink", "smile", "ears"],
-      ended: ["blink", "blink", "blink", "ears"],
+      live: ["surprise", "smile", "smile", "sparkle", "blink", "ears", "look"],
+      today: ["smile", "sparkle", "blink", "blink", "ears", "look", "surprise"],
+      before: ["blink", "blink", "smile", "ears", "look", "look", "surprise"],
+      after: ["blink", "blink", "yawn", "smile", "ears", "look"],
+      ended: ["blink", "blink", "yawn", "yawn", "ears", "look"],
+    };
+    // 来客は 1 周につき最大 1 回、この確率でだけ現れる（既定 4.8 秒／周なので 1 分半に 1 回くらい）
+    const CAT_RARE_CHANCE = 0.07;
+    const CAT_RARE_POOL = {
+      live: ["heart", "butterfly", "bird"],
+      today: ["butterfly", "bird", "heart"],
+      before: ["butterfly", "bird"],
+      after: ["note", "butterfly"],
+      ended: ["note", "note", "butterfly"],
     };
     const CAT_FILL = { K: "cat-k", B: "cat-b", S: "cat-s", W: "cat-w", P: "cat-p", E: "cat-e" };
 
@@ -1557,7 +1655,8 @@
     const randInt = (n) => Math.floor(Math.random() * n);
     const pickOne = (arr) => arr[randInt(arr.length)];
 
-    // しっぽのリズムを 1 本選び、空いているコマへ表情・耳のアクセントを 2〜3 個置く。
+    // しっぽのリズムを 1 本選び、空いているコマへ動きを置く。
+    // まれな来客はコマ数が多いので先に場所を取り、そのあと普段の動きを 2〜3 個入れる。
     // 変わったコマだけ差し替えるので、毎周の DOM 書き換えはたいてい数コマで済む。
     function shuffleCatFrames() {
       const strip = $("mascotStrip");
@@ -1565,33 +1664,44 @@
       // 動きを止めている環境ではコマ送り自体が無いので、先頭のコマを作り替えない
       if (reduceMotionQuery.matches && catSlotKeys.length) return;
 
-      const trackIdx = randInt(CAT_TAIL_TRACKS.length);
-      const track = CAT_TAIL_TRACKS[trackIdx];
-      const accents = new Array(CAT_SLOTS).fill(null);
-      const pool = CAT_ACCENT_POOL[$("mascot").dataset.mood] || CAT_ACCENT_POOL.before;
+      const mood = $("mascot").dataset.mood;
+      const track = pickOne(CAT_TAIL_TRACKS);
+      // slots[i] = [動きの名前, その動きの何コマ目か]。null は素の顔
+      const slots = new Array(CAT_SLOTS).fill(null);
+      // 先頭コマは常に素の顔にする（周の切れ目で表情が飛び込んで見えないように）
+      const place = (name, frames) => {
+        const len = frames.length;
+        const start = 1 + randInt(CAT_SLOTS - len - 1);
+        for (let i = 0; i < len; i++) if (slots[start + i]) return false;
+        for (let i = 0; i < len; i++) slots[start + i] = [name, i];
+        return true;
+      };
+
+      if (Math.random() < CAT_RARE_CHANCE) {
+        const name = pickOne(CAT_RARE_POOL[mood] || CAT_RARE_POOL.before);
+        place(name, CAT_RARES[name]);
+      }
+      const pool = CAT_ACCENT_POOL[mood] || CAT_ACCENT_POOL.before;
       const count = 2 + randInt(2);
       for (let n = 0; n < count; n++) {
         const name = pickOne(pool);
-        const a = CAT_ACCENTS[name];
-        // 先頭コマは素の顔にしておく（周の切れ目で表情が飛び込んで見えないように）
-        const start = 1 + randInt(CAT_SLOTS - a.len - 1);
-        let free = true;
-        for (let i = 0; i < a.len; i++) if (accents[start + i]) free = false;
-        if (!free) continue;
-        for (let i = 0; i < a.len; i++) accents[start + i] = name;
+        place(name, CAT_ACCENTS[name]);
       }
 
       for (let i = 0; i < CAT_SLOTS; i++) {
         const tail = track[i];
-        const name = accents[i];
+        const act = slots[i];
         const tailKey = tail === CAT_TAIL_UP ? "up" : tail === CAT_TAIL_DOWN ? "down" : "mid";
-        const key = tailKey + "/" + (name || "");
+        const actKey = act ? act[0] + act[1] : "";
+        const key = tailKey + "/" + actKey;
         if (catSlotKeys[i] === key) continue; // 前の周と同じ絵なら触らない
         catSlotKeys[i] = key;
-        const patches = [];
-        if (tail) patches.push(tail);
-        if (name) patches.push(CAT_ACCENTS[name].patch);
-        strip.children[i].innerHTML = catSvgFor(tailKey, name || "", patches);
+        const patches = tail ? [tail] : [];
+        if (act) {
+          const frames = CAT_ACCENTS[act[0]] || CAT_RARES[act[0]];
+          frames[act[1]].forEach((p) => patches.push(p));
+        }
+        strip.children[i].innerHTML = catSvgFor(tailKey, actKey, patches);
       }
     }
 
