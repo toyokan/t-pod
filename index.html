@@ -837,14 +837,35 @@
       2: "____..________..________",
       3: "___KKKK______KKKK_______",
     };
-    // 16コマ（既定 4.8 秒で一巡）。しっぽの往復に、まばたき・にっこり・びっくり・耳ぴくを
-    // 別々の拍で差し込む。速さは #mascot[data-mood] で場面ごとに切り替える。
-    const CAT_FRAMES = [
-      [], [CAT_TAIL_UP], [], [CAT_TAIL_DOWN],
-      [], [CAT_BLINK], [], [CAT_TAIL_UP],
-      [CAT_TAIL_UP, CAT_SMILE], [CAT_SMILE], [], [CAT_TAIL_DOWN],
-      [CAT_EARS_DOWN], [], [CAT_TAIL_UP, CAT_SURPRISE], [CAT_TAIL_DOWN],
-    ];
+    // 待機アニメは 16 コマ（既定 4.8 秒で一巡）。コマの中身は固定せず、
+    // 1 周ごとに shuffleCatFrames() が「しっぽのリズム」＋「表情・耳のアクセント」を選び直す。
+    const CAT_SLOTS = 16;
+    // しっぽのリズム。U=上げる / D=下げる / null=中。1 周ごとにこの中から 1 本を選ぶ
+    const CAT_TAIL_TRACKS = (() => {
+      const U = CAT_TAIL_UP, D = CAT_TAIL_DOWN, _ = null;
+      return [
+        [_, U, _, D, _, _, _, U, U, _, _, D, _, _, U, D], // ふつう
+        [_, _, U, U, _, D, _, _, U, _, D, D, _, U, _, _], // ゆったり
+        [U, _, D, _, U, _, D, _, _, U, _, D, U, _, D, _], // せわしない
+        [_, _, _, U, U, U, _, _, _, _, D, D, _, _, U, _], // ときどき止まる
+      ];
+    })();
+    // 表情・耳のアクセント。len はコマ数（にっこりだけ少し長く見せる）
+    const CAT_ACCENTS = {
+      blink: { patch: CAT_BLINK, len: 1 },
+      smile: { patch: CAT_SMILE, len: 2 },
+      surprise: { patch: CAT_SURPRISE, len: 1 },
+      ears: { patch: CAT_EARS_DOWN, len: 1 },
+    };
+    // 場面ごとの出やすさ（同じ名前を並べて重み付けする）。
+    // 開催中ははしゃぎ気味に、終了後は落ち着いてまばたき中心にする。
+    const CAT_ACCENT_POOL = {
+      live: ["surprise", "smile", "smile", "blink", "ears"],
+      today: ["smile", "blink", "blink", "ears", "surprise"],
+      before: ["blink", "blink", "smile", "ears", "surprise"],
+      after: ["blink", "blink", "blink", "smile", "ears"],
+      ended: ["blink", "blink", "blink", "ears"],
+    };
     const CAT_FILL = { K: "cat-k", B: "cat-b", S: "cat-s", W: "cat-w", P: "cat-p", E: "cat-e" };
 
     // ベースにパッチを順に重ねて 24 行のドット列を作る（`_` の位置は下の絵を残す）
@@ -878,6 +899,19 @@
         }
       });
       return `<svg viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+    }
+
+    // 組み合わせは「しっぽ 3 種 × アクセント 5 種」しか無いので、作った SVG は使い回す。
+    // 1 周ごとにコマを差し替えても、2 周目以降は文字列を取り出すだけで済む。
+    const catSvgCache = new Map();
+    function catSvgFor(tailKey, accentKey, patches) {
+      const key = tailKey + "/" + accentKey;
+      let svg = catSvgCache.get(key);
+      if (svg === undefined) {
+        svg = buildCatSvg(patches);
+        catSvgCache.set(key, svg);
+      }
+      return svg;
     }
 
     // ---- 吹き出しのドット風フレーム（border-image / background 用） ----
@@ -1518,6 +1552,66 @@
       return true;
     }
 
+    // ---- 待機アニメのコマ組み立て（1 周ごとにランダム） ----
+    let catSlotKeys = [];
+    const randInt = (n) => Math.floor(Math.random() * n);
+    const pickOne = (arr) => arr[randInt(arr.length)];
+
+    // しっぽのリズムを 1 本選び、空いているコマへ表情・耳のアクセントを 2〜3 個置く。
+    // 変わったコマだけ差し替えるので、毎周の DOM 書き換えはたいてい数コマで済む。
+    function shuffleCatFrames() {
+      const strip = $("mascotStrip");
+      if (!strip || !strip.children.length) return;
+      // 動きを止めている環境ではコマ送り自体が無いので、先頭のコマを作り替えない
+      if (reduceMotionQuery.matches && catSlotKeys.length) return;
+
+      const trackIdx = randInt(CAT_TAIL_TRACKS.length);
+      const track = CAT_TAIL_TRACKS[trackIdx];
+      const accents = new Array(CAT_SLOTS).fill(null);
+      const pool = CAT_ACCENT_POOL[$("mascot").dataset.mood] || CAT_ACCENT_POOL.before;
+      const count = 2 + randInt(2);
+      for (let n = 0; n < count; n++) {
+        const name = pickOne(pool);
+        const a = CAT_ACCENTS[name];
+        // 先頭コマは素の顔にしておく（周の切れ目で表情が飛び込んで見えないように）
+        const start = 1 + randInt(CAT_SLOTS - a.len - 1);
+        let free = true;
+        for (let i = 0; i < a.len; i++) if (accents[start + i]) free = false;
+        if (!free) continue;
+        for (let i = 0; i < a.len; i++) accents[start + i] = name;
+      }
+
+      for (let i = 0; i < CAT_SLOTS; i++) {
+        const tail = track[i];
+        const name = accents[i];
+        const tailKey = tail === CAT_TAIL_UP ? "up" : tail === CAT_TAIL_DOWN ? "down" : "mid";
+        const key = tailKey + "/" + (name || "");
+        if (catSlotKeys[i] === key) continue; // 前の周と同じ絵なら触らない
+        catSlotKeys[i] = key;
+        const patches = [];
+        if (tail) patches.push(tail);
+        if (name) patches.push(CAT_ACCENTS[name].patch);
+        strip.children[i].innerHTML = catSvgFor(tailKey, name || "", patches);
+      }
+    }
+
+    // 呼吸の周期を 1 往復ごとに ±20% ほど揺らす。位相が読めなくなり、
+    // コマ送りとの組み合わせがさらに繰り返しに見えにくくなる。
+    // 基準値は CSS（#mascot[data-mood] …）が持っているので、mood が変わった時だけ読み直す。
+    let catBobBase = 0;
+    let catBobMood = null;
+    function jitterCatBob() {
+      const bob = $("mascotBob");
+      if (!bob || reduceMotionQuery.matches) return;
+      const mood = $("mascot").dataset.mood || "";
+      if (catBobMood !== mood) {
+        bob.style.removeProperty("animation-duration");
+        catBobBase = parseFloat(getComputedStyle(bob).animationDuration) || 2.2;
+        catBobMood = mood;
+      }
+      bob.style.animationDuration = (catBobBase * (0.82 + Math.random() * 0.42)).toFixed(2) + "s";
+    }
+
     function setupMascot() {
       const box = $("mascot");
       const strip = $("mascotStrip");
@@ -1526,7 +1620,20 @@
       if ((DATA.eventInfo || {}).mascot === false) return;
       if (!mascotLines().length) return;
 
-      strip.innerHTML = CAT_FRAMES.map((patch) => `<span class="cat-frame">${buildCatSvg(patch)}</span>`).join("");
+      // アクセントの重み付けに使うので、コマを組む前に mood を確定させておく
+      box.dataset.mood = mascotState().mood;
+      // 空のコマ枠を並べてから中身を流し込む（以降は 1 周ごとに中身だけ差し替える）
+      strip.innerHTML = Array.from({ length: CAT_SLOTS }, () => '<span class="cat-frame"></span>').join("");
+      shuffleCatFrames();
+      // 1 周し終わるたびにコマを選び直す。この瞬間はコマ送りが先頭へ戻った直後なので、
+      // 中身を入れ替えても見た目が飛ばない。タブが非表示の間はイベント自体が来ない。
+      // アニメーションイベントは親へ上がるため、どのアニメーションかを名前で見分ける。
+      strip.addEventListener("animationiteration", (e) => {
+        if (e.animationName === "catIdle") shuffleCatFrames();
+      });
+      $("mascotBob").addEventListener("animationiteration", (e) => {
+        if (e.animationName === "catBob") jitterCatBob();
+      });
 
       // 吹き出しの枠と三角も、ネコの輪郭（.cat-k と同じ 60%＋黒）で実行時に描く
       const line = mixWithBlack(resolvedBrand(), 0.6);
