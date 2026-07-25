@@ -38,6 +38,7 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 - LINE 友だち追加ポップアップはイベントでは `eventInfo.linePromo: true` の場合のみ表示する
 - イベント別ブランド色、補助色、PWA 表示名、アイコン文字、会場マップを設定できる
 - `eventInfo.bookSale` がある場合、BOOKS に特設販売ページへの導線を表示する
+- イベントページの右下にドット絵マスコットを常駐させ、開催日・セッション・現在時刻から算出した一言を吹き出しで表示する。絵と吹き出しの枠はコードのドットデータから実行時生成し、色はブランド色に追従する。タップで吹き出しを畳め、`eventInfo.mascot: false` で無効化できる
 - `prefers-reduced-motion` と `backdrop-filter` 非対応環境にフォールバックする
 - Service Worker は Network First とし、閲覧済みイベントをオフラインでも表示できるようにする
 - 全ページを `noindex, nofollow, noarchive` とし、個別イベントの概要・お知らせモーダル最下部にURLの転載・共有を控える旨を表示する
@@ -83,6 +84,7 @@ t-pod は教育イベント・研究会向けの静的タイムテーブル PWA 
 | `forms[]` | `label` / `description` / `url` |
 | `venue` | `mapImage` / `mapNote` / `resourceLinks[]` |
 | `bookSale` | 任意。`url` / `label` / `note`。書籍特設販売ページへの導線 |
+| `mascot` | 任意。`false` にすると、そのイベントでは右下のマスコットを表示しない |
 
 ### タイムテーブルと書籍
 
