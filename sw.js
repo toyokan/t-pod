@@ -10,7 +10,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v93";
+const CACHE_VERSION = "v94";
 const CACHE_NAME = `t-pod-${CACHE_VERSION}`;
 
 // 16進カラー（#rgb / #rgba / #rrggbb / #rrggbbaa）判定
@@ -24,6 +24,8 @@ const APP_SHELL = [
   "./index.html",
   "./manifest.json",
   "./assets/icon.svg",
+  // マスコットの造形定義。これが無いと右下のふせんネコが組めないのでシェル扱いにする
+  "./assets/fuseneko/fuseneko-grid.js",
   "https://cdn.tailwindcss.com/3.4.17",
 ];
 
