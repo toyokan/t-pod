@@ -363,21 +363,36 @@
     #mascotStrip { animation: catIdle 4.8s steps(16) infinite; will-change: transform; }
     .cat-frame { flex: 0 0 6.25%; }
     .cat-frame svg { display: block; width: 100%; height: auto; }
-    /* 呼吸（体の上下）。コマ送りが #mascotStrip の translateX を使っているので、
+    /* 体の上下。コマ送りが #mascotStrip の translateX を使っているので、
        同一要素で transform を二重に持てない。入れ子のラッパーに縦の動きを持たせる。
        表示は 48px＝24ドットの2倍なので 2px ＝ ちょうど 1 ドット（半端な位置に来ない）。
-       コマ送り 4.8 秒と割り切れない 2.2 秒で回し、組み合わせのループ感を薄める。 */
-    /* steps(2) は 0 と半分（＝2px）だけを取り、4px には到達しない。補間が挟まらず必ず整数ドットに乗る */
-    @keyframes catBob { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(0, 4px, 0); } }
-    #mascotBob { animation: catBob 2.2s steps(2) infinite; will-change: transform; }
+       常時ゆれると「ぶれ」に見えて疲れるので、**ふだんは静止し、1 周に一度だけ短く沈む**。
+       バリエーションは沈む間隔（＝周期）と、1 回沈むか 2 回続けて沈むかで作る。
+       steps(1, end) は各区間で開始値を保持して終わりで飛ぶので、補間が挟まらず整数ドットに乗る。 */
+    @keyframes catBob {
+      0% { transform: translate3d(0, 0, 0); }
+      86% { transform: translate3d(0, 2px, 0); }
+      94% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(0, 0, 0); }
+    }
+    @keyframes catBob2 {
+      0% { transform: translate3d(0, 0, 0); }
+      68% { transform: translate3d(0, 2px, 0); }
+      74% { transform: translate3d(0, 0, 0); }
+      82% { transform: translate3d(0, 2px, 0); }
+      88% { transform: translate3d(0, 0, 0); }
+      100% { transform: translate3d(0, 0, 0); }
+    }
+    #mascotBob { animation: catBob 7s steps(1, end) infinite; will-change: transform; }
     /* 場面（mascotState() の mood）で速さだけ変える。開催中は速く、終了後はのんびり */
     #mascot[data-mood="live"]  #mascotStrip { animation-duration: 3s; }
-    #mascot[data-mood="live"]  #mascotBob   { animation-duration: 1.6s; }
+    #mascot[data-mood="live"]  #mascotBob   { animation-duration: 5.5s; }
     #mascot[data-mood="today"] #mascotStrip { animation-duration: 4.2s; }
+    #mascot[data-mood="today"] #mascotBob   { animation-duration: 6.5s; }
     #mascot[data-mood="after"] #mascotStrip { animation-duration: 6.4s; }
-    #mascot[data-mood="after"] #mascotBob   { animation-duration: 3.2s; }
+    #mascot[data-mood="after"] #mascotBob   { animation-duration: 9.5s; }
     #mascot[data-mood="ended"] #mascotStrip { animation-duration: 8s; }
-    #mascot[data-mood="ended"] #mascotBob   { animation-duration: 3.6s; }
+    #mascot[data-mood="ended"] #mascotBob   { animation-duration: 12s; }
     /* ドットのパレット。黒に近い色は使わず、「体（淡）→ 輪郭 → 目・口（濃）」の 3 段に
        揃える（輪郭だけ濃くすると顔が沈むため、目・口はさらに一段濃くする）。
        fill を CSS 側に置くことで color-mix / var() を SVG 属性に書かずに済ませる。 */
@@ -1705,9 +1720,10 @@
       }
     }
 
-    // 呼吸の周期を 1 往復ごとに ±20% ほど揺らす。位相が読めなくなり、
-    // コマ送りとの組み合わせがさらに繰り返しに見えにくくなる。
+    // 体の上下は「間隔」でバリエーションを作る。1 回沈むごとに次までの間を大きく振り直し、
+    // たまに 2 回続けて沈む型（catBob2）へ差し替える。回数は増やさず、来るタイミングだけ読めなくする。
     // 基準値は CSS（#mascot[data-mood] …）が持っているので、mood が変わった時だけ読み直す。
+    const CAT_BOB2_CHANCE = 0.15;
     let catBobBase = 0;
     let catBobMood = null;
     function jitterCatBob() {
@@ -1716,10 +1732,17 @@
       const mood = $("mascot").dataset.mood || "";
       if (catBobMood !== mood) {
         bob.style.removeProperty("animation-duration");
-        catBobBase = parseFloat(getComputedStyle(bob).animationDuration) || 2.2;
+        catBobBase = parseFloat(getComputedStyle(bob).animationDuration) || 7;
         catBobMood = mood;
       }
-      bob.style.animationDuration = (catBobBase * (0.82 + Math.random() * 0.42)).toFixed(2) + "s";
+      // 走行中に animation-duration を変えると「累計経過 ÷ 新しい周期」で回数が計算し直され、
+      // 短くした瞬間に iteration がまとめて消化されてしまう（＝間隔 0 秒で何度も沈む）。
+      // いったん name を none にして強制リフローで確定させ、累計経過ごとリセットしてから入れ直す。
+      bob.style.animationName = "none";
+      void bob.offsetHeight;
+      // 0.7〜1.7 倍。基準 7 秒なら次に沈むまで 5〜12 秒とかなり幅が出る
+      bob.style.animationDuration = (catBobBase * (0.7 + Math.random())).toFixed(2) + "s";
+      bob.style.animationName = Math.random() < CAT_BOB2_CHANCE ? "catBob2" : "catBob";
     }
 
     function setupMascot() {
@@ -1742,7 +1765,7 @@
         if (e.animationName === "catIdle") shuffleCatFrames();
       });
       $("mascotBob").addEventListener("animationiteration", (e) => {
-        if (e.animationName === "catBob") jitterCatBob();
+        if (e.animationName === "catBob" || e.animationName === "catBob2") jitterCatBob();
       });
 
       // 吹き出しの枠と三角も、ネコの輪郭（.cat-k と同じ 60%＋黒）で実行時に描く
