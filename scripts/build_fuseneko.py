@@ -27,6 +27,8 @@ SVG_TARGETS = {
     "fuseneko-standard": [],
     "fuseneko-smile": ["FN_SMILE"],
     "fuseneko-serious": ["FN_SERIOUS"],
+    "fuseneko-happy": ["FN_HAPPY"],
+    "fuseneko-idea": ["FN_IDEA"],
 }
 
 # 単体で <img> 表示されたときのための既定色（標準の黄から作る）。
@@ -168,6 +170,8 @@ TITLES = {
     "fuseneko-standard": "ふせんネコ（標準）",
     "fuseneko-smile": "ふせんネコ（にっこり）",
     "fuseneko-serious": "ふせんネコ（まじめ）",
+    "fuseneko-happy": "ふせんネコ（うれしい）",
+    "fuseneko-idea": "ふせんネコ（ひらめき）",
 }
 
 
