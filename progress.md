@@ -452,3 +452,15 @@
 - **場面で速さが変わるようにした**: `mascotLines()` の分岐を `mascotState(now)` に切り出して `{ mood, lines }` を返すようにし（`mascotLines()` は `lines` を返す薄いラッパーとして残置。コンソールからの確認手順は不変）、`mood` を `#mascot` の `data-mood` に載せて **CSS 側で `animation-duration` だけ切り替える**。`live`（進行中）3.0 秒 → `today` 4.2 秒 → `before` 4.8 秒 → `after` 6.4 秒 → `ended` 8.0 秒。JS のタイマーは増やしていない。
 - `prefers-reduced-motion` では `#mascotStrip` と `#mascotBob` の両方を停止し、1 コマ目で静止させる。
 - シェル変更のため Service Worker の `CACHE_VERSION` を **v83→v84** に更新。
+
+### 2026-07-25 吹き出しをドット風に（フォント・枠・しっぽ）
+
+ネコのドット絵と吹き出しの質感が揃っていなかったので、吹き出し側もドット風にした。
+
+- **フォント**: Google Fonts の **DotGothic16**（日本語のドットフォント）を追加し、**吹き出しだけ**に当てた（本文は Zen Kaku Gothic New のまま）。ウェイトは 400 のみなので `font-bold` を外し、合成ボールドでドットが潰れないようにしている。サイズは 13px。Google Fonts は unicode-range で分割配信されるため、必要なサブセットしか落ちてこない。取得に失敗した場合は Zen Kaku Gothic New → monospace にフォールバックする。
+- **枠をドット風に**: 角丸と 1px 枠をやめ、9×9 のドット列（`BUBBLE_FRAME`）から作った SVG を `border-image`（`border-image-slice: 3 fill` / `border-image-width: 6px`）で使う。3 マス＝6px なので**ネコと同じ「1 ドット＝2px」の粒**で角が階段になる。辺のスライスは単色にしてあるので `stretch` しても崩れない。
+- **三角のしっぽもドット風に**: `BUBBLE_ARROW`（4×6）を `::after` の背景に。左端 1 列が白なので、重なった位置だけ枠が開いて吹き出しから生えているように見える。絶対配置の基準は padding ボックスなので、枠 6px を足した `right: -12px` で「枠に 2px 重なり外へ 6px 出る」位置になる。
+- **色はネコの輪郭と共通**: data URI の SVG は `color-mix()` や `var()` を解決できないため、`mixWithBlack(resolvedBrand(), 0.6)`（`.cat-k` と同じ計算）で色を文字列として埋め込み、`setupMascot()` が `--cat-frame`/`--cat-arrow` にセットする。3 イベントすべてで枠の色がネコの輪郭と一致することを実測で確認。
+- **影**: ぼかしのある影をやめ、`filter: drop-shadow(2px 3px 0 …)` の 1 段ずらしに。角の階段としっぽの形にも影が沿う。
+- **ハマりどころ**: data URI の SVG に `width`/`height` を入れないと固有サイズが無いと見なされ、`border-image-slice: 3` が「画像の 3 ドット」ではなく「3 CSS ピクセル」として解釈されて 9 分割が崩れる（実際に一度崩れた）。
+- シェル変更のため Service Worker の `CACHE_VERSION` を **v84→v85** に更新。

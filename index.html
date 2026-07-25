@@ -52,7 +52,8 @@
   <!-- Webフォント（Zen Kaku Gothic New）。SWでキャッシュしオフライン時はシステムフォントに劣化 -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <!-- DotGothic16 はマスコットの吹き出し専用（ドット絵と粒を合わせるため）。本文は Zen Kaku Gothic New -->
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -386,14 +387,34 @@
     .cat-e { fill: color-mix(in srgb, var(--brand) 50%, black); }
     .cat-w { fill: #fff; }
     .cat-p { fill: #f7a8b8; }
-    /* 吹き出しはタップで畳む。文言差し替え時は opacity だけを触る */
-    #mascotBubble { position: relative; transition: opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1); transform-origin: right bottom; }
-    /* ネコを指す三角のしっぽ。白いセッションカードの上に重なっても「吹き出し」と分かるようにする */
+    /* 吹き出しもドット風。角の階段と三角のしっぽは setupMascot() が実行時に生成した SVG を
+       --cat-frame / --cat-arrow に入れる（色をネコの輪郭と揃えるため）。
+       枠は 9×9 の 9 スライスを border-image で使い、border-image-width: 6px＝3マス×2倍にすると
+       ネコと同じ「1ドット=2px」の粒になる。辺のスライスは単色なので stretch しても崩れない。
+       影はぼかさず 1 段ずらすだけ（drop-shadow なら角の階段としっぽの形にも沿う）。 */
+    #mascotBubble {
+      position: relative;
+      font-family: "DotGothic16", "Zen Kaku Gothic New", monospace;
+      background: none;
+      border-radius: 0;
+      border-style: solid;
+      border-width: 6px;
+      border-color: rgb(100 116 139);
+      border-image-source: var(--cat-frame);
+      border-image-slice: 3 fill;
+      border-image-width: 6px;
+      border-image-repeat: stretch;
+      filter: drop-shadow(2px 3px 0 rgba(15, 23, 42, .22));
+      transition: opacity .18s ease, transform .18s cubic-bezier(.22,1,.36,1);
+      transform-origin: right bottom;
+    }
+    /* ネコを指す三角のしっぽ。左端 1 ドット（2px）が枠線に重なり、そこだけ枠を白く開ける。
+       絶対配置の基準は padding ボックスなので、枠 6px ぶんを足した -12px で
+       「右枠線の上に 2px 重なり、外へ 6px 出る」位置になる。 */
     #mascotBubble::after {
-      content: ""; position: absolute; right: -5px; top: 50%;
-      width: 9px; height: 9px; margin-top: -4.5px; background: #fff;
-      border-right: 1px solid rgb(203 213 225); border-top: 1px solid rgb(203 213 225);
-      transform: rotate(45deg);
+      content: ""; position: absolute; right: -12px; top: 50%;
+      width: 8px; height: 12px; margin-top: -6px;
+      background: var(--cat-arrow) center / 100% 100% no-repeat;
     }
     #mascot.is-folded #mascotBubble { opacity: 0; transform: scale(.9) translate3d(6px, 0, 0); }
     #mascotBubble.is-swapping { opacity: 0; }
@@ -594,7 +615,7 @@
   <div id="mascot" class="hidden fixed inset-x-0 z-20 max-w-2xl mx-auto px-3 justify-end items-center gap-2.5 pointer-events-none">
     <!-- 7秒ごとに差し替わる装飾的な一言なので aria-live は付けない（読み上げが繰り返されるのを避ける） -->
     <!-- 背面の白いセッションカードに埋もれないよう、枠線を濃く・影を強くし、::after で三角のしっぽを出す -->
-    <p id="mascotBubble" class="max-w-[min(52vw,17rem)] bg-white border border-slate-300 rounded-2xl shadow-[0_6px_18px_-4px_rgba(15,23,42,0.28)] px-3 py-1.5 text-[11px] font-bold text-slate-700 leading-snug"></p>
+    <p id="mascotBubble" class="max-w-[min(52vw,17rem)] px-1.5 py-0.5 text-[13px] font-normal text-slate-800 leading-relaxed"></p>
     <button id="mascotBtn" type="button" aria-label="マスコット（タップで吹き出しを開閉）"
       class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition">
       <!-- コマ送り（横）と呼吸（縦）は別要素に持たせる。同一要素では transform が競合するため -->
@@ -857,6 +878,63 @@
         }
       });
       return `<svg viewBox="0 0 24 24" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+    }
+
+    // ---- 吹き出しのドット風フレーム（border-image / background 用） ----
+    // ネコと同じドットの粒で角の階段を作る。CSS の url() に入れる data URI は
+    // color-mix() や var() を解決できないので、色は実行時に文字列として埋め込む。
+    // K=枠線 / W=白 / .=透過。9×9 を border-image-slice: 3 で 9 分割して使うため、
+    // 上下の辺（列 3–5）と左右の辺（行 3–5）は伸ばしても崩れない単色にしてある。
+    const BUBBLE_FRAME = [
+      "..KKKKK..",
+      ".KWWWWWK.",
+      "KWWWWWWWK",
+      "KWWWWWWWK",
+      "KWWWWWWWK",
+      "KWWWWWWWK",
+      "KWWWWWWWK",
+      ".KWWWWWK.",
+      "..KKKKK..",
+    ];
+    // ネコを指す三角。左端の列は白なので、重ねた位置だけ吹き出しの枠が開いて見える
+    const BUBBLE_ARROW = [
+      "WK..",
+      "WWK.",
+      "WWWK",
+      "WWWK",
+      "WWK.",
+      "WK..",
+    ];
+
+    // ドット列を data URI の SVG にする（横に連続する同色は 1 つの <rect> にまとめる）
+    function buildDotDataUri(rows, colorOf) {
+      let rects = "";
+      rows.forEach((row, y) => {
+        let x = 0;
+        while (x < row.length) {
+          const ch = row[x];
+          let w = 1;
+          while (row[x + w] === ch) w++;
+          const fill = colorOf(ch);
+          if (fill) rects += `<rect x="${x}" y="${y}" width="${w}" height="1" fill="${fill}"/>`;
+          x += w;
+        }
+      });
+      // width/height を必ず入れる。SVG に固有サイズが無いと border-image-slice の数値が
+      // 画像のドット数ではなく CSS ピクセルとして解釈され、9 分割がずれる
+      const w = rows[0].length, h = rows.length;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges">${rects}</svg>`;
+      return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    }
+
+    // 16進を黒側へ混ぜる（.cat-k の color-mix(var(--brand) p%, black) と同じ計算）。
+    // #rgb 表記も受け付ける。解釈できない値はグレーにフォールバックする
+    function mixWithBlack(hex, p) {
+      let s = String(hex || "").trim().replace(/^#/, "");
+      if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.replace(/./g, (c) => c + c);
+      const n = /^[0-9a-fA-F]{6}$/.test(s) ? parseInt(s, 16) : 0x64748b;
+      const ch = (shift) => Math.round(((n >> shift) & 255) * p);
+      return `rgb(${ch(16)},${ch(8)},${ch(0)})`;
     }
 
     // ---- 状態 ----
@@ -1449,6 +1527,13 @@
       if (!mascotLines().length) return;
 
       strip.innerHTML = CAT_FRAMES.map((patch) => `<span class="cat-frame">${buildCatSvg(patch)}</span>`).join("");
+
+      // 吹き出しの枠と三角も、ネコの輪郭（.cat-k と同じ 60%＋黒）で実行時に描く
+      const line = mixWithBlack(resolvedBrand(), 0.6);
+      const frameColor = (ch) => (ch === "K" ? line : ch === "W" ? "#fff" : "");
+      box.style.setProperty("--cat-frame", buildDotDataUri(BUBBLE_FRAME, frameColor));
+      box.style.setProperty("--cat-arrow", buildDotDataUri(BUBBLE_ARROW, frameColor));
+
       box.classList.remove("hidden");
       box.classList.add("flex");
 
