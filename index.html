@@ -1135,6 +1135,9 @@
       } catch (err) {
         console.error(err);
         setMode("list");
+        // ここは「存在しない id」だけでなく**通信失敗・10 秒タイムアウトでも通る**ので、
+        // 原因を断定しない中立の見出しにする（詳しい案内と導線は #errorBox が持つ）
+        setPageHeading("イベントを読み込めませんでした");
         // イベントを読めなかったので、inline script が貼った events/<id>.webmanifest
         // （実体が無ければ 404）は残さず汎用へ戻す
         setManifestHref("manifest.json");
@@ -1145,11 +1148,18 @@
       }
     }
 
+    // ヘッダーの見出しとタブのタイトルをまとめて置き換える。
+    // イベントを読めなかったときも必ず通す——素通りすると <h1> の初期値
+    // 「読み込み中…」が残り、真下のエラー表示と食い違って見える
+    function setPageHeading(text, subtitle = "") {
+      $("eventTitle").textContent = text;
+      $("eventSubtitle").textContent = subtitle;
+      document.title = text;
+    }
+
     // ---- 参加者向け案内（?id 無し） ----
     function renderAccessGuide() {
-      $("eventTitle").textContent = "イベントページのご案内";
-      $("eventSubtitle").textContent = "";
-      document.title = "イベントページのご案内";
+      setPageHeading("イベントページのご案内");
     }
 
     function renderAll() {
