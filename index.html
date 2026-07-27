@@ -527,7 +527,9 @@
     <div class="hd relative px-5 pt-4 pb-3.5">
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight">読み込み中…</h1>
+          <!-- touch-manipulation は、図鑑の 5 回タップにダブルタップ拡大が挟まらないようにするため
+               （ピンチ拡大は従来どおり効く）。見出しの見た目と読み上げは変えない。 -->
+          <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight touch-manipulation">読み込み中…</h1>
           <p id="eventSubtitle" class="text-[11px] font-semibold opacity-85 mt-0.5"></p>
         </div>
         <!-- お知らせ（旧FABをヘッダーへ移設） -->
@@ -995,7 +997,8 @@
           `<figcaption>${e.label}</figcaption></figure>`;
       }).join("");
       openModal(`${CAT_NAME}図鑑`, `<div class="cat-gallery">${cells}</div>` +
-        `<p class="text-[11px] text-slate-400">右下にいる ${CAT_NAME} の表情と、まれに遊びに来る仲間たち。</p>`);
+        // 読ませる説明文なので slate-400（白地に 2.9:1・AA 未達）ではなく slate-500（4.7:1）にする
+        `<p class="text-[11px] text-slate-500">右下にいる ${CAT_NAME} の表情と、まれに遊びに来る仲間たち。</p>`);
     }
 
     // 図鑑の入口は見出し。隠し要素なので role/tabindex/cursor は足さず、見た目も操作性も変えない
@@ -1005,15 +1008,9 @@
       const title = $("eventTitle");
       if (!title || catGalleryWired) return;
       catGalleryWired = true;
-      let taps = 0;
-      let last = 0;
+      const tapped = makeTapCounter(TAPS_TO_GALLERY);
       title.addEventListener("click", () => {
-        const now = Date.now();
-        taps = now - last <= TAP_GAP_MS ? taps + 1 : 1;
-        last = now;
-        if (taps < TAPS_TO_GALLERY) return;
-        taps = 0;
-        openCatGallery();
+        if (tapped()) openCatGallery();
       });
     }
 
@@ -1556,6 +1553,21 @@
     // ここ 1 箇所を包むだけで全ての場面に効く。
     // 進行中（live）には足さない——「いまは何の時間」の案内を押しのけないため。
     // 文言が空＝マスコットを出さない判定なので、そのときも足さない。
+    // 「素早く N 回つついたか」を数える。隠し要素が 2 つとも同じ数え方なので 1 箇所にまとめる。
+    // 規定回数に達したら true を返して 0 に戻す（連打で何度も発火しない）。
+    function makeTapCounter(times) {
+      let count = 0;
+      let last = 0;
+      return () => {
+        const now = Date.now();
+        count = now - last <= TAP_GAP_MS ? count + 1 : 1;
+        last = now;
+        if (count < times) return false;
+        count = 0;
+        return true;
+      };
+    }
+
     const NIGHT_LINES = [
       { from: 0, to: 5, line: "まだ起きてるの？" },
       { from: 5, to: 7, line: "はやおきだね！" },
@@ -1798,6 +1810,7 @@
       const strip = $("mascotStrip");
       if (!strip || !strip.children.length || reduceMotionQuery.matches) return;
       const frames = CAT_ACCENTS[name] || CAT_RARES[name]; // 来客（ハート等）も同じ枠で流せる
+      if (!frames) return; // 知らない名前で呼ばれても、呼び出し元（開閉など）まで道連れにしない
       for (let i = 0; i < frames.length && strip.children[i]; i++) {
         catSlotKeys[i] = "mid/" + name + i;
         strip.children[i].innerHTML = catSvgFor("mid", name + i, frames[i]);
@@ -1854,14 +1867,15 @@
       const btn = $("mascotBtn");
       // 折りたたみは「class・aria-expanded・localStorage」の 3 点セット。隠し要素から
       // 強制的に開くこともあるので、状態の変更は必ずこの関数を通す
-      const setFolded = (on) => {
+      // 復元のときは書き戻さない（触っていない人の localStorage にキーを作らないため）
+      const setFolded = (on, persist = true) => {
         box.classList.toggle("is-folded", on);
         btn.setAttribute("aria-expanded", String(!on));
-        try { localStorage.setItem(MASCOT_FOLD_KEY, on ? "1" : "0"); } catch (e) {}
+        if (persist) { try { localStorage.setItem(MASCOT_FOLD_KEY, on ? "1" : "0"); } catch (e) {} }
       };
       let folded = false;
       try { folded = localStorage.getItem(MASCOT_FOLD_KEY) === "1"; } catch (e) {}
-      setFolded(folded);
+      setFolded(folded, false);
 
       // 隠し要素: 長押しで「なでる」。押し始めからの経過だけ見ればよいので、タイマーは持たず
       // 離した時点で判定する（指を置いたまま考えている人に勝手に反応しない）。
@@ -1883,18 +1897,13 @@
       }, { passive: true });
 
       // 隠し要素: 短い間隔で 3 回つつくと自分から名乗る。ふだんの 1 タップは開閉のまま。
-      let tapCount = 0;
-      let lastTap = 0;
+      const tappedEnough = makeTapCounter(TAPS_TO_INTRODUCE);
       btn.addEventListener("click", () => {
         if (petted) { petted = false; return; } // なでた直後の click は開閉に使わない
-        const now = Date.now();
-        tapCount = now - lastTap <= TAP_GAP_MS ? tapCount + 1 : 1;
-        lastTap = now;
-        if (tapCount >= TAPS_TO_INTRODUCE) {
-          tapCount = 0; // 連打で名乗り続けないよう数え直す
+        if (tappedEnough()) {
           setFolded(false); // 名乗るからには吹き出しを開く
           setMascotText(`ぼく、${CAT_NAME}！`);
-          mascotPinUntil = now + MASCOT_PIN_MS;
+          mascotPinUntil = Date.now() + MASCOT_PIN_MS;
           reactCatFrames("sparkle");
           return;
         }
