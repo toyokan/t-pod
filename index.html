@@ -650,7 +650,8 @@
     <!-- 7秒ごとに差し替わる装飾的な一言なので aria-live は付けない（読み上げが繰り返されるのを避ける） -->
     <!-- 背面の白いセッションカードに埋もれないよう、枠線を濃く・影を強くし、::after で三角のしっぽを出す -->
     <p id="mascotBubble" class="max-w-[min(52vw,17rem)] px-1.5 py-0.5 text-[13px] font-normal text-slate-800 leading-relaxed"></p>
-    <button id="mascotBtn" type="button" aria-label="マスコット（タップで吹き出しを開閉）"
+    <!-- 名前（ふせんネコ）はここと CAT_NAME の 2 箇所。素早く 3 回つつくと自分から名乗る -->
+    <button id="mascotBtn" type="button" aria-label="ふせんネコ（タップで吹き出しを開閉）" title="ふせんネコ（タップで吹き出しを開閉）"
       aria-expanded="true" aria-controls="mascotBubble"
       class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
       <!-- コマ送り（横）と呼吸（縦）は別要素に持たせる。同一要素では transform が競合するため -->
@@ -1478,6 +1479,12 @@
     // mood は待機アニメの速さにだけ使う（ended=のんびり / live=速い など）。
     // 例: mascotState(new Date("2026-08-04T11:00+09:00")) / mascotLines(...) は lines だけ返す
     const MASCOT_FOLD_KEY = "t-pod:mascot-folded";
+    // マスコットの名前。イベント固有の文言ではなくキャラクターの名前なので、汎用シェルに置いてよい。
+    // 画面に出るのは #mascotBtn の aria-label／title と、素早く 3 回つついたときの自己紹介だけ。
+    const CAT_NAME = "ふせんネコ";
+    const TAPS_TO_INTRODUCE = 3; // 何回つついたら名乗るか
+    const TAP_GAP_MS = 1200; // これ以上あいだが空いたら数え直す
+    const MASCOT_PIN_MS = 8000; // 名乗った文言を残す時間（7 秒の送りを 1 回またぐ長さ）
     function mascotState(now = new Date()) {
       const info = (DATA && DATA.eventInfo) || {};
       const dates = (info.dates || [])
@@ -1580,6 +1587,8 @@
     let mascotMsgs = [];
     let mascotMsgIdx = 0;
     let mascotTimer = null;
+    // 自己紹介など、数秒だけ文言を固定したいときの期限（ミリ秒。7 秒タイマーがこの間だけ休む）
+    let mascotPinUntil = 0;
 
     // 文言差し替えは opacity のフェードを挟む。textContent で入れるので innerHTML の混入は無い
     function setMascotText(text) {
@@ -1703,10 +1712,9 @@
     // つつかれたときの反応。先頭コマへ反応の絵を入れてコマ送りを先頭から回し直すので、
     // 「いま何コマ目か」を調べる必要がない。1 周終われば shuffleCatFrames() が普段の絵に戻す。
     const CAT_REACTIONS = ["surprise", "smile", "sparkle"];
-    function reactCatFrames() {
+    function reactCatFrames(name = pickOne(CAT_REACTIONS)) {
       const strip = $("mascotStrip");
       if (!strip || !strip.children.length || reduceMotionQuery.matches) return;
-      const name = pickOne(CAT_REACTIONS);
       const frames = CAT_ACCENTS[name];
       for (let i = 0; i < frames.length && strip.children[i]; i++) {
         catSlotKeys[i] = "mid/" + name + i;
@@ -1759,14 +1767,33 @@
       box.style.setProperty("--cat-arrow", buildDotDataUri(BUBBLE_ARROW, frameColor));
 
       const btn = $("mascotBtn");
-      let folded = false;
-      try { folded = localStorage.getItem(MASCOT_FOLD_KEY) === "1"; } catch (e) {}
-      box.classList.toggle("is-folded", folded);
-      btn.setAttribute("aria-expanded", String(!folded));
-      btn.addEventListener("click", () => {
-        const on = box.classList.toggle("is-folded");
+      // 折りたたみは「class・aria-expanded・localStorage」の 3 点セット。隠し要素から
+      // 強制的に開くこともあるので、状態の変更は必ずこの関数を通す
+      const setFolded = (on) => {
+        box.classList.toggle("is-folded", on);
         btn.setAttribute("aria-expanded", String(!on));
         try { localStorage.setItem(MASCOT_FOLD_KEY, on ? "1" : "0"); } catch (e) {}
+      };
+      let folded = false;
+      try { folded = localStorage.getItem(MASCOT_FOLD_KEY) === "1"; } catch (e) {}
+      setFolded(folded);
+
+      // 隠し要素: 短い間隔で 3 回つつくと自分から名乗る。ふだんの 1 タップは開閉のまま。
+      let tapCount = 0;
+      let lastTap = 0;
+      btn.addEventListener("click", () => {
+        const now = Date.now();
+        tapCount = now - lastTap <= TAP_GAP_MS ? tapCount + 1 : 1;
+        lastTap = now;
+        if (tapCount >= TAPS_TO_INTRODUCE) {
+          tapCount = 0; // 連打で名乗り続けないよう数え直す
+          setFolded(false); // 名乗るからには吹き出しを開く
+          setMascotText(`ぼく、${CAT_NAME}！`);
+          mascotPinUntil = now + MASCOT_PIN_MS;
+          reactCatFrames("sparkle");
+          return;
+        }
+        setFolded(!box.classList.contains("is-folded"));
         reactCatFrames(); // つついたら反応する
       });
 
@@ -1774,6 +1801,7 @@
       // タイマーは1本。まず文言を作り直し、変化が無ければ次の一言へ送る
       mascotTimer = setInterval(() => {
         if (document.hidden) return;
+        if (Date.now() < mascotPinUntil) return; // 自己紹介などの固定中は文言を触らない
         if (updateMascot()) return;
         if (mascotMsgs.length < 2) return;
         mascotMsgIdx = (mascotMsgIdx + 1) % mascotMsgs.length;

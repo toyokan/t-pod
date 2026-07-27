@@ -89,6 +89,10 @@ python3 scripts/build_fuseneko.py --preview FN_HAPPY   # 表情を重ねて描�
 
 サイズ・表情・色・背景を並べた確認ページ: `http://localhost:8080/dev/fuseneko.html`
 
+**隠し要素**: イベントページで右下のネコを**素早く 3 回つつく**と、「ぼく、ふせんネコ！」と
+名乗ります（8 秒ほどでいつもの一言に戻ります）。名前はボタンの読み上げ／ホバー表示にも
+入っているので、支援技術やパソコンからも分かります。
+
 ページに埋め込むときは `fuseneko-grid.js` → `fuseneko.js` の順に読み込み、
 `createFuseneko({ size, color, expression, ariaLabel })` を呼びます。
 色は 1 色（テーマ色）だけ渡せば、本体・折り返し・輪郭・目鼻口の濃淡が自動で決まります。
