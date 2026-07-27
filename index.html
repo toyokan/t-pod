@@ -421,6 +421,16 @@
     .fn-face { fill: var(--cat-face); }
     .fn-cheek { fill: var(--cat-cheek); }
     .fn-white { fill: var(--cat-white); }
+    /* 隠し要素「ふせんネコ図鑑」。ドット絵は 24 の整数倍でしか拡大しない（半端な倍率だと
+       1 ドットが 1px/2px に割れて輪郭がガタつく）ので、セルの幅ではなく絵の辺を 48px で固定する。 */
+    .cat-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+      gap: 12px 4px;
+    }
+    .cat-cell { text-align: center; font-size: 11px; color: rgb(100 116 139); }
+    .cat-cell-art { display: block; width: 48px; height: 48px; margin: 0 auto 4px; }
+    .cat-cell svg { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
     /* 吹き出しもドット風。角の階段と三角のしっぽは setupMascot() が実行時に生成した SVG を
        --cat-frame / --cat-arrow に入れる（色をネコの輪郭と揃えるため）。
        枠は 9×9 の 9 スライスを border-image で使い、border-image-width: 6px＝3マス×2倍にすると
@@ -951,6 +961,60 @@
         catSvgCache.set(key, svg);
       }
       return svg;
+    }
+
+    // ---- 隠し要素「ふせんネコ図鑑」 ----
+    // 表情のラベルは assets/fuseneko/variants.js の EXPRESSIONS と揃える
+    // （あちらは dev/fuseneko.html 専用で、アプリでは読み込んでいない）。
+    // 待機アニメには出てこない「まじめ」もここで見られるようにする。
+    // 来客はコマごとに位置が動くので、CAT_RARES から見栄えのする 1 コマを借りる。
+    const CAT_GALLERY = [
+      { label: "標準", patches: [] },
+      { label: "にっこり", patches: [FN_EXPR.smile] },
+      { label: "まじめ", patches: [FN_EXPR.serious] },
+      { label: "うれしい", patches: [FN_EXPR.happy] },
+      { label: "ひらめき", patches: [FN_EXPR.idea] },
+      { label: "びっくり", patches: [FN_EXPR.surprise] },
+      { label: "まばたき", patches: [FN_EXPR.blink] },
+      { label: "あくび", patches: [FN_EXPR.yawn] },
+      { label: "よそ見", patches: [FN_EXPR.lookL] },
+      { label: "耳ぴく", patches: [FN_EXPR.ears] },
+      { label: "わくわく", patches: [FN_EXPR.sparkleB] },
+      { label: "ちょう", rare: "butterfly", frame: 2 },
+      { label: "とり", rare: "bird", frame: 1 },
+      { label: "ハート", rare: "heart", frame: 1 },
+      { label: "おんぷ", rare: "note", frame: 2 },
+    ];
+
+    // 図鑑を開く。文言もドット絵も定数から作るので escapeHtml は不要（外部入力を含まない）。
+    // 絵は aria-hidden なので、読み上げは隣のラベルだけになる。
+    function openCatGallery() {
+      const cells = CAT_GALLERY.map((e) => {
+        const patches = e.rare ? CAT_RARES[e.rare][e.frame] : e.patches;
+        return `<figure class="cat-cell"><span class="cat-cell-art">${buildCatSvg(patches)}</span>` +
+          `<figcaption>${e.label}</figcaption></figure>`;
+      }).join("");
+      openModal(`${CAT_NAME}図鑑`, `<div class="cat-gallery">${cells}</div>` +
+        `<p class="text-[11px] text-slate-400">右下にいる ${CAT_NAME} の表情と、まれに遊びに来る仲間たち。</p>`);
+    }
+
+    // 図鑑の入口は見出し。隠し要素なので role/tabindex/cursor は足さず、見た目も操作性も変えない
+    // （ふだんタップしない場所なので、ふつうに使っているだけでは開かない）。
+    let catGalleryWired = false;
+    function setupCatGallery() {
+      const title = $("eventTitle");
+      if (!title || catGalleryWired) return;
+      catGalleryWired = true;
+      let taps = 0;
+      let last = 0;
+      title.addEventListener("click", () => {
+        const now = Date.now();
+        taps = now - last <= TAP_GAP_MS ? taps + 1 : 1;
+        last = now;
+        if (taps < TAPS_TO_GALLERY) return;
+        taps = 0;
+        openCatGallery();
+      });
     }
 
     // ---- 吹き出しのドット風フレーム（border-image / background 用） ----
@@ -1484,14 +1548,32 @@
     const CAT_NAME = "ふせんネコ";
     const TAPS_TO_INTRODUCE = 3; // 何回つついたら名乗るか
     const TAP_GAP_MS = 1200; // これ以上あいだが空いたら数え直す
+    const TAPS_TO_GALLERY = 5; // 見出しをこの回数つつくと図鑑が開く
+    const PET_HOLD_MS = 600; // これ以上長く押していたら「なでた」とみなす
     const MASCOT_PIN_MS = 8000; // 名乗った文言を残す時間（7 秒の送りを 1 回またぐ長さ）
+
+    // 隠し要素: その時間に見た人だけ出る一言。mascotState() の分岐は全て state() を通るので、
+    // ここ 1 箇所を包むだけで全ての場面に効く。
+    // 進行中（live）には足さない——「いまは何の時間」の案内を押しのけないため。
+    // 文言が空＝マスコットを出さない判定なので、そのときも足さない。
+    const NIGHT_LINES = [
+      { from: 0, to: 5, line: "まだ起きてるの？" },
+      { from: 5, to: 7, line: "はやおきだね！" },
+    ];
+    function withNightLine(mood, lines, now) {
+      if (!lines.length || mood === "live") return lines;
+      const h = now.getHours();
+      const hit = NIGHT_LINES.find((n) => h >= n.from && h < n.to);
+      return hit ? [hit.line].concat(lines) : lines;
+    }
+
     function mascotState(now = new Date()) {
       const info = (DATA && DATA.eventInfo) || {};
       const dates = (info.dates || [])
         .filter((d) => d && d.date)
         .slice()
         .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-      const state = (mood, lines) => ({ mood, lines });
+      const state = (mood, lines) => ({ mood, lines: withNightLine(mood, lines, now) });
       if (!dates.length) return state("before", []);
 
       const today = localDateStr(now);
@@ -1715,7 +1797,7 @@
     function reactCatFrames(name = pickOne(CAT_REACTIONS)) {
       const strip = $("mascotStrip");
       if (!strip || !strip.children.length || reduceMotionQuery.matches) return;
-      const frames = CAT_ACCENTS[name];
+      const frames = CAT_ACCENTS[name] || CAT_RARES[name]; // 来客（ハート等）も同じ枠で流せる
       for (let i = 0; i < frames.length && strip.children[i]; i++) {
         catSlotKeys[i] = "mid/" + name + i;
         strip.children[i].innerHTML = catSvgFor("mid", name + i, frames[i]);
@@ -1753,6 +1835,9 @@
       // 造形定義（assets/fuseneko/fuseneko-grid.js）が読めなかった回はマスコットを諦める。
       // 本文はそのまま出るので、会場の不安定な通信でタイムテーブルまで巻き添えにしない
       if (!FN_OK) return;
+      // 図鑑は文言の有無に関わらず開けるようにする（ネコを出さないイベントと、造形定義が
+      // 読めなかった回は上の return で来ないので、そこでは図鑑も出ない）
+      setupCatGallery();
       if (!mascotLines().length) return;
 
       // アクセントの重み付けに使うので、コマを組む前に mood を確定させておく
@@ -1778,10 +1863,30 @@
       try { folded = localStorage.getItem(MASCOT_FOLD_KEY) === "1"; } catch (e) {}
       setFolded(folded);
 
+      // 隠し要素: 長押しで「なでる」。押し始めからの経過だけ見ればよいので、タイマーは持たず
+      // 離した時点で判定する（指を置いたまま考えている人に勝手に反応しない）。
+      // 離すと click が続けて飛んでくるので、その 1 回を捨てないと吹き出しが畳まれてしまう。
+      let pressedAt = 0;
+      let petted = false;
+      // petted は「次の click を 1 回だけ捨てる」目印。click が来ない離し方（指が滑った等）で
+      // 立ちっぱなしにならないよう、次に押し始めた時点でも下ろす
+      btn.addEventListener("pointerdown", () => { pressedAt = Date.now(); petted = false; }, { passive: true });
+      btn.addEventListener("pointercancel", () => { pressedAt = 0; }, { passive: true });
+      btn.addEventListener("pointerup", () => {
+        if (!pressedAt || Date.now() - pressedAt < PET_HOLD_MS) { pressedAt = 0; return; }
+        pressedAt = 0;
+        petted = true; // 直後の click を捨てる目印
+        setFolded(false);
+        setMascotText("ごろごろ…");
+        mascotPinUntil = Date.now() + MASCOT_PIN_MS;
+        reactCatFrames("heart");
+      }, { passive: true });
+
       // 隠し要素: 短い間隔で 3 回つつくと自分から名乗る。ふだんの 1 タップは開閉のまま。
       let tapCount = 0;
       let lastTap = 0;
       btn.addEventListener("click", () => {
+        if (petted) { petted = false; return; } // なでた直後の click は開閉に使わない
         const now = Date.now();
         tapCount = now - lastTap <= TAP_GAP_MS ? tapCount + 1 : 1;
         lastTap = now;
