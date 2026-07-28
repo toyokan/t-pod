@@ -421,16 +421,6 @@
     .fn-face { fill: var(--cat-face); }
     .fn-cheek { fill: var(--cat-cheek); }
     .fn-white { fill: var(--cat-white); }
-    /* 隠し要素「ふせんネコ図鑑」。ドット絵は 24 の整数倍でしか拡大しない（半端な倍率だと
-       1 ドットが 1px/2px に割れて輪郭がガタつく）ので、セルの幅ではなく絵の辺を 48px で固定する。 */
-    .cat-gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
-      gap: 12px 4px;
-    }
-    .cat-cell { text-align: center; font-size: 11px; color: rgb(100 116 139); }
-    .cat-cell-art { display: block; width: 48px; height: 48px; margin: 0 auto 4px; }
-    .cat-cell svg { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
     /* 吹き出しもドット風。角の階段と三角のしっぽは setupMascot() が実行時に生成した SVG を
        --cat-frame / --cat-arrow に入れる（色をネコの輪郭と揃えるため）。
        枠は 9×9 の 9 スライスを border-image で使い、border-image-width: 6px＝3マス×2倍にすると
@@ -527,9 +517,7 @@
     <div class="hd relative px-5 pt-4 pb-3.5">
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
-          <!-- touch-manipulation は、図鑑の 5 回タップにダブルタップ拡大が挟まらないようにするため
-               （ピンチ拡大は従来どおり効く）。見出しの見た目と読み上げは変えない。 -->
-          <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight touch-manipulation">読み込み中…</h1>
+          <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight">読み込み中…</h1>
           <p id="eventSubtitle" class="text-[11px] font-semibold opacity-85 mt-0.5"></p>
         </div>
         <!-- お知らせ（旧FABをヘッダーへ移設） -->
@@ -963,55 +951,6 @@
         catSvgCache.set(key, svg);
       }
       return svg;
-    }
-
-    // ---- 隠し要素「ふせんネコ図鑑」 ----
-    // 表情のラベルは assets/fuseneko/variants.js の EXPRESSIONS と揃える
-    // （あちらは dev/fuseneko.html 専用で、アプリでは読み込んでいない）。
-    // 待機アニメには出てこない「まじめ」もここで見られるようにする。
-    // 来客はコマごとに位置が動くので、CAT_RARES から見栄えのする 1 コマを借りる。
-    const CAT_GALLERY = [
-      { label: "標準", patches: [] },
-      { label: "にっこり", patches: [FN_EXPR.smile] },
-      { label: "まじめ", patches: [FN_EXPR.serious] },
-      { label: "うれしい", patches: [FN_EXPR.happy] },
-      { label: "ひらめき", patches: [FN_EXPR.idea] },
-      { label: "びっくり", patches: [FN_EXPR.surprise] },
-      { label: "まばたき", patches: [FN_EXPR.blink] },
-      { label: "あくび", patches: [FN_EXPR.yawn] },
-      { label: "よそ見", patches: [FN_EXPR.lookL] },
-      { label: "耳ぴく", patches: [FN_EXPR.ears] },
-      { label: "わくわく", patches: [FN_EXPR.sparkleB] },
-      { label: "ちょう", rare: "butterfly", frame: 2 },
-      { label: "とり", rare: "bird", frame: 1 },
-      { label: "ハート", rare: "heart", frame: 1 },
-      { label: "おんぷ", rare: "note", frame: 2 },
-    ];
-
-    // 図鑑を開く。文言もドット絵も定数から作るので escapeHtml は不要（外部入力を含まない）。
-    // 絵は aria-hidden なので、読み上げは隣のラベルだけになる。
-    function openCatGallery() {
-      const cells = CAT_GALLERY.map((e) => {
-        const patches = e.rare ? CAT_RARES[e.rare][e.frame] : e.patches;
-        return `<figure class="cat-cell"><span class="cat-cell-art">${buildCatSvg(patches)}</span>` +
-          `<figcaption>${e.label}</figcaption></figure>`;
-      }).join("");
-      openModal(`${CAT_NAME}図鑑`, `<div class="cat-gallery">${cells}</div>` +
-        // 読ませる説明文なので slate-400（白地に 2.9:1・AA 未達）ではなく slate-500（4.7:1）にする
-        `<p class="text-[11px] text-slate-500">右下にいる ${CAT_NAME} の表情と、まれに遊びに来る仲間たち。</p>`);
-    }
-
-    // 図鑑の入口は見出し。隠し要素なので role/tabindex/cursor は足さず、見た目も操作性も変えない
-    // （ふだんタップしない場所なので、ふつうに使っているだけでは開かない）。
-    let catGalleryWired = false;
-    function setupCatGallery() {
-      const title = $("eventTitle");
-      if (!title || catGalleryWired) return;
-      catGalleryWired = true;
-      const tapped = makeTapCounter(TAPS_TO_GALLERY);
-      title.addEventListener("click", () => {
-        if (tapped()) openCatGallery();
-      });
     }
 
     // ---- 吹き出しのドット風フレーム（border-image / background 用） ----
@@ -1545,7 +1484,6 @@
     const CAT_NAME = "ふせんネコ";
     const TAPS_TO_INTRODUCE = 3; // 何回つついたら名乗るか
     const TAP_GAP_MS = 1200; // これ以上あいだが空いたら数え直す
-    const TAPS_TO_GALLERY = 5; // 見出しをこの回数つつくと図鑑が開く
     const PET_HOLD_MS = 600; // これ以上長く押していたら「なでた」とみなす
     const MASCOT_PIN_MS = 8000; // 名乗った文言を残す時間（7 秒の送りを 1 回またぐ長さ）
 
@@ -1848,9 +1786,6 @@
       // 造形定義（assets/fuseneko/fuseneko-grid.js）が読めなかった回はマスコットを諦める。
       // 本文はそのまま出るので、会場の不安定な通信でタイムテーブルまで巻き添えにしない
       if (!FN_OK) return;
-      // 図鑑は文言の有無に関わらず開けるようにする（ネコを出さないイベントと、造形定義が
-      // 読めなかった回は上の return で来ないので、そこでは図鑑も出ない）
-      setupCatGallery();
       if (!mascotLines().length) return;
 
       // アクセントの重み付けに使うので、コマを組む前に mood を確定させておく
