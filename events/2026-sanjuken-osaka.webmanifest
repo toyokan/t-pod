@@ -1,0 +1,26 @@
+{
+  "name": "算授研 大阪",
+  "short_name": "算授研 大阪",
+  "description": "『算数授業研究』公開講座 in 大阪 2026のプログラム・配布資料・関連書籍",
+  "lang": "ja",
+  "start_url": "../?id=2026-sanjuken-osaka",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#01408A",
+  "icons": [
+    {
+      "src": "../assets/icon-2026-sanjuken-osaka.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/icon-2026-sanjuken-osaka.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

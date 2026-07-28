@@ -4,6 +4,15 @@
   "siteUrl": "https://events.toyokan.co.jp/",
   "events": [
     {
+      "id": "2026-sanjuken-osaka",
+      "title": "『算数授業研究』公開講座 in 大阪 2026",
+      "theme": "子どもの思考に寄り添う算数の授業",
+      "dateRange": "2026年9月12日(土) 09:50〜16:00",
+      "venueName": "八尾市立志紀小学校",
+      "sortDate": "2026-09-12",
+      "brandColor": "#01408A"
+    },
+    {
       "id": "2026-zenkokuken-27",
       "title": "第27回 全国国語授業研究大会",
       "theme": "「読解」から「探究」への国語科授業変革 ―自律した学び手を育てる授業デザイン―",

@@ -1,0 +1,370 @@
+{
+  "id": "2026-sanjuken-osaka",
+  "eventInfo": {
+    "title": "『算数授業研究』公開講座 in 大阪 2026",
+    "logoMain": "算授研 大阪",
+    "logoSub": "算数授業研究 in 大阪",
+    "iconLabel": "算授阪",
+    "brandColor": "#01408A",
+    "brandColor2": "#85C44F",
+    "theme": "子どもの思考に寄り添う算数の授業",
+    "venueName": "八尾市立志紀小学校",
+    "dateRange": "2026年9月12日(土) 09:50〜16:00",
+    "manifestPath": "events/2026-sanjuken-osaka.webmanifest",
+    "organizer": "東洋館出版社",
+    "coOrganizer": "筑波大学附属小学校算数部",
+    "cooperation": "八尾市立志紀小学校",
+    "linePromo": false,
+    "dates": [
+      {
+        "id": "day1",
+        "label": "9月12日",
+        "date": "2026-09-12",
+        "weekday": "土",
+        "time": "09:50〜16:00"
+      }
+    ],
+    "notices": [
+      {
+        "title": "公開講座の概要",
+        "body": "提案性のある教材と、子ども本位の歯に衣着せぬ協議会が話題の筑波附小の公開講座。名人芸ともいわれる授業に、ときに「附属の子だから」という感想も漏れ聞きますが、今回は大阪・八尾市での飛び込み授業を公開します。筑波大学附属小学校の大野桂先生が講師として入る、八尾市立志紀小学校での開催で、公立校会場ならではの、より日々の授業に活きるような発見があるでしょう！\n新しい学習指導要領についての議論も深まる中、探究的な学びを実現するための適応と活用の視点で、これからの授業づくりポイントを、授業実践を通じて提案いただきます。",
+        "level": "info"
+      },
+      {
+        "title": "参加費",
+        "body": "一般3,000円、大学学部生1,500円です。大学学部生は当日受付で学生証をご提示ください。",
+        "level": "important"
+      },
+      {
+        "title": "申込締切",
+        "body": "申込締切は2026年9月10日(木)です。コンビニ決済を選択された場合は、お早めに入金をお願いいたします。",
+        "level": "important"
+      },
+      {
+        "title": "個人情報について",
+        "body": "お申込者のお名前とご注文番号は、共催の筑波大学附属小学校算数部（『算数授業研究』編集部）と、会場校の八尾市立志紀小学校の受付スタッフに共有します。電話番号、メールアドレス等の個人情報は、東洋館出版社以外には共有しません。",
+        "level": "info"
+      },
+      {
+        "title": "キャンセルについて",
+        "body": "開催日5営業日前の2026年9月7日(月)までにご連絡ください。それ以降のキャンセルには対応できません。コンビニ決済は入金後のキャンセル不可です。",
+        "level": "important"
+      },
+      {
+        "title": "開催可否・中止時の対応",
+        "body": "感染状況・荒天などの不測の事態により、八尾市立志紀小学校の判断で模擬授業への代替または中止となる可能性があります。中止の場合は、2026年9月10日(木)12:00までにマイアカウントの購入済みコンテンツ画面で案内し、参加費を返金します。旅費・宿泊費等の補填はありません。あと払い（ペイディ）は注文取消し処理となります。",
+        "level": "important"
+      },
+      {
+        "title": "資料PDF",
+        "body": "資料PDFは、マイアカウント内の［購入済みコンテンツ］に2026年9月10日(木)公開予定です。PDFは印刷不可です。印刷した資料冊子は当日受付で配布します。",
+        "level": "important"
+      },
+      {
+        "title": "当日の受付方法",
+        "body": "八尾市立志紀小学校の受付で、①「ご注文内容の確認」メール、②領収書、③注文番号と氏名、のいずれかをご提示ください。印刷・スマートフォンでの提示は問いません。コンビニ決済の場合は、レジで受け取るレシート（領収書）が領収書になります。",
+        "level": "important"
+      },
+      {
+        "title": "持ち物",
+        "body": "上履き、昼食をご持参ください。",
+        "level": "important"
+      },
+      {
+        "title": "受付場所・当日のお問い合わせ",
+        "body": "受付場所：八尾市立志紀小学校（〒581-0095 大阪府八尾市田井中3丁目101）。大会当日のお問い合わせは八尾市立志紀小学校（072-949-5036）へお願いします。",
+        "level": "important"
+      },
+      {
+        "title": "お申し込み・領収書のお問い合わせ",
+        "body": "緊急時を除き、メールでお問い合わせください。株式会社東洋館出版社（平日9:00〜17:30）／Mail: miyara@toyokan.co.jp",
+        "level": "info"
+      }
+    ],
+    "forms": [
+      {
+        "label": "詳細・お申し込み",
+        "description": "東洋館出版社の商品ページからお申し込みください。申込締切：2026年9月10日(木)。",
+        "url": "https://www.toyokan.co.jp/products/event-20260912?variant=51128215896297"
+      }
+    ],
+    "venue": {
+      "mapNote": "八尾市立志紀小学校（〒581-0095 大阪府八尾市田井中3丁目101）。上履き・昼食をご持参ください。",
+      "resourceLinks": [
+        {
+          "label": "マイアカウント",
+          "description": "購入済みコンテンツ・注文履歴はこちらから確認できます。",
+          "url": "https://www.toyokan.co.jp/account"
+        },
+        {
+          "label": "Googleマップ",
+          "description": "八尾市立志紀小学校の所在地をGoogleマップで確認できます。",
+          "url": "https://maps.app.goo.gl/tZbbaXNo8fm7tuFm7"
+        }
+      ]
+    }
+  },
+  "rooms": [],
+  "sessions": [
+    {
+      "id": "d1-01",
+      "dateId": "day1",
+      "start": "09:30",
+      "end": "",
+      "category": "受付",
+      "note": "参加者受付開始",
+      "items": []
+    },
+    {
+      "id": "d1-02",
+      "dateId": "day1",
+      "start": "09:50",
+      "end": "10:35",
+      "category": "公開授業I",
+      "note": "筑波大学附属小学校教諭による授業3本を公開",
+      "items": [
+        {
+          "title": "2年「かけ算」",
+          "meta": [
+            "中田寿幸（筑波附小）"
+          ]
+        },
+        {
+          "title": "5年「図形の面積」",
+          "meta": [
+            "青山尚司（筑波附小）"
+          ]
+        },
+        {
+          "title": "6年「分数と小数の計算」",
+          "meta": [
+            "森本隆史（筑波附小）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-03",
+      "dateId": "day1",
+      "start": "10:50",
+      "end": "11:35",
+      "category": "公開授業II",
+      "note": "八尾市立志紀小学校教諭による授業3本を公開",
+      "items": [
+        {
+          "title": "1年「おおきさくらべ」",
+          "meta": [
+            "横野満梨奈（志紀小）"
+          ]
+        },
+        {
+          "title": "3年「あまりのあるわり算」",
+          "meta": [
+            "竹内渉（志紀小）"
+          ]
+        },
+        {
+          "title": "5年「整数」",
+          "meta": [
+            "吉井貴則（志紀小）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-04",
+      "dateId": "day1",
+      "start": "11:45",
+      "end": "12:30",
+      "category": "公開授業III",
+      "note": "筑波大学附属小学校教諭による授業1本を公開",
+      "items": [
+        {
+          "title": "5年「単位量あたりの大きさ」",
+          "meta": [
+            "大野桂（筑波附小）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-05",
+      "dateId": "day1",
+      "start": "13:30",
+      "end": "14:10",
+      "category": "授業I 協議会",
+      "items": []
+    },
+    {
+      "id": "d1-06",
+      "dateId": "day1",
+      "start": "14:20",
+      "end": "15:00",
+      "category": "授業II 協議会",
+      "items": []
+    },
+    {
+      "id": "d1-07",
+      "dateId": "day1",
+      "start": "15:10",
+      "end": "16:00",
+      "category": "授業III 協議会",
+      "items": []
+    },
+    {
+      "id": "d1-08",
+      "dateId": "day1",
+      "start": "16:00",
+      "end": "",
+      "category": "閉会",
+      "note": "閉会のあいさつ",
+      "items": []
+    }
+  ],
+  "books": [
+    {
+      "title": "算数授業研究 No.165　その授業、どうやって思い浮かんだのか？",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491064697.jpg?v=1783575324&width=1200",
+      "description": "全国学力調査や目の前の子どもの姿、日常の気付きなどから授業を教材化する過程に注目し、授業づくりの発想を探る。",
+      "url": "https://www.toyokan.co.jp/products/%E7%AE%97%E6%95%B0%E6%8E%88%E6%A5%AD%E7%A0%94%E7%A9%B6-no-165-%E3%81%9D%E3%81%AE%E6%8E%88%E6%A5%AD-%E3%81%A9%E3%81%86%E3%82%84%E3%81%A3%E3%81%A6%E6%80%9D%E3%81%84%E6%B5%AE%E3%81%8B%E3%82%93%E3%81%A0%E3%81%AE%E3%81%8B",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491064695"
+    },
+    {
+      "title": "算数授業研究 No.164　学年別 主要単元で見る授業づくりのコツ36",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/6468_1.jpg?v=1780971450&width=1200",
+      "description": "学年別主要単元の授業づくりのコツ36例を通して、見方・考え方を働かせる主体的な授業づくりを提案。",
+      "url": "https://www.toyokan.co.jp/products/6468?variant=51436442026217",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491064687"
+    },
+    {
+      "title": "算数授業研究 No.163　分野横断に導く「比べる」",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491058573_1.jpg?v=1775540026&width=1200",
+      "description": "「比べる」活動を軸に、領域をまたいで働く数学的な見方・考え方と分野横断の授業づくりを考える。",
+      "url": "https://www.toyokan.co.jp/products/5857?variant=50978580824297",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058571"
+    },
+    {
+      "title": "算数授業研究 No.162　探究的な学びのデザイン―算数授業の21事例",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491058566_1_fcf84453-0641-4af0-9e44-9c0832781f56.jpg?v=1770267910&width=1200",
+      "description": "算数授業で探究的な学びを実現するための授業デザインを、実際の子どもの姿にもとづく21事例から考える。",
+      "url": "https://www.toyokan.co.jp/products/5856?variant=50575904145641",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058563"
+    },
+    {
+      "title": "算数授業研究 No.161　単元で育てる資質・能力―見方・考え方が貫く授業づくり",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5855_1.jpg?v=1765254543&width=1200",
+      "description": "１時間単位を超えて、単元を通して資質・能力を育てる教材研究と授業づくりを提案。",
+      "url": "https://www.toyokan.co.jp/products/5855?variant=49953383055593",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058555"
+    },
+    {
+      "title": "算数授業研究 No.160　よい発問よい声かけ",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5854_1.jpg?v=1761024247&width=1200",
+      "description": "子どもの協働的な学びを引き出す教師の発問・声かけをテーマに、授業改善の具体を探る。",
+      "url": "https://www.toyokan.co.jp/products/5854?variant=49346220490985",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058547"
+    },
+    {
+      "title": "多様な子どもが共に学ぶ 学力差に寄り添う算数授業",
+      "author": "田中 英海／編著ほか",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491063540.09.LZZZZZZZ.jpg",
+      "description": "学力差を「個性」として活かす、クラス全員に正対した授業づくり。",
+      "url": "https://www.toyokan.co.jp/products/6354",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491063540"
+    },
+    {
+      "title": "割合の見方・考え方を働かせる算数授業",
+      "author": "青山 尚司／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491063451.09.LZZZZZZZ.jpg",
+      "description": "算数の最難単元「割合」を、２つの比べ方で「使える道具」に落とし込む。",
+      "url": "https://www.toyokan.co.jp/products/6345",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491063451"
+    },
+    {
+      "title": "算数を探究的に学ぶ 日常生活を生かした算数授業づくり",
+      "author": "田中 英海／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5719_1.jpg?v=1752568050&width=1200",
+      "description": "算数と日常生活を往還する数学的活動のサイクルで、探究的な学びを実現する教材化と授業展開を解説。",
+      "url": "https://www.toyokan.co.jp/products/5719?variant=48964037771497",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491057192"
+    },
+    {
+      "title": "算数授業を左右する 教師の判断力",
+      "author": "森本 隆史／編著、算数授業を子どもと創る研究会／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-124019.png?v=1692938855&width=1200",
+      "description": "21の場面×３つの判断で、子どもの学びの質を上げる教師の判断の選択肢を示す実践的な事例集。",
+      "url": "https://www.toyokan.co.jp/products/5084?variant=44731724660969",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491050848"
+    },
+    {
+      "title": "はじめての算数",
+      "author": "森本 隆史／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5777_1.jpg?v=1738814903&width=1200",
+      "description": "算数の教科特性、授業準備、指導技術、評価、家庭学習まで、授業づくりの基礎・基本をコンパクトに解説。",
+      "url": "https://www.toyokan.co.jp/products/5777?variant=48222093770985",
+      "amazon_url": "https://www.amazon.co.jp/dp/449105777X"
+    },
+    {
+      "title": "算数授業を子どもと創る",
+      "author": "森本 隆史／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-910880.jpg?v=1692938856&width=1200",
+      "description": "教え込みから脱却し、言葉とかかわりを大切にしながら子どもと創る算数授業へ変える視点を紹介。",
+      "url": "https://www.toyokan.co.jp/products/3729?variant=44664927387881",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491037299"
+    },
+    {
+      "title": "子どもに委ねる算数授業　――子どもの学力差に応じるビルドアップ型授業の新展望",
+      "author": "大野 桂／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-973231.jpg?v=1692938517&width=1200",
+      "description": "子ども自身が学びのスタートラインを見いだし決める、子ども主体のビルドアップ型問題解決授業を提案。",
+      "url": "https://www.toyokan.co.jp/products/4823?variant=44731951153385",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491048231"
+    },
+    {
+      "title": "すべての子どもの学力に応じる ビルドアップ型算数授業",
+      "author": "大野 桂／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-216850.jpg?v=1692938207&width=1200",
+      "description": "学力差に左右されず全員の知識を積み上げる、新しい形の問題解決型「ビルドアップ型」算数授業を提案。",
+      "url": "https://www.toyokan.co.jp/products/3089",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491030898"
+    },
+    {
+      "title": "教師が知っておきたい 学級づくりの技術と心",
+      "author": "田中 博史／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5993_1.jpg?v=1769392172&width=1200",
+      "description": "学級開きや褒め方・叱り方、子どもの見方、保護者対応など、学級づくりの44の技術と、それを支える教師の心構えを伝える一冊。",
+      "url": "https://www.toyokan.co.jp/products/5993?variant=50566203441385",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491059934"
+    },
+    {
+      "title": "教師として成長したいと思うときに読んでおきたい42の道標 －私が、子どもが、変わったあの瞬間－",
+      "author": "田中 博史／編著、「授業・人」塾／執筆",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/6329_1.jpg?v=1769392191&width=1200",
+      "description": "教師や子どもが変わった瞬間を42の実践やメッセージから紹介し、授業や学級経営に悩む先生の成長を後押しする一冊。",
+      "url": "https://www.toyokan.co.jp/products/6329?variant=50566204457193",
+      "amazon_url": "https://www.amazon.co.jp/dp/449106329X"
+    }
+  ]
+}
