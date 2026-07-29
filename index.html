@@ -1262,11 +1262,14 @@
       const wrap = $("timetable");
       wrap.innerHTML = "";
 
-      const dayObj = ((DATA.eventInfo && DATA.eventInfo.dates) || []).find((d) => d.id === activeDateId);
+      const dates = (DATA.eventInfo && DATA.eventInfo.dates) || [];
+      const dayObj = dates.find((d) => d.id === activeDateId);
       if (dayObj) {
         const md = fmtMD(dayObj.date);
+        // 1日開催では label と日付が同じ内容になりやすいため、日程ラベルは複数日のときだけ表示する。
+        const dayLabel = dates.length > 1 && dayObj.label ? `${dayObj.label}　` : "";
         $("dayMeta").textContent =
-          `${dayObj.label || ""}　${md}${dayObj.weekday ? "(" + dayObj.weekday + ")" : ""}` +
+          `${dayLabel}${md}${dayObj.weekday ? "(" + dayObj.weekday + ")" : ""}` +
           (dayObj.time ? `　${dayObj.time}` : "");
       } else {
         $("dayMeta").textContent = "";
