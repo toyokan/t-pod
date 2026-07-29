@@ -1205,6 +1205,15 @@
         activeDateId = (todayObj || dates[0]).id;
       }
 
+      // 1日開催では選択先がなく、同じ日付を二重表示するだけになるためタブ自体を出さない。
+      // activeDateId は上で確定済みなので、タイムテーブルは通常どおり描画できる。
+      const hasMultipleDates = dates.length > 1;
+      tabs.classList.toggle("hidden", !hasMultipleDates);
+      if (!hasMultipleDates) {
+        setActiveDate(activeDateId);
+        return;
+      }
+
       if (dates.length) {
         const ind = el("div", "tab-indicator top-1 bottom-1 left-1", "");
         ind.id = "dateIndicator";
