@@ -452,6 +452,15 @@
     }
     #mascot.is-folded #mascotBubble { opacity: 0; transform: scale(.9) translate3d(6px, 0, 0); }
     #mascotBubble.is-swapping { opacity: 0; }
+    /* 隠し要素: 横に引っぱると遊べる。位置は覚えず、離すとバネで定位置へ戻る。
+       #mascotHold は #mascotBtn（active:scale-95）とは別の transform 層——
+       同一要素で transform を二重に持てないのは他の入れ子と同じ理由 */
+    #mascotHold { transform: translate3d(var(--mascot-dx, 0px), var(--mascot-dy, 0px), 0); }
+    #mascotHold.is-homing { transition: transform .42s cubic-bezier(.34, 1.56, .64, 1); will-change: transform; }
+    #mascotHold.is-held { will-change: transform; }
+    /* 縦に払った指はブラウザのスクロールへ譲り（ネコの上からでも表が送れる）、
+       横に引いた指だけこちらで掴む。none にすると縦スクロールまで殺してしまう */
+    #mascotBtn { touch-action: pan-y; }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: .01ms !important;
@@ -475,6 +484,8 @@
       /* コマ送りと呼吸を止めて 1 コマ目で静止させる（* の duration 短縮だけでは点滅して見えるため） */
       #mascotStrip, #mascotBob { animation: none; will-change: auto; }
       #mascotBubble { transition: none; }
+      /* 直接指で動かす操作なのでドラッグ自体は残す。戻りのバネ演出だけ止める */
+      #mascotHold.is-homing { transition: none; }
     }
     /* OS で透明効果を抑えている場合は、ガラス面を不透明にして可読性と描画負荷を優先 */
     @media (prefers-reduced-transparency: reduce) {
@@ -651,14 +662,20 @@
     <!-- 背面の白いセッションカードに埋もれないよう、枠線を濃く・影を強くし、::after で三角のしっぽを出す -->
     <p id="mascotBubble" class="max-w-[min(52vw,17rem)] px-1.5 py-0.5 text-[13px] font-normal text-slate-800 leading-relaxed"></p>
     <!-- 名前（ふせんネコ）はここと CAT_NAME の 2 箇所。素早く 3 回つつくと自分から名乗る -->
-    <button id="mascotBtn" type="button" aria-label="ふせんネコ（タップで吹き出しを開閉）" title="ふせんネコ（タップで吹き出しを開閉）"
-      aria-expanded="true" aria-controls="mascotBubble"
-      class="pointer-events-auto flex-shrink-0 w-12 h-12 overflow-hidden active:scale-95 transition rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
-      <!-- コマ送り（横）と呼吸（縦）は別要素に持たせる。同一要素では transform が競合するため -->
-      <span id="mascotBob" class="block w-full h-full">
-        <span id="mascotStrip" class="flex w-[1600%] h-full items-center"></span>
-      </span>
-    </button>
+    <!-- ドラッグでずらす層。ボタン自身は active:scale-95 の transform を持つので、
+         二重に持てない分をここに逃がす（コマ送り／呼吸を別要素に分けているのと同じ理由） -->
+    <!-- flex にするのは見た目のためではなく、中のボタン（inline-block）が行ボックスを作って
+         ディセンダぶんの余白を足し、items-center の中心が 2px ずれるのを防ぐため -->
+    <span id="mascotHold" class="flex-shrink-0 flex">
+      <button id="mascotBtn" type="button" aria-label="ふせんネコ（タップで吹き出しを開閉）" title="ふせんネコ（タップで吹き出しを開閉）"
+        aria-expanded="true" aria-controls="mascotBubble"
+        class="pointer-events-auto w-12 h-12 overflow-hidden active:scale-95 transition rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+        <!-- コマ送り（横）と呼吸（縦）は別要素に持たせる。同一要素では transform が競合するため -->
+        <span id="mascotBob" class="block w-full h-full">
+          <span id="mascotStrip" class="flex w-[1600%] h-full items-center"></span>
+        </span>
+      </button>
+    </span>
   </div>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
@@ -885,6 +902,8 @@
       // 設定資料の「うれしい」「ひらめき」。どちらも 2 コマ続けて出して間を持たせる
       happy: [FN_EXPR.happy, FN_EXPR.happy],
       idea: [FN_EXPR.idea, FN_EXPR.idea],
+      // 勢いよく払われたときの「目を回す」。新しい表情は作らず、左右のよそ見の往復で見せる
+      dizzy: [FN_EXPR.lookR, FN_EXPR.lookR, FN_EXPR.lookL, FN_EXPR.lookL, FN_EXPR.blink],
     };
     // まれな来客。コマごとに位置が動き、ネコも目で追う
     const CAT_RARES = {
@@ -914,6 +933,12 @@
         [catNote(18, 0), CAT_SMILE],
       ],
     };
+    // つままれてぶら下がっている間だけ使う専用のコマ。CAT_ACCENTS/CAT_RARES とは違い
+    // 「掴んでいる間ずっと」なので待機アニメの重み付け（CAT_ACCENT_POOL）には入れない
+    const CAT_HOLD = [
+      [CAT_TAIL_UP, CAT_SURPRISE], [CAT_TAIL_UP, CAT_SURPRISE],
+      [CAT_TAIL_DOWN, CAT_SURPRISE], [CAT_TAIL_DOWN, CAT_SURPRISE],
+    ];
     // 場面ごとの出やすさ（同じ名前を並べて重み付けする）。
     // 開催中ははしゃぎ気味に、終了後は落ち着いてまばたき・あくび中心にする。
     const CAT_ACCENT_POOL = {
@@ -1498,6 +1523,13 @@
     const TAP_GAP_MS = 1200; // これ以上あいだが空いたら数え直す
     const PET_HOLD_MS = 600; // これ以上長く押していたら「なでた」とみなす
     const MASCOT_PIN_MS = 8000; // 名乗った文言を残す時間（7 秒の送りを 1 回またぐ長さ）
+    // 隠し要素: 横に引っぱると遊べる（位置は覚えず、離すとバネで戻る）
+    const DRAG_MIN_PX = 6; // これ以上動いたらドラッグ。タップ・長押しと分ける
+    const DRAG_AXIS_RATIO = 1.4; // 横が縦のこの倍を超えたときだけ掴む（タブスワイプの AXIS_RATIO と同値）
+    const DRAG_LIMIT_PX = 96; // ここから先はゴムのように重くして画面外へ飛ばさない
+    const DRAG_RUBBER = 0.28; // 端の抵抗。タブスワイプのラバーバンドと同じ係数
+    const FLICK_V = 0.6; // px/ms。これ以上の速さで離したら「払われた」
+    const DRAG_LINES = ["わわっ", "おっとっと"];
 
     // 隠し要素: その時間に見た人だけ出る一言。mascotState() の分岐は全て state() を通るので、
     // ここ 1 箇所を包むだけで全ての場面に効く。
@@ -1675,6 +1707,8 @@
     // ---- 待機アニメのコマ組み立て（1 周ごとにランダム） ----
     let catSlotKeys = [];
     let catTailTrackIdx = -1;
+    // 掴まれている間は待機アニメの差し替えを止める（holdCatFrames/releaseCatFrames が管理）
+    let catHeld = false;
     const randInt = (n) => Math.floor(Math.random() * n);
 
     // CSS アニメは「累計経過 ÷ 周期」で回数を数え直すため、走行中に周期を変えると
@@ -1695,6 +1729,8 @@
     function shuffleCatFrames() {
       const strip = $("mascotStrip");
       if (!strip || !strip.children.length) return;
+      // 掴まれている間は holdCatFrames() のコマを保つ。1 周ごとの差し替えに上書きされない
+      if (catHeld) return;
       // 動きを止めている環境ではコマ送り自体が無いので、先頭のコマを作り替えない
       if (reduceMotionQuery.matches && catSlotKeys.length) return;
 
@@ -1768,6 +1804,31 @@
       restartCatAnim(strip, "catIdle");
     }
 
+    // 隠し要素: 指で掴んでいる間だけ使う専用のコマ組み。反応（reactCatFrames）と違い
+    // 長さが不定（指を離すまで続く）なので、16 コマ全部に CAT_HOLD をタイル状に敷き詰める。
+    function holdCatFrames() {
+      const strip = $("mascotStrip");
+      if (!strip || !strip.children.length) return;
+      catHeld = true;
+      if (reduceMotionQuery.matches) return; // 絵は変えず、状態だけ「掴まれ中」にする
+      for (let i = 0; i < CAT_SLOTS && strip.children[i]; i++) {
+        const frame = CAT_HOLD[i % CAT_HOLD.length];
+        const tailKey = frame[0] === CAT_TAIL_UP ? "up" : "down";
+        const accentKey = "hold" + (i % CAT_HOLD.length);
+        catSlotKeys[i] = tailKey + "/" + accentKey;
+        strip.children[i].innerHTML = catSvgFor(tailKey, accentKey, frame);
+      }
+      restartCatAnim(strip, "catIdle");
+    }
+
+    // 指を離したら待機アニメへ戻す。次の shuffleCatFrames() が差分に気づいて絵を差し替える
+    function releaseCatFrames() {
+      catHeld = false;
+      if (reduceMotionQuery.matches) return;
+      shuffleCatFrames();
+      restartCatAnim($("mascotStrip"), "catIdle");
+    }
+
     // 体の上下は規則正しい呼吸に見せる。間隔は ±12% しか振らず、たまに 2 回続けて沈む型
     // （catBob2）を混ぜる程度に留める。沈んでいる時間は 1 周の 8% ほどなので、
     // 間隔が短めでも「細かくぶれている」ようには見えない。
@@ -1812,6 +1873,7 @@
       box.style.setProperty("--cat-arrow", buildDotDataUri(BUBBLE_ARROW, frameColor));
 
       const btn = $("mascotBtn");
+      const hold = $("mascotHold");
       // 折りたたみは「class・aria-expanded・localStorage」の 3 点セット。隠し要素から
       // 強制的に開くこともあるので、状態の変更は必ずこの関数を通す
       // 復元のときは書き戻さない（触っていない人の localStorage にキーを作らないため）
@@ -1824,19 +1886,111 @@
       try { folded = localStorage.getItem(MASCOT_FOLD_KEY) === "1"; } catch (e) {}
       setFolded(folded, false);
 
-      // 隠し要素: 長押しで「なでる」。押し始めからの経過だけ見ればよいので、タイマーは持たず
-      // 離した時点で判定する（指を置いたまま考えている人に勝手に反応しない）。
-      // 離すと click が続けて飛んでくるので、その 1 回を捨てないと吹き出しが畳まれてしまう。
+      // 隠し要素: 「なでる（長押し）」「つまんで引っぱる（ドラッグ）」「タップ（開閉・名乗り）」を
+      // 同じ指の一連の動きとして 1 本の pointer 系にまとめる（バラバラだと誤爆する）。
+      // ドラッグは離すと定位置へバネで戻るだけの遊びで、位置は覚えない。
       let pressedAt = 0;
-      let petted = false;
-      // petted は「次の click を 1 回だけ捨てる」目印。click が来ない離し方（指が滑った等）で
-      // 立ちっぱなしにならないよう、次に押し始めた時点でも下ろす
-      btn.addEventListener("pointerdown", () => { pressedAt = Date.now(); petted = false; }, { passive: true });
-      btn.addEventListener("pointercancel", () => { pressedAt = 0; }, { passive: true });
-      btn.addEventListener("pointerup", () => {
+      let dragging = false;
+      let pressX = 0, pressY = 0, lastPX = 0, lastPY = 0, lastPT = 0, vx = 0, vy = 0;
+      let foldedBeforeDrag = false;
+      // swallowClick は「直後の click を 1 回だけ捨てる」目印（なでる／ドラッグの共用）。
+      // click が来ない離し方（指が滑った等）で立ちっぱなしにならないよう、次に押し始めた時点でも下ろす
+      let swallowClick = false;
+
+      // ドラッグの見た目の移動量を CSS 変数へ反映。端から先はゴムのように重くし、
+      // 48px 表示＝1ドット2px に揃えて整数ドットへ丸める
+      const rubber = (v) => {
+        const abs = Math.abs(v);
+        if (abs <= DRAG_LIMIT_PX) return v;
+        return Math.sign(v) * (DRAG_LIMIT_PX + (abs - DRAG_LIMIT_PX) * DRAG_RUBBER);
+      };
+      const setDragOffset = (dx, dy) => {
+        hold.style.setProperty("--mascot-dx", (Math.round(rubber(dx) / 2) * 2) + "px");
+        hold.style.setProperty("--mascot-dy", (Math.round(rubber(dy) / 2) * 2) + "px");
+      };
+      const endHoming = (e) => {
+        if (e.target !== hold || e.propertyName !== "transform") return;
+        hold.classList.remove("is-homing");
+      };
+      hold.addEventListener("transitionend", endHoming);
+      const homeDrag = () => {
+        hold.classList.remove("is-held");
+        hold.classList.add("is-homing");
+        hold.style.setProperty("--mascot-dx", "0px");
+        hold.style.setProperty("--mascot-dy", "0px");
+      };
+
+      btn.addEventListener("pointerdown", (e) => {
+        pressedAt = Date.now();
+        dragging = false;
+        swallowClick = false;
+        pressX = lastPX = e.clientX;
+        pressY = lastPY = e.clientY;
+        lastPT = pressedAt;
+        vx = vy = 0;
+        try { btn.setPointerCapture(e.pointerId); } catch (err) {}
+      }, { passive: true });
+
+      btn.addEventListener("pointermove", (e) => {
+        if (!pressedAt) return;
+        const dx = e.clientX - pressX;
+        const dy = e.clientY - pressY;
+        if (!dragging) {
+          if (Math.abs(dx) < DRAG_MIN_PX && Math.abs(dy) < DRAG_MIN_PX) return;
+          // 縦優勢なら掴まずにページスクロールへ譲る（ネコの上からでも表を送れるように）。
+          // pressedAt を降ろすので以降の pointermove は先頭で抜け、長押し「なでる」も発火しない
+          // ——ブラウザが送っている間ずっと押しっぱなしになるため
+          if (Math.abs(dx) <= Math.abs(dy) * DRAG_AXIS_RATIO) { pressedAt = 0; return; }
+          // ドラッグ確定。長押し「なでる」判定は降ろし、掴んでいる間だけ吹き出しを畳む
+          // （保存はしない＝ユーザーの開閉設定は壊さない）
+          dragging = true;
+          foldedBeforeDrag = box.classList.contains("is-folded");
+          setFolded(true, false);
+          holdCatFrames();
+          hold.classList.remove("is-homing");
+          hold.classList.add("is-held");
+        }
+        const now = Date.now();
+        const dt = now - lastPT;
+        if (dt > 0) { vx = (e.clientX - lastPX) / dt; vy = (e.clientY - lastPY) / dt; }
+        lastPX = e.clientX; lastPY = e.clientY; lastPT = now;
+        setDragOffset(dx, dy);
+      }, { passive: true });
+
+      btn.addEventListener("pointercancel", () => {
+        pressedAt = 0;
+        if (dragging) {
+          dragging = false;
+          releaseCatFrames();
+          homeDrag();
+          setFolded(foldedBeforeDrag, false); // 反応なしで、畳む前の状態へ静かに戻す
+        }
+      }, { passive: true });
+
+      btn.addEventListener("pointerup", (e) => {
+        if (dragging) {
+          dragging = false;
+          pressedAt = 0;
+          swallowClick = true;
+          releaseCatFrames();
+          homeDrag();
+          const speed = Math.hypot(vx, vy);
+          if (speed > FLICK_V) {
+            // 勢いよく払われた＝目を回す
+            setFolded(false);
+            setMascotText(pickOne(DRAG_LINES));
+            mascotPinUntil = Date.now() + MASCOT_PIN_MS;
+            reactCatFrames("dizzy");
+          } else {
+            // そっと離した＝畳む前の状態へ戻すだけ（保存はしない）
+            setFolded(foldedBeforeDrag, false);
+            reactCatFrames("blink");
+          }
+          return;
+        }
         if (!pressedAt || Date.now() - pressedAt < PET_HOLD_MS) { pressedAt = 0; return; }
         pressedAt = 0;
-        petted = true; // 直後の click を捨てる目印
+        swallowClick = true;
         setFolded(false);
         setMascotText("ごろごろ…");
         mascotPinUntil = Date.now() + MASCOT_PIN_MS;
@@ -1846,7 +2000,7 @@
       // 隠し要素: 短い間隔で 3 回つつくと自分から名乗る。ふだんの 1 タップは開閉のまま。
       const tappedEnough = makeTapCounter(TAPS_TO_INTRODUCE);
       btn.addEventListener("click", () => {
-        if (petted) { petted = false; return; } // なでた直後の click は開閉に使わない
+        if (swallowClick) { swallowClick = false; return; } // なでた／ドラッグした直後の click は開閉に使わない
         if (tappedEnough()) {
           setFolded(false); // 名乗るからには吹き出しを開く
           setMascotText(`ぼく、${CAT_NAME}！`);
@@ -2582,6 +2736,9 @@
       const swipeEnabled = (e) => {
         if ($("bottomNav").classList.contains("hidden")) return false;   // 一覧モード
         if (document.body.classList.contains("modal-open")) return false; // モーダル／LINEポップアップ
+        // ネコは自前のドラッグを持つので、この 48px の上から始めた指だけは渡さない。
+        // 全幅の #mascot ではなくボタンを指定する（コンテナは inset-x-0 の帯なので紛らわしい）
+        if (e.target.closest("#mascotBtn")) return false;
         // 横スクロール領域だけは内部操作を優先。リンクやボタンはタップなら通常動作し、
         // 横軸へロックされた場合だけスワイプとして扱う。
         return !e.target.closest(".scroll-x");

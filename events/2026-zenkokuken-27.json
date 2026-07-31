@@ -77,9 +77,9 @@
       "mapNote": "会場は筑波大学附属小学校です。地下鉄丸ノ内線 茗荷谷駅下車 徒歩８分。入口は通用門側です。駐車場はありませんので公共交通機関をご利用ください。",
       "resourceLinks": [
         {
-          "label": "東洋館出版社サイト",
+          "label": "東洋館出版社サイト（大会詳細ページ）",
           "description": "不測の事態（荒天等）による中止等のお知らせはこちらで確認",
-          "url": "https://www.toyokan.co.jp"
+          "url": "https://www.toyokan.co.jp/products/27kokugojyugyouken"
         }
       ]
     }
@@ -485,7 +485,7 @@
       "title": "主体的な学び手を育てる国語授業 学びがつながる授業づくり",
       "author": "全国国語授業研究会・筑波大学附属小学校国語研究部／編著",
       "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5907_01_70105b7d-4f65-4b0b-bc4b-048d9f6186d4.jpg?v=1753169169&width=1200",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5907_03.jpg?v=1753169169&width=823",
       "description": "主体的な学び手を育てるために教師が今すべきことや、教科書学習材を用いた具体的な国語授業づくりを提案。",
       "official": { "year": 2025 },
       "url": "https://www.toyokan.co.jp/products/5907",
@@ -505,7 +505,7 @@
       "title": "小学校「個別最適な学び」と「協働的な学び」をつなぐ国語授業",
       "author": "筑波大学附属小学校国語研究部・全国国語授業研究会／編著",
       "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-499426.jpg?v=1692938598&width=1200",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-671100.jpg?v=1692938598&width=823",
       "description": "筑波小国語部と全国国語授業研究会の実践をもとに、子ども起点の授業と個別最適・協働的な学びをつなぐ国語授業を提案。",
       "official": { "year": 2022 },
       "url": "https://www.toyokan.co.jp/products/4927",
