@@ -49,11 +49,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <!-- Webフォント（Zen Kaku Gothic New）。SWでキャッシュしオフライン時はシステムフォントに劣化 -->
+  <!-- 会場の細い回線では DNS＋TCP＋TLS の確立がいちばん高くつくので、
+       あとで必ず使うホストは先に繋いでおく。preconnect は同時に張りすぎると逆効果なので、
+       描画をブロックする 2 ホスト（フォント CSS と Tailwind）だけに使い、
+       画像ホスト（favicon・書影）は軽い dns-prefetch に留める。 -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- DotGothic16 はマスコットの吹き出し専用（ドット絵と粒を合わせるため）。本文は Zen Kaku Gothic New -->
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" />
+  <link rel="dns-prefetch" href="https://www.toyokan.co.jp" />
+  <link rel="dns-prefetch" href="https://m.media-amazon.com" />
+  <link rel="dns-prefetch" href="https://images-na.ssl-images-amazon.com" />
+
+  <!-- Webフォント（Zen Kaku Gothic New）。SWでキャッシュしオフライン時はシステムフォントに劣化。
+       DotGothic16 はマスコットの吹き出し専用（ドット絵と粒を合わせるため）。本文は Zen Kaku Gothic New。
+       media="print" → onload で all に戻すのは「描画をブロックさせない」ための定石。
+       display=swap があるので本文はシステムフォントで即出て、届いた時点で差し替わる。 -->
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+    href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" />
+  </noscript>
 
   <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -627,7 +642,7 @@
       <div>
         <h3 class="text-sm font-semibold text-slate-600 mb-2">会場マップ</h3>
         <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-card">
-          <img id="venueMap" alt="会場マップ" class="w-full" />
+          <img id="venueMap" alt="会場マップ" loading="lazy" decoding="async" class="w-full" />
           <p id="venueNote" class="text-xs text-slate-600 p-3 leading-relaxed"></p>
         </div>
       </div>
@@ -1091,6 +1106,41 @@
       } catch (e) {
         return "#";
       }
+    };
+    // 書影を表示枠に見合った小さい派生画像へ向け直す。
+    // JSON にはフルサイズ（1200px 幅・_SL1500_ 等）の URL が入っているが、実際の表示枠は
+    // 64×96 CSS px しかない。会場の細い回線では、これが 20 枚以上並ぶと支配的なコストになる。
+    // JSON は書き換えず描画時に付け替えるので、既存・将来のイベント全部に効く。
+    // 未知のホストや想定外の形は**そのまま返す**（外部 CDN の仕様に賭けない）。
+    // 派生 URL が 404 のときは renderBooks() が元の URL で一度だけ retry する。
+    const coverUrl = (url, px) => {
+      const s = typeof url === "string" ? url.trim() : "";
+      if (!s) return s;
+      try {
+        const u = new URL(s, location.href);
+        // Shopify（東洋館出版社のストア）: ?width= で任意サイズを配ってくれる
+        if (u.hostname.endsWith("toyokan.co.jp") && u.searchParams.has("width")) {
+          if (Number(u.searchParams.get("width")) <= px) return s;
+          u.searchParams.set("width", String(px));
+          return u.href;
+        }
+        // Amazon 現行形式: /images/I/<id>._SL1500_.jpg の SL の数値が最長辺
+        if (u.hostname === "m.media-amazon.com") {
+          const p = u.pathname.replace(/\._SL\d+_\.(jpg|jpeg|png)$/i, `._SL${px}_.$1`);
+          if (p === u.pathname) return s;
+          u.pathname = p;
+          return u.href;
+        }
+        // Amazon 旧形式: /images/P/<isbn>.09.LZZZZZZZ.jpg（L=大 / M=中 / T=小）。
+        // 数値指定はできないので中サイズ（約160px）に落とす。
+        if (u.hostname === "images-na.ssl-images-amazon.com") {
+          const p = u.pathname.replace(/\.LZZZZZZZ\.(jpg|jpeg|png)$/i, ".MZZZZZZZ.$1");
+          if (p === u.pathname) return s;
+          u.pathname = p;
+          return u.href;
+        }
+      } catch (e) {}
+      return s;
     };
     // テーマを「メインテーマ―サブテーマ」の区切りで分割する（区切りが無ければ sub は空）。
     // 区切り記号はサブテーマ側の先頭に残す（原文の表記をそのまま活かすため）
@@ -2119,11 +2169,24 @@
           `</div>`;
         if (cover) {
           const img = el("img", "img-fade w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
-          img.src = safeUrl(cover);
+          const full = safeUrl(cover);
+          // 表示は 64×96 なので DPR3 でも 192px あれば足りる。240 で少し余裕を持たせる
+          img.src = coverUrl(full, 240);
           img.alt = "";
           img.loading = "lazy";
+          // Tailwind のクラスでも枠は取れるが、CSS が届く前のレイアウトシフトを防ぐため属性でも持つ
+          img.width = 64;
+          img.height = 96;
           img.addEventListener("load", () => img.classList.add("is-loaded"));
-          img.addEventListener("error", () => { img.outerHTML = placeholder; });
+          img.addEventListener("error", () => {
+            // 縮小版が無い／仕様が変わった場合に備え、元の URL で一度だけやり直してから諦める
+            if (img.src !== full && !img.dataset.retried) {
+              img.dataset.retried = "1";
+              img.src = full;
+              return;
+            }
+            img.outerHTML = placeholder;
+          });
           // キャッシュ済みで load が発火しない場合に備え即時判定
           if (img.complete && img.naturalWidth > 0) img.classList.add("is-loaded");
           card.insertAdjacentElement("afterbegin", img);
@@ -2191,7 +2254,10 @@
       const rows = [];
       if (image) {
         rows.push(
-          `<img src="${escapeHtml(safeUrl(image))}" alt="${escapeHtml(title)}" loading="lazy" class="w-full max-h-72 object-cover" style="object-position:50% 18%" onerror="this.remove()" />`
+          // aspect-[2/1] で先に高さを確保する。width/height 属性は使えない——バナーの実寸は
+          // イベントごとに違い（1400×685 と 1400×788）、汎用シェルに固有の数値は持てないため。
+          // 比率を固定しておけば画像が届く前に箱が決まり、下の本文が飛ばない（object-cover で収める）。
+          `<img src="${escapeHtml(safeUrl(image))}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" class="w-full aspect-[2/1] max-h-72 object-cover" style="object-position:50% 18%" onerror="this.remove()" />`
         );
       }
       const body = [];
