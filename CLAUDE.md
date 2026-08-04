@@ -14,9 +14,48 @@
   - `?id=<id>` あり → `events/<id>.json` を fetch して個別イベント表示（イベントモード）。
   - `?id` なし（ルートURL）→ 静的な参加者向け案内ページを表示（一覧モード。`renderAccessGuide()`）。`events.json` はイベント一覧の表示には使われず、`scripts/` や `docs/event-url-index.md` 生成用のインデックスとしてのみ参照される。
   - `index.html` の `getEventId()` が `?id` を取得し `[A-Za-z0-9_-]` のみ許可（不正値・パストラバーサル除去）。`init()` が両モードを分岐。
-- **キャッシュ**: `sw.js` は **Network First**（取得成功でキャッシュ更新、失敗時はキャッシュ）。
+- **キャッシュ（`sw.js`）**: 会場の回線は「切れている」より**「つながっているが極端に遅い」**ことのほうが多く、
+  素の Network First はこの状態がいちばん苦手（手元にキャッシュがあってもネットワークを待ち続ける）。
+  そこで**経路ごとに戦略を変える**（`routeOf()`）。
+  - `immutable`（`cdn.tailwindcss.com` / `fonts.googleapis.com` / `fonts.gstatic.com`）＝**キャッシュ優先・再検証なし**。
+    版が URL に入っていて内容が変わらないので安全。2 回目以降は通信ゼロになる。
+  - `passthrough`（その他クロスオリジン＝書影）＝**SW を通さない**。ブラウザの HTTP キャッシュに任せたほうが速く、
+    SW のキャッシュを画像で埋めずに済む。
+  - `eventJson`（`events/<id>.json`）＝ネットワーク優先。**タイムアウトでキャッシュを返してはいけない**——
+    `index.html` 側がキャッシュ即時表示＋差分検出を持っているので、SW が同じバイト列を返すと差分が
+    常に「変化なし」になり永久に更新されなくなる。**鮮度の責任は 1 層だけが持つ**。ハード失敗時のみキャッシュ。
+  - `shell`（同一オリジンのその他＋ナビゲーション）＝ネットワーク優先だが **`NET_TIMEOUT_MS`(2.5秒) でキャッシュに切替**。
+  - **タイムアウトは `AbortSignal` ではなく `Promise.race`** で作る。abort するとバックグラウンドのキャッシュ更新まで
+    殺してしまい次回も遅いままになる。負けた側は走らせ続けてキャッシュを温める（`net.catch(()=>{})` を必ず付ける）。
+  - **キャッシュは 2 本**。`SHELL_CACHE`（版ごとに捨てる）と `RUNTIME_CACHE`（版をまたいで残す。JSON・フォント・Tailwind）。
+    1 本だと `CACHE_VERSION` を上げるたびに書影とイベント JSON まで捨て、シェル更新直後だけ会場でまた遅くなる。
+    **`RUNTIME_CACHE` の名前は `sw.js` と `index.html` の 2 箇所にある**（ビルド工程が無いため）ので必ず揃える。
+    書影だけが青天井に増えるので `trimRuntime()` が挿入順（＝ Cache API の `keys()` 順）で FIFO に間引く。
+  - `handleNavigate()` の `getBrandColorCached()` は**キャッシュだけを見る（取りに行かない）**。
+    以前はここで 34KB の JSON を fetch しており、初回ナビゲーションがノッチの色のために 2 本目の
+    リクエスト待ちで止まっていた。色が無いときは 171KB の HTML のバッファと書き換えごと飛ばす（ストリーミングが生きる）。
   - シェル（HTML/JS/アセット）を変更したら **`CACHE_VERSION` を必ず上げる**。
-  - 個別 `events/<id>.json` は Network First でオンデマンドにキャッシュ → 閲覧済みイベントはオフラインでも表示。
+- **起動経路（`index.html` の `init()`）**: **キャッシュから即描画 → 裏で最新を取得 → 生テキストの `===` で
+  差分判定 → 変わっていれば静かに描き直し**。Cache API はページから直接読めるので SW の起動・制御を待たない
+  （初回訪問直後は SW がまだ controller でないことがある）。
+  - **「待ち切り」と「取得完了」を切り離す**——会場では「遅いが最終的には届く」が多く、締め切りで打ち切った分を
+    捨てると更新が次回まで反映されず、実際には通じているのにオフライン表示が残る。締め切り（表示済み 6 秒／
+    初回 10 秒）は**待つのをやめるだけ**で、届いたときの処理はいつでも走らせる。
+  - **静かな再描画では `renderAll({ keepView: true })` を使う**。`setTab()` は末尾で `window.scrollTo({top:0})` まで
+    行うので呼んではいけない（BOOKS を読んでいる最中にプログラムへ引き戻される）。スクロール位置は前後で保存・復元し、
+    `applyAppIdentity()` は識別に関わる値（`identitySig`）が変わったときだけ回す（canvas ラスタライズを伴うため）。
+  - **モーダルが開いている間は差し替えを待つ**（中身は開いた時点の `DATA` から組むため。`body.modal-open` は
+    `position:fixed` なのでスクロール復元とも干渉する）。30 回待って諦める。
+  - 古い版のキャッシュが今のコードで描けない場合に備え、`JSON.parse`＋`renderAll` は try/catch で囲んで通常経路へ落とす。
+    `caches` は非セキュアオリジンで undefined なので全アクセスを try/catch で包む。
+  - **`#errorRetry` は `location.reload()` しない**（シェルを取り直すと Tailwind CDN とフォントの代金を再度払うので、
+    遅い回線ほど「再試行」が重くなる）。`init()` を呼び直す。
+  - **オフラインバナーは `navigator.onLine` だけで判定しない**——会場のキャプティブポータルや「電波は立っているが
+    実質死んでいる Wi-Fi」では `true` のままで、まさに想定した場面で出なかった。`markNetworkStale()` /
+    `markNetworkFresh()` で「実際に取得できたか」も混ぜる。
+  - 更新トーストは `#updatedToast`。**位置決めに `transform` を使わない**——登場演出の `fadeInUp` が
+    `transform` を `both` で握るので、`-translate-x-1/2` で中央寄せすると演出後に左へ飛ぶ。flex で中央寄せし、
+    演出は中身のピル（`#updatedToastPill`）に当てる。
 - **スタイル**: Tailwind Play CDN。アクセント色は `tailwind.config` の `theme.extend.colors.brand`。基準色は CSS 変数 `--brand`（既定 amber、`<style>` の `:root` で定義）で、`brand-50〜800` は `color-mix()` により自動生成。**イベント毎のブランド色は `events/<id>.json` の `eventInfo.brandColor`（メイン1色の16進）で指定** → `applyBrandColor()` が実行時に `--brand` を上書き（濃淡は自動）。会場/ルームのテーマ色は `index.html` の `COLOR` 辞書（`chip`/`dot`/`border`）が `tailwind.config` の `venue.*` パレット（blue/green/violet/coral）を参照。rooms の色キー `blue/green/orange/purple` を `venue-blue/green/coral/violet` にマッピング。動的生成するクラスは `tailwind.config` の `safelist` に保持（新色は両方に追加）。
 - **コントラストの制約**: `brandColor` は明るい色（amber・黄）も指定されるため、**ブランド色ベタ塗り＋白文字（`--brand-fg`）を新規に増やさない**（実測 1.5〜4.4:1 で WCAG AA 未達。`updateBrandFg()` の輝度閾値 0.55 は緩く、amber でも「白」を選ぶ）。強調は**白ピル（淡地）＋ブランド濃色文字**で行い、濃色は **`color-mix(in srgb, var(--brand) 48%, black)`（＝`brand-800` 相当）**を使う（ボトムナビ・日付タブの実装を参照）。**`brand-700`（62%）は使わない**——既定の黄 `#ffd900` では白地に対し 3.45:1 で AA 未達（`brand-800` なら 5.5:1）。また、**明るいブランド色は淡地（`brand-50`〜`200`）や枠線が白い地から見分けられない**（1.0〜1.7:1）ため、ピルを浮かせるには**グレーのトラック（`bg-slate-200/60`）＋白ピル**が要る。新しい配色を足すときは、既定の黄 `#ffd900` と amber `#f59e0b` の両方で 4.5:1 以上を実測して確認する（`color-mix` の計算結果は Chrome が `oklab()` 表記で返すことがあるため、canvas に塗って RGB を取るのが確実）。
 - **アニメーション**: 追加してよいのは `transform` / `opacity` のみ（GPU 合成・ビルド工程なしを維持）。タッチ／スクロール系のリスナは **`{ passive: true }` を崩さない**（スワイプは指追従せず「離した時点でコミット」する設計。`index.html` の `TAB_ORDER` とスワイプ IIFE を参照）。新規の演出クラスは `prefers-reduced-motion` ブロックへ必ず追記する（Tailwind の `transition` / `active:scale-*` はこのブロックの対象外なので取りこぼしに注意）。
