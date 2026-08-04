@@ -146,12 +146,12 @@
     {
       "id": "１部４年",
       "name": "２階東・１部４年",
-      "color": "blue"
+      "color": "green"
     },
     {
       "id": "英語教室",
       "name": "２階中央・英語教室",
-      "color": "yellow"
+      "color": "orange"
     }
   ],
   "sessions": [
