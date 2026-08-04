@@ -81,7 +81,7 @@ def _resized(img: Image.Image, max_width: int) -> Image.Image:
     return img.resize((max_width, height), Image.LANCZOS)
 
 
-def _save(img: Image.Image, dest: Path, fmt: str, quality: int | None) -> bytes:
+def _save(img: Image.Image, fmt: str, quality: int | None) -> bytes:
     """指定形式でエンコードしたバイト列を返す（まだ書かない）。"""
     import io
 
@@ -110,7 +110,7 @@ def process(check_only: bool) -> int:
 
         before = src.stat().st_size
         with _load_rgb(src) as img:
-            out = _save(_resized(img, MAX_WIDTH), dest, fmt, quality)
+            out = _save(_resized(img, MAX_WIDTH), fmt, quality)
 
         # 上書き対象（PNG）で既に十分小さいなら触らない。再実行で無駄な差分を作らない。
         if dest.exists() and len(out) >= dest.stat().st_size:

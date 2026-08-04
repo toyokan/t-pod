@@ -13,16 +13,17 @@
  *  | shell       | 同一オリジンのその他＋ナビゲーション   | ネットワーク＋時間切れでキャッシュ      |
  *
  * キャッシュは 2 本に分ける。版ごとに捨てるシェルと、版をまたいで残すランタイム。
- * 1 本だと CACHE_VERSION を上げるたびに書影とイベント JSON まで捨ててしまい、
+ * 1 本だと CACHE_VERSION を上げるたびにイベント JSON とフォントまで捨ててしまい、
  * シェルを更新した直後だけ会場でまた遅くなる。
  *
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v106";
+const CACHE_VERSION = "v107";
 // シェル（HTML/JS/アセット）。版ごとに作り直す
 const SHELL_CACHE = `t-pod-${CACHE_VERSION}`;
-// 版に依存しない長寿命キャッシュ。events/<id>.json・書影・フォント実体・Tailwind を入れる。
+// 版に依存しない長寿命キャッシュ。events/<id>.json・フォント実体・Tailwind を入れる
+// （書影は passthrough なのでここには入らない）。
 // index.html も同じ名前で読み書きするので、変えるときは index.html の RUNTIME_CACHE も揃えること。
 const RUNTIME_CACHE = "t-pod-runtime-1";
 
@@ -40,8 +41,22 @@ const IMMUTABLE_HOSTS = new Set([
 // シェルを待つ上限。超えたらキャッシュで先に描かせ、ネットワークは裏で走らせ続ける
 const NET_TIMEOUT_MS = 2500;
 
-// ランタイムキャッシュの上限。書影だけが青天井に増えるので蓋をする
-const RUNTIME_MAX = 120;
+// ランタイムキャッシュの上限。
+// **青天井に増えるのはフォント実体だけ**（書影は passthrough で SW を通さない）。
+// 和文フォントは unicode-range で 100 以上のサブセットに割れるので、ウェイト 4 種だと
+// 簡単にこの数に達する。イベント JSON と Tailwind は数が限られていて会場で効く本命なので、
+// 間引きの対象から外す（`isTrimmable`）。
+const RUNTIME_MAX = 160;
+// 間引いてよいのはフォント実体だけ。**素直に挿入順で FIFO してはいけない**——
+// Tailwind は install 時に最初に入り、イベント JSON もその直後に入るので、
+// 単純な FIFO ではいちばん残したい 2 つから消えてしまい逆効果になる。
+function isTrimmable(url) {
+  try {
+    return new URL(url).hostname === "fonts.gstatic.com";
+  } catch (e) {
+    return false;
+  }
+}
 
 // 相対パスでプリキャッシュ（GitHub Pages のサブパス配信に対応）
 // イベント別アセット（icon-<id>.svg / venue-map-<id>.svg / events/<id>.json）は
@@ -102,7 +117,8 @@ self.addEventListener("activate", (event) => {
 });
 
 // ランタイムキャッシュを上限まで削る。Cache API の keys() は挿入順なので
-// 先頭（＝古いもの）から捨てれば FIFO になり、追加のメタデータを持たずに済む。
+// 前から見れば古い順になり、追加のメタデータを持たずに済む。
+// ただし削るのは isTrimmable（フォント実体）だけで、イベント JSON と Tailwind は飛ばす。
 // put のたびに全件舐めると重いので、ふだんは間引いて走らせる。
 let putCount = 0;
 async function trimRuntime(force) {
@@ -110,8 +126,14 @@ async function trimRuntime(force) {
   try {
     const cache = await caches.open(RUNTIME_CACHE);
     const keys = await cache.keys();
-    if (keys.length <= RUNTIME_MAX) return;
-    await Promise.all(keys.slice(0, keys.length - RUNTIME_MAX).map((k) => cache.delete(k)));
+    let over = keys.length - RUNTIME_MAX;
+    if (over <= 0) return;
+    for (const key of keys) {
+      if (over <= 0) break;
+      if (!isTrimmable(key.url)) continue;
+      await cache.delete(key);
+      over--;
+    }
   } catch (e) {}
 }
 
@@ -176,11 +198,16 @@ function networkWithTimeout(request, cacheName, ms) {
 function networkThenCacheOnError(request, cacheName) {
   return fetch(request)
     .then((res) => {
-      putLater(request, res, cacheName);
+      // 会場のキャプティブポータルは JSON の URL にも 200 でログイン HTML を返す。
+      // 型を確かめてから保存しないと、それを「イベント JSON」として抱え込んでしまう。
+      if (looksJson(res)) putLater(request, res, cacheName);
       return res;
     })
     .catch(async () => (await caches.match(request)) || Response.error());
 }
+
+const looksJson = (res) =>
+  !!res && (res.headers.get("content-type") || "").toLowerCase().includes("json");
 
 // ナビゲーションがネットワークもキャッシュも取れないときの最後の砦
 async function fallbackShell(request) {
