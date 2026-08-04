@@ -2,6 +2,50 @@
 
 このPWAの開発経緯・現状・残課題のログです。新しい作業を行ったら追記してください。
 
+## 2026-08-04 — LINE内ブラウザ前提の「ホーム画面に追加」導線に作り直し
+
+このサイトへの主要な流入は、**自社のLINE公式アカウントでキーワードを打つとURLが返る形式**
+（例: `https://events.toyokan.co.jp/?id=2026-zensanken-37`）だと判明した。つまりほぼ全員が
+**LINEのin-appブラウザで最初に開く**が、既存実装はSafari / Chromeで開かれている前提で、
+この主要導線が3通りに破綻していた。
+
+| 環境 | 修正前の挙動 |
+| --- | --- |
+| Android の LINE 内ブラウザ | `beforeinstallprompt` が来ず `isIos()` も false → `showInstallBanner()` が早期 return し**バナーごと出ない**。追加手段ゼロ |
+| iOS の LINE 内ブラウザ | バナーは出るが、モーダルは「Safariの共有メニューから…」と案内する。**LINE内ブラウザの共有には「ホーム画面に追加」が無い**ので、その通りにしても追加できない |
+| Android の Chrome | `deferredPrompt` が無いとき `installBtn` を押しても `isIos()` が false で**何も起きない**（無反応） |
+
+**根本対策（LINE側のURL）**: LINE公式アカウントが送ったリンクは `openExternalBrowser=1` を付けると
+LINE内ブラウザを経由せず端末のChrome / Safariで直接開く。`scripts/generate_event_url_index.py` に
+「LINE配信用URL」列を足し、`docs/event-url-index.md` から貼り替え用URLをそのまま取れるようにした。
+`getEventId()` は `URLSearchParams` で `id` だけを見るので余分なクエリは無害、生成マニフェストの
+`start_url` も `./?id=<id>` 固定なのでパラメータは混入しない。LINE側の応答文の差し替えは運用作業。
+
+**アプリ側（付け忘れ・古いリンク対策）**:
+
+- `isAndroid()` / `isLineApp()`（UA の `Line/`。`Linux` は `/` が続かないので誤爆しない）/
+  `isInAppBrowser()`（LINE＋Instagram・Facebook・X）を追加。
+- `showInstallBanner()` の早期 return に in-app を含めず、Androidの LINE 内でもバナーが出るようにした。
+  in-app のときは文言を「ブラウザで開くとアプリになります」／ボタン「開き方」に切り替える
+  （`installTitle` / `installDesc` に id を付与）。`deferredPrompt` が来た場合は元の文言へ戻す。
+- `iosInstallHelpHtml()` を `installHelpHtml()` に置き換え、**in-app×Android / in-app×iOS /
+  iOS Safari / その他** の4分岐に。Androidは `chromeIntentUrl()`（`intent://…;package=com.android.chrome;`
+  ＋ `S.browser_fallback_url` でChrome未導入時も落ちない）で「Chromeで開く」を主導線に、iOSは
+  同等の手段が無いので「リンクをコピー」＋「⋯→Safariで開く」の手順を出す。
+- `installBtn` のハンドラから `else if (isIos())` を外し、`deferredPrompt` が無ければ常に案内を開く
+  （Android Chrome の無反応も同時に解消）。
+- コピーは `navigator.clipboard.writeText()`、失敗時は readonly な `<input>` を差し込んで手動選択に落とす
+  （WebViewでAPIが塞がれている場合の保険）。リスナは `openModal()` が innerHTML を入れた**後**に
+  `openInstallHelp()` が張る（HTML文字列に `onclick` を書かない方針を維持）。
+- モーダル内のボタンは淡地＋`color-mix(in srgb, var(--brand) 48%, black)` の文字色。
+  **ブランド色ベタ塗り＋白文字は増やしていない**（明るい `brandColor` でAAを割るため）。
+- LINE友だち追加ポップアップは `isLineApp()` のとき出さない（キーワード応答から来た人はすでに友だち）。
+  localStorageは汚さないので、外部ブラウザで開き直したときは従来どおり出る。
+- 案内ページ（`?id` なし）にも、LINEから開いた場合はブラウザで開き直す旨を1行足した。
+
+シェル（HTML/JS）変更のため `CACHE_VERSION` を v103 → v104。`validate_events.py` エラー0・警告0、
+`pytest` 12件成功。`events/*.json` は一切触っていない。
+
 ## 2026-07-31 — 全算研の次回イベント（冬季私学大会）バナー差し替え
 
 `events/2026-zensanken-37.json` の `nextEvent.image` に、第27回冬季全国算数授業研究会 私学大会

@@ -559,8 +559,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       </span>
       <div class="flex-1 min-w-0">
-        <div class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
-        <div class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
+        <div id="installTitle" class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
+        <div id="installDesc" class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
       </div>
       <button id="installBtn" class="brand-bg flex-shrink-0 text-xs font-bold rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
       <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-2.5 -m-1 active:scale-95 transition">
@@ -594,6 +594,7 @@
       <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-card text-center">
         <h2 class="text-base font-bold text-slate-700">イベント参加者の方へ</h2>
         <p class="text-sm text-slate-600 leading-relaxed mt-3">イベントページは、ご案内のLINEまたはQRコードからアクセスしてください。</p>
+        <p class="text-xs text-slate-500 leading-relaxed mt-3">LINEのトーク画面から開いた場合は、右下の「⋯」からブラウザ（Chrome / Safari）で開き直すと、ホーム画面に追加できます。</p>
         <a href="https://page.line.me/bsi8018g?openQrModal=true" target="_blank" rel="noopener"
           class="mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white shadow-sm active:scale-[.99] transition"
           style="background:#06C755">
@@ -2573,6 +2574,18 @@
     const isIos = () =>
       /iphone|ipad|ipod/i.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    // 主要な流入は LINE 公式アカウントのキーワード応答なので、多くの人は LINE の
+    // in-app ブラウザでこのページを開く。そこでは beforeinstallprompt が発火せず、
+    // iOS の共有シートにも「ホーム画面に追加」が無いため、案内を分ける必要がある。
+    // LINE の WebView は UA に "Line/<version>" を持つ（"Linux" は / が続かないので誤爆しない）。
+    const isLineApp = () => /\bLine\//i.test(navigator.userAgent);
+    const isInAppBrowser = () => isLineApp() || /FBAN|FBAV|Instagram|Twitter/i.test(navigator.userAgent);
+    // Android の in-app ブラウザから Chrome を直接開く。Chrome が無ければ
+    // browser_fallback_url で既定ブラウザに落ちる。
+    const chromeIntentUrl = () =>
+      "intent://" + location.host + location.pathname + location.search
+      + "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="
+      + encodeURIComponent(location.href) + ";end";
     const INSTALL_DISMISS_KEY = "t-pod:install-dismissed";
 
     // ---- LINE 友だち追加ポップアップ（東洋館出版社 公式・全イベント共通） ----
@@ -2593,6 +2606,9 @@
     function showLinePromo() {
       const isEvent = !!getEventId();
       if (isEvent && DATA?.eventInfo?.linePromo !== true) return;
+      // LINE の in-app ブラウザで見ている＝キーワード応答から来た人なので、すでに友だち。
+      // localStorage は汚さないので、外部ブラウザで開き直したときには従来どおり出る。
+      if (isLineApp()) return;
       try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
       let fired = false;
       const open = () => {
@@ -2619,18 +2635,122 @@
     function showInstallBanner() {
       if (!getEventId() || isStandalone()) return;
       try { if (localStorage.getItem(INSTALL_DISMISS_KEY)) return; } catch (e) {}
-      if (!deferredPrompt && !isIos()) return;
+      // in-app ブラウザは beforeinstallprompt が来ないので、Android でもここを通す。
+      if (!deferredPrompt && !isIos() && !isInAppBrowser()) return;
+      const viaBrowser = !deferredPrompt && isInAppBrowser();
+      $("installTitle").textContent = viaBrowser ? "ブラウザで開くとアプリになります" : "アプリとして追加";
+      $("installDesc").textContent = viaBrowser
+        ? "ホーム画面に追加して、当日すぐ開けるように"
+        : "ホーム画面に追加するとすばやく開けます";
+      $("installBtn").textContent = viaBrowser ? "開き方" : "追加";
       $("installBanner").classList.remove("hidden");
     }
     function hideInstallBanner() { $("installBanner").classList.add("hidden"); }
-    function iosInstallHelpHtml() {
+    // ブランド色ベタ塗り＋白文字は増やさない（明るい brandColor で AA を割るため）。
+    // モーダル内のボタンは淡地＋ブランド濃色（brand-800 相当）の文字で作る。
+    const HELP_BTN_CLS = "flex items-center justify-center gap-2 w-full py-3 rounded-xl "
+      + "font-bold text-sm bg-brand-50 border border-brand-200 active:scale-[.99] transition";
+    const HELP_BTN_STYLE = "color:color-mix(in srgb, var(--brand) 48%, black)";
+    function helpSteps(items) {
+      return `<ol class="space-y-2.5">`
+        + items.map(([name, text]) =>
+            `<li class="flex items-center gap-2.5">${icon(name, "w-5 h-5 text-brand-600 flex-shrink-0")}`
+            + `<span>${escapeHtml(text)}</span></li>`).join("")
+        + `</ol>`;
+    }
+    function copyLinkBtnHtml(label = "リンクをコピー") {
+      return `<button type="button" data-copy-url class="${HELP_BTN_CLS}" style="${HELP_BTN_STYLE}">`
+        + `${icon("file", "w-5 h-5 flex-shrink-0")}<span data-copy-label>${escapeHtml(label)}</span></button>`;
+    }
+    // 環境ごとに「ホーム画面に追加」の道筋が違うので、4 分岐で案内を出し分ける。
+    function installHelpHtml() {
+      const inApp = isInAppBrowser();
+      const app = isLineApp() ? "LINE" : "このアプリ";
+      if (inApp && !isIos()) {
+        // A: Android の in-app ブラウザ。ここでは追加できないので、まず Chrome へ出す。
+        return `<div class="space-y-3 text-sm text-slate-700">`
+          + `<p>${escapeHtml(app)}の中のブラウザでは、ホーム画面に追加できません。Chrome で開き直してください。</p>`
+          + `<div class="space-y-2.5">`
+          + `<a href="${escapeHtml(chromeIntentUrl())}" class="${HELP_BTN_CLS}" style="${HELP_BTN_STYLE}">`
+          + `${icon("form", "w-5 h-5 flex-shrink-0")}<span>Chrome で開く</span></a>`
+          + copyLinkBtnHtml()
+          + `</div>`
+          + `<p class="text-xs text-slate-500 pt-1">うまく開かないときは、次の手順でも開けます。</p>`
+          + helpSteps([
+              ["chevron", "画面右下の「⋯」をタップし、「他のブラウザで開く」を選ぶ"],
+              ["chevron", "Chrome の右上の「⋮」をタップ"],
+              ["plusSquare", "「ホーム画面に追加」（端末により「アプリをインストール」）を選ぶ"],
+              ["download", "「追加」「インストール」をタップして完了"],
+            ])
+          + `</div>`;
+      }
+      if (inApp) {
+        // B: iOS の in-app ブラウザ。共有シートに「ホーム画面に追加」が無いので Safari へ。
+        return `<div class="space-y-3 text-sm text-slate-700">`
+          + `<p>${escapeHtml(app)}の中のブラウザでは、ホーム画面に追加できません。Safari で開き直してください。</p>`
+          + copyLinkBtnHtml("リンクをコピーして Safari で開く")
+          + helpSteps([
+              ["chevron", "画面右下の「⋯」をタップし、「Safariで開く」を選ぶ"],
+              ["share", "Safari の画面下の「共有」ボタンをタップ"],
+              ["plusSquare", "「ホーム画面に追加」を選択"],
+              ["download", "右上の「追加」をタップして完了"],
+            ])
+          + `</div>`;
+      }
+      if (isIos()) {
+        // C: Safari。従来どおり。
+        return `<div class="space-y-3 text-sm text-slate-700">`
+          + `<p>Safari の共有メニューから、このページをホーム画面アプリとして追加できます。</p>`
+          + helpSteps([
+              ["share", "画面下の「共有」ボタンをタップ"],
+              ["plusSquare", "「ホーム画面に追加」を選択"],
+              ["download", "右上の「追加」をタップして完了"],
+            ])
+          + `</div>`;
+      }
+      // D: Android の Chrome など（インストール条件が整わず beforeinstallprompt が来ない場合）。
       return `<div class="space-y-3 text-sm text-slate-700">`
-        + `<p>Safari の共有メニューから、このページをホーム画面アプリとして追加できます。</p>`
-        + `<ol class="space-y-2.5">`
-        + `<li class="flex items-center gap-2.5">${icon("share", "w-5 h-5 text-brand-600 flex-shrink-0")}<span>画面下の「共有」ボタンをタップ</span></li>`
-        + `<li class="flex items-center gap-2.5">${icon("plusSquare", "w-5 h-5 text-brand-600 flex-shrink-0")}<span>「ホーム画面に追加」を選択</span></li>`
-        + `<li class="flex items-center gap-2.5">${icon("download", "w-5 h-5 text-brand-600 flex-shrink-0")}<span>右上の「追加」をタップして完了</span></li>`
-        + `</ol></div>`;
+        + `<p>ブラウザのメニューから、このページをホーム画面アプリとして追加できます。</p>`
+        + helpSteps([
+            ["chevron", "画面右上の「⋮」をタップ"],
+            ["plusSquare", "「ホーム画面に追加」（端末により「アプリをインストール」）を選ぶ"],
+            ["download", "「追加」「インストール」をタップして完了"],
+          ])
+        + `</div>`;
+    }
+    // openModal() は innerHTML で本文を差し込むので、リスナは開いた直後に張る
+    // （HTML 文字列に onclick を書かない）。
+    function openInstallHelp() {
+      openModal("ホーム画面に追加", installHelpHtml());
+      const btn = $("modalBody").querySelector("[data-copy-url]");
+      if (!btn) return;
+      btn.addEventListener("click", async () => {
+        const label = btn.querySelector("[data-copy-label]");
+        const done = () => {
+          const prev = label.textContent;
+          label.textContent = "コピーしました";
+          setTimeout(() => { label.textContent = prev; }, 2000);
+        };
+        try {
+          await navigator.clipboard.writeText(location.href);
+          done();
+          return;
+        } catch (e) {}
+        // クリップボード API が使えない WebView 向けのフォールバック（手で選択・コピーできる）。
+        if ($("modalBody").querySelector("[data-copy-fallback]")) return;
+        const box = el("div", "pt-1", "");
+        box.dataset.copyFallback = "1";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.readOnly = true;
+        input.value = location.href;
+        input.className = "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600";
+        box.appendChild(el("p", "text-xs text-slate-500 pb-1", "長押しして「コピー」を選んでください。"));
+        box.appendChild(input);
+        btn.parentNode.insertBefore(box, btn.nextSibling);
+        input.focus();
+        input.select();
+      });
     }
     function setupInstallPrompt() {
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -2649,8 +2769,8 @@
           await deferredPrompt.userChoice;
           deferredPrompt = null;
           hideInstallBanner();
-        } else if (isIos()) {
-          openModal("ホーム画面に追加", iosInstallHelpHtml());
+        } else {
+          openInstallHelp();
         }
       });
     }
