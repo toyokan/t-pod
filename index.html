@@ -1130,7 +1130,9 @@
       try {
         const u = new URL(s, location.href);
         // Shopify（東洋館出版社のストア）: ?width= で任意サイズを配ってくれる
-        if (u.hostname.endsWith("toyokan.co.jp") && u.searchParams.has("width")) {
+        // ホスト名は前方一致で見ない（`eviltoyokan.co.jp` を拾ってしまう）
+        const isToyokan = u.hostname === "toyokan.co.jp" || u.hostname.endsWith(".toyokan.co.jp");
+        if (isToyokan && u.searchParams.has("width")) {
           if (Number(u.searchParams.get("width")) <= px) return s;
           u.searchParams.set("width", String(px));
           return u.href;
@@ -1223,6 +1225,11 @@
       const res = await fetch(`events/${id}.json`, { cache: "no-cache" });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const text = await res.text();
+      // **キャッシュへ書く前に、必ず解釈できることを確かめる**——会場のキャプティブポータルは
+      // JSON の URL にも 200 でログイン HTML を返すことがあり、素通しすると次回の即時表示が
+      // 壊れる。ここで throw しておけば onFail に回り、オフライン表示も正しく出る
+      // （このチェックが無いと markNetworkFresh() まで走ってバナーが消えてしまう）。
+      JSON.parse(text);
       // SW が制御していない回でも次回のために自分で書いておく
       try {
         const cache = await caches.open(RUNTIME_CACHE);
@@ -1234,7 +1241,13 @@
       return text;
     }
 
+    // #errorRetry は前回の取得が飛んだままでも init() を呼び直せる。世代番号を持たせて
+    // 古い実行のコールバックを黙らせる——放っておくと両方が描画し、showLinePromo() が
+    // 二重に走ってスクロールリスナと 30 秒タイマーが 2 本ずつ張られる（ポップアップが 2 回開く）。
+    let initRun = 0;
     async function init() {
+      const run = ++initRun;
+      const alive = () => run === initRun;
       updateBrandFg(resolvedBrand());
       registerSW();
       setupInstallPrompt();
@@ -1249,6 +1262,7 @@
       // 1) キャッシュがあれば先に描く。会場の細い回線ではここで待ち時間が実質ゼロになる
       let shown = null; // いま画面に出ている JSON の生テキスト
       const cached = await readCachedEventText(id);
+      if (!alive()) return;
       if (cached) {
         try {
           DATA = JSON.parse(cached);
@@ -1273,17 +1287,13 @@
       // 締め切りは「待つのをやめる」だけで、届いたときの処理はいつでも走らせる。
       let done = false;
       const onFresh = (text) => {
+        if (!alive()) return;
         done = true;
         markNetworkFresh();
         $("errorBox").classList.add("hidden"); // 締め切り後に届いた場合の後始末
         $("skeleton").classList.add("hidden");
         if (text === shown) return; // 変化なし＝何もしない（トーストも出さない）
-        try {
-          DATA = JSON.parse(text);
-        } catch (e) {
-          console.warn("取得した JSON を解釈できない", e);
-          return;
-        }
+        DATA = JSON.parse(text); // fetchEventText が解釈できることを確認済み
         if (shown) {
           scheduleSilentRerender();
         } else {
@@ -1294,6 +1304,7 @@
         shown = text;
       };
       const onFail = (err) => {
+        if (!alive()) return;
         done = true;
         console.warn(err);
         $("skeleton").classList.add("hidden");
@@ -1306,7 +1317,7 @@
       // 締め切り: 表示できるものが無いまま待たせ続けない／
       // 表示済みなら「まだ取れていない」ことだけ知らせて描画は据え置く
       setTimeout(() => {
-        if (done) return;
+        if (done || !alive()) return;
         $("skeleton").classList.add("hidden");
         if (shown) markNetworkStale();
         else showLoadError();
