@@ -99,52 +99,52 @@
     {
       "id": "講堂",
       "name": "講堂",
-      "color": "purple"
+      "color": "orangeDeep"
     },
     {
       "id": "第１体育室",
       "name": "第１体育室",
-      "color": "purple"
+      "color": "orange"
     },
     {
       "id": "第１音楽室",
       "name": "第１音楽室",
-      "color": "orange"
+      "color": "purple"
     },
     {
       "id": "第２音楽室",
       "name": "第２音楽室",
-      "color": "orange"
+      "color": "purpleDeep"
     },
     {
       "id": "総合活動教室",
       "name": "総合活動教室",
-      "color": "yellow"
+      "color": "orange"
     },
     {
       "id": "２部４年",
       "name": "２部４年",
-      "color": "yellow"
+      "color": "orange"
     },
     {
       "id": "２部５年",
       "name": "２部５年",
-      "color": "yellow"
+      "color": "orange"
     },
     {
       "id": "３部４年",
       "name": "３部４年",
-      "color": "yellow"
+      "color": "orange"
     },
     {
       "id": "３部６年",
       "name": "３部６年",
-      "color": "yellow"
+      "color": "green"
     },
     {
       "id": "４部３年",
       "name": "４部３年",
-      "color": "yellow"
+      "color": "orange"
     }
   ],
   "sessions": [
