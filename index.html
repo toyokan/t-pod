@@ -49,11 +49,26 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-  <!-- Webフォント（Zen Kaku Gothic New）。SWでキャッシュしオフライン時はシステムフォントに劣化 -->
+  <!-- 会場の細い回線では DNS＋TCP＋TLS の確立がいちばん高くつくので、
+       あとで必ず使うホストは先に繋いでおく。preconnect は同時に張りすぎると逆効果なので、
+       描画をブロックする 2 ホスト（フォント CSS と Tailwind）だけに使い、
+       画像ホスト（favicon・書影）は軽い dns-prefetch に留める。 -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- DotGothic16 はマスコットの吹き出し専用（ドット絵と粒を合わせるため）。本文は Zen Kaku Gothic New -->
-  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://cdn.tailwindcss.com" />
+  <link rel="dns-prefetch" href="https://www.toyokan.co.jp" />
+  <link rel="dns-prefetch" href="https://m.media-amazon.com" />
+  <link rel="dns-prefetch" href="https://images-na.ssl-images-amazon.com" />
+
+  <!-- Webフォント（Zen Kaku Gothic New）。SWでキャッシュしオフライン時はシステムフォントに劣化。
+       DotGothic16 はマスコットの吹き出し専用（ドット絵と粒を合わせるため）。本文は Zen Kaku Gothic New。
+       media="print" → onload で all に戻すのは「描画をブロックさせない」ための定石。
+       display=swap があるので本文はシステムフォントで即出て、届いた時点で差し替わる。 -->
+  <link rel="stylesheet" media="print" onload="this.media='all'"
+    href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=DotGothic16&display=swap" />
+  </noscript>
 
   <!-- Tailwind CSS (Play CDN) — 要件によりCDN読込。SWでキャッシュしオフライン対応 -->
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
@@ -552,6 +567,17 @@
     </div>
   </div>
 
+  <!-- ===== 更新トースト（背景の再取得で内容が変わったときだけ表示） =====
+       ブランド色ベタ塗り＋白文字は増やさない方針なので、オフラインバナーと同じ slate に揃える -->
+  <!-- 中央寄せは flex で行い、-translate-x-1/2 は使わない。登場演出の fadeInUp が
+       transform を both で握るため、transform で位置を作ると演出後に左へ飛ぶ -->
+  <div id="updatedToast" class="hidden fixed inset-x-0 bottom-24 z-30 flex justify-center px-3" role="status">
+    <div id="updatedToastPill" class="flex items-center gap-2 bg-slate-800 text-white/90 text-xs font-medium rounded-full px-4 py-2 shadow-lg">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <span>最新の情報に更新しました</span>
+    </div>
+  </div>
+
   <!-- ===== ホーム画面に追加バナー（既定 hidden。イベントモードかつ未インストール時のみ表示） ===== -->
   <div id="installBanner" class="hidden max-w-2xl mx-auto mt-2 px-3">
     <div class="flex items-center gap-3 bg-brand-50 border border-brand-200 rounded-xl px-3.5 py-2.5 shadow-card">
@@ -559,8 +585,8 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
       </span>
       <div class="flex-1 min-w-0">
-        <div class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
-        <div class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
+        <div id="installTitle" class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
+        <div id="installDesc" class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
       </div>
       <button id="installBtn" class="brand-bg flex-shrink-0 text-xs font-bold rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
       <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-2.5 -m-1 active:scale-95 transition">
@@ -594,6 +620,7 @@
       <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-card text-center">
         <h2 class="text-base font-bold text-slate-700">イベント参加者の方へ</h2>
         <p class="text-sm text-slate-600 leading-relaxed mt-3">イベントページは、ご案内のLINEまたはQRコードからアクセスしてください。</p>
+        <p class="text-xs text-slate-500 leading-relaxed mt-3">LINEのトーク画面から開いた場合は、右下の「⋯」からブラウザ（Chrome / Safari）で開き直すと、ホーム画面に追加できます。</p>
         <a href="https://page.line.me/bsi8018g?openQrModal=true" target="_blank" rel="noopener"
           class="mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white shadow-sm active:scale-[.99] transition"
           style="background:#06C755">
@@ -626,7 +653,7 @@
       <div>
         <h3 class="text-sm font-semibold text-slate-600 mb-2">会場マップ</h3>
         <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-card">
-          <img id="venueMap" alt="会場マップ" class="w-full" />
+          <img id="venueMap" alt="会場マップ" loading="lazy" decoding="async" class="w-full" />
           <p id="venueNote" class="text-xs text-slate-600 p-3 leading-relaxed"></p>
         </div>
       </div>
@@ -1091,6 +1118,43 @@
         return "#";
       }
     };
+    // 書影を表示枠に見合った小さい派生画像へ向け直す。
+    // JSON にはフルサイズ（1200px 幅・_SL1500_ 等）の URL が入っているが、実際の表示枠は
+    // 64×96 CSS px しかない。会場の細い回線では、これが 20 枚以上並ぶと支配的なコストになる。
+    // JSON は書き換えず描画時に付け替えるので、既存・将来のイベント全部に効く。
+    // 未知のホストや想定外の形は**そのまま返す**（外部 CDN の仕様に賭けない）。
+    // 派生 URL が 404 のときは renderBooks() が元の URL で一度だけ retry する。
+    const coverUrl = (url, px) => {
+      const s = typeof url === "string" ? url.trim() : "";
+      if (!s) return s;
+      try {
+        const u = new URL(s, location.href);
+        // Shopify（東洋館出版社のストア）: ?width= で任意サイズを配ってくれる
+        // ホスト名は前方一致で見ない（`eviltoyokan.co.jp` を拾ってしまう）
+        const isToyokan = u.hostname === "toyokan.co.jp" || u.hostname.endsWith(".toyokan.co.jp");
+        if (isToyokan && u.searchParams.has("width")) {
+          if (Number(u.searchParams.get("width")) <= px) return s;
+          u.searchParams.set("width", String(px));
+          return u.href;
+        }
+        // Amazon 現行形式: /images/I/<id>._SL1500_.jpg の SL の数値が最長辺
+        if (u.hostname === "m.media-amazon.com") {
+          const p = u.pathname.replace(/\._SL\d+_\.(jpg|jpeg|png)$/i, `._SL${px}_.$1`);
+          if (p === u.pathname) return s;
+          u.pathname = p;
+          return u.href;
+        }
+        // Amazon 旧形式: /images/P/<isbn>.09.LZZZZZZZ.jpg（L=大 / M=中 / T=小）。
+        // 数値指定はできないので中サイズ（約160px）に落とす。
+        if (u.hostname === "images-na.ssl-images-amazon.com") {
+          const p = u.pathname.replace(/\.LZZZZZZZ\.(jpg|jpeg|png)$/i, ".MZZZZZZZ.$1");
+          if (p === u.pathname) return s;
+          u.pathname = p;
+          return u.href;
+        }
+      } catch (e) {}
+      return s;
+    };
     // テーマを「メインテーマ―サブテーマ」の区切りで分割する（区切りが無ければ sub は空）。
     // 区切り記号はサブテーマ側の先頭に残す（原文の表記をそのまま活かすため）
     const splitTheme = (theme) => {
@@ -1133,45 +1197,184 @@
       document.querySelector("main").classList.toggle("pb-8", !isEvent);
     }
 
+    // ---- イベントデータの取得（キャッシュ即座表示＋裏で鮮度確認） ----
+    // sw.js の RUNTIME_CACHE と同じ名前。ビルド工程が無いので定数が 2 箇所にある。
+    // 片方だけ変えるとページ側の即時表示が効かなくなるので必ず揃えること。
+    const RUNTIME_CACHE = "t-pod-runtime-1";
+    const eventJsonUrl = (id) => new URL(`events/${id}.json`, location.href).href;
+    // 表示済みなら、待つのは「表示のため」ではなく「更新のため」なので短くてよい
+    const REVALIDATE_MS = 6000;
+    // キャッシュが無い初回のハード上限（従来と同じ）
+    const COLD_TIMEOUT_MS = 10000;
+
+    // Cache API はページから直接読める。SW の起動や制御を待たずに済むので、
+    // 初回訪問直後（まだ SW が controller になっていない）でも効く。
+    // 非セキュアオリジンでは caches が無いので、その場合は静かに null を返す。
+    async function readCachedEventText(id) {
+      try {
+        const res = await caches.match(eventJsonUrl(id));
+        return res && res.ok ? await res.text() : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // 生テキストのまま返す。差分判定を JSON.parse 後のオブジェクト比較ではなく
+    // 文字列比較でやるため（34KB の === は一瞬で終わり、キー順のゆらぎも拾わない）
+    async function fetchEventText(id) {
+      const res = await fetch(`events/${id}.json`, { cache: "no-cache" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      // **キャッシュへ書く前に、必ず解釈できることを確かめる**——会場のキャプティブポータルは
+      // JSON の URL にも 200 でログイン HTML を返すことがあり、素通しすると次回の即時表示が
+      // 壊れる。ここで throw しておけば onFail に回り、オフライン表示も正しく出る
+      // （このチェックが無いと markNetworkFresh() まで走ってバナーが消えてしまう）。
+      JSON.parse(text);
+      // SW が制御していない回でも次回のために自分で書いておく
+      try {
+        const cache = await caches.open(RUNTIME_CACHE);
+        await cache.put(
+          eventJsonUrl(id),
+          new Response(text, { headers: { "content-type": "application/json" } })
+        );
+      } catch (e) {}
+      return text;
+    }
+
+    // #errorRetry は前回の取得が飛んだままでも init() を呼び直せる。世代番号を持たせて
+    // 古い実行のコールバックを黙らせる——放っておくと両方が描画し、showLinePromo() が
+    // 二重に走ってスクロールリスナと 30 秒タイマーが 2 本ずつ張られる（ポップアップが 2 回開く）。
+    let initRun = 0;
     async function init() {
+      const run = ++initRun;
+      const alive = () => run === initRun;
       updateBrandFg(resolvedBrand());
       registerSW();
       setupInstallPrompt();
       const id = getEventId();
-      try {
-        if (id) {
-          // 通信がハングした場合にスケルトンが残り続けないよう、一定時間で打ち切る
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 10000);
-          let res;
-          try {
-            res = await fetch(`events/${id}.json`, { cache: "no-cache", signal: controller.signal });
-          } finally {
-            clearTimeout(timeoutId);
-          }
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          DATA = await res.json();
+      if (!id) {
+        setMode("list");
+        renderAccessGuide();
+        $("skeleton").classList.add("hidden");
+        return;
+      }
+
+      // 1) キャッシュがあれば先に描く。会場の細い回線ではここで待ち時間が実質ゼロになる
+      let shown = null; // いま画面に出ている JSON の生テキスト
+      const cached = await readCachedEventText(id);
+      if (!alive()) return;
+      if (cached) {
+        try {
+          DATA = JSON.parse(cached);
           setMode("event");
           renderAll();
           showLinePromo();
-        } else {
-          setMode("list");
-          renderAccessGuide();
+          $("skeleton").classList.add("hidden");
+          shown = cached;
+        } catch (e) {
+          // 古い版のキャッシュが今のコードで描けないことがある。その回は無かったことにして
+          // 通常の取得へ落とす（本文が真っ白のまま残るのを防ぐ）
+          console.warn("キャッシュからの描画に失敗", e);
+          DATA = null;
+          shown = null;
         }
-      } catch (err) {
-        console.error(err);
-        setMode("list");
-        // ここは「存在しない id」だけでなく**通信失敗・10 秒タイムアウトでも通る**ので、
-        // 原因を断定しない中立の見出しにする（詳しい案内と導線は #errorBox が持つ）
-        setPageHeading("イベントを読み込めませんでした");
-        // イベントを読めなかったので、inline script が貼った events/<id>.webmanifest
-        // （実体が無ければ 404）は残さず汎用へ戻す
-        setManifestHref("manifest.json");
-        $("errorBox").classList.remove("hidden");
-        $("errorRetry").onclick = () => location.reload();
-      } finally {
-        $("skeleton").classList.add("hidden");
       }
+
+      // 2) 最新を取りに行く。
+      // **待ち切りと取得完了を切り離す**のが要点——会場では「遅いが最終的には届く」が多く、
+      // 締め切りで打ち切ったあとに届いた分を捨てると、更新が次回まで反映されないうえ、
+      // 実際には通じているのにオフライン表示が残ってしまう。
+      // 締め切りは「待つのをやめる」だけで、届いたときの処理はいつでも走らせる。
+      let done = false;
+      const onFresh = (text) => {
+        if (!alive()) return;
+        done = true;
+        markNetworkFresh();
+        $("errorBox").classList.add("hidden"); // 締め切り後に届いた場合の後始末
+        $("skeleton").classList.add("hidden");
+        if (text === shown) return; // 変化なし＝何もしない（トーストも出さない）
+        DATA = JSON.parse(text); // fetchEventText が解釈できることを確認済み
+        if (shown) {
+          scheduleSilentRerender();
+        } else {
+          setMode("event");
+          renderAll();
+          showLinePromo();
+        }
+        shown = text;
+      };
+      const onFail = (err) => {
+        if (!alive()) return;
+        done = true;
+        console.warn(err);
+        $("skeleton").classList.add("hidden");
+        // すでに表示できているならエラー画面は出さない。オフラインバナーに委ねる
+        if (shown) markNetworkStale();
+        else showLoadError();
+      };
+      fetchEventText(id).then(onFresh, onFail);
+
+      // 締め切り: 表示できるものが無いまま待たせ続けない／
+      // 表示済みなら「まだ取れていない」ことだけ知らせて描画は据え置く
+      setTimeout(() => {
+        if (done || !alive()) return;
+        $("skeleton").classList.add("hidden");
+        if (shown) markNetworkStale();
+        else showLoadError();
+      }, shown ? REVALIDATE_MS : COLD_TIMEOUT_MS);
+    }
+
+    function showLoadError() {
+      setMode("list");
+      // ここは「存在しない id」だけでなく**通信失敗・タイムアウトでも通る**ので、
+      // 原因を断定しない中立の見出しにする（詳しい案内と導線は #errorBox が持つ）
+      setPageHeading("イベントを読み込めませんでした");
+      // イベントを読めなかったので、inline script が貼った events/<id>.webmanifest
+      // （実体が無ければ 404）は残さず汎用へ戻す
+      setManifestHref("manifest.json");
+      $("errorBox").classList.remove("hidden");
+      // reload しないのが要点——シェルを取り直すと Tailwind CDN とフォントの代金を
+      // もう一度払うことになり、遅い回線ほど「再試行」が重くなる
+      $("errorRetry").onclick = () => {
+        $("errorBox").classList.add("hidden");
+        $("skeleton").classList.remove("hidden");
+        didAutoScroll = false;
+        init();
+      };
+    }
+
+    // 表示中の内容を、見ている場所を動かさずに新しい DATA で描き直す。
+    // モーダルの中身は開いた時点の DATA から組むので、開いている間は土台を差し替えない
+    // （body.modal-open は position:fixed なのでスクロール復元とも干渉する）。
+    let pendingRerender = false;
+    function scheduleSilentRerender() {
+      if (pendingRerender) return;
+      pendingRerender = true;
+      let waited = 0;
+      const run = () => {
+        if (document.body.classList.contains("modal-open")) {
+          // 開きっぱなしのときに無限に待たない。諦めたら次回の読み込みで反映される
+          if (++waited > 30) { pendingRerender = false; return; }
+          setTimeout(run, 1000);
+          return;
+        }
+        const y = window.scrollY;
+        renderAll({ keepView: true });
+        window.scrollTo({ top: y, behavior: "instant" });
+        pendingRerender = false;
+        showUpdatedToast();
+      };
+      // 初回描画の登場アニメーションと重ねない
+      requestAnimationFrame(() => setTimeout(run, 0));
+    }
+
+    function showUpdatedToast() {
+      const box = $("updatedToast");
+      if (!box) return;
+      box.classList.remove("hidden");
+      replayIn($("updatedToastPill")); // 演出は中身のピルに当てる（外枠は位置決め専用）
+      clearTimeout(showUpdatedToast._timer);
+      showUpdatedToast._timer = setTimeout(() => box.classList.add("hidden"), 3200);
     }
 
     // ヘッダーの見出しとタブのタイトルをまとめて置き換える。
@@ -1188,7 +1391,16 @@
       setPageHeading("イベントページのご案内");
     }
 
-    function renderAll() {
+    // アイコン/名前/マニフェストの生成に関わる値だけを束ねた指紋。
+    // これが同じなら applyAppIdentity() を回す意味が無い（canvas ラスタライズが要る）
+    const identitySig = (info) =>
+      [info.logoMain, info.appName, info.title, info.brandColor, info.manifestPath].join(" ");
+    let lastIdentitySig = null;
+
+    // opts.keepView: 見ている場所（タブ・スクロール）を動かさずに描き直す。
+    // 背景の再取得で内容が変わったときの静かな差し替えに使う
+    function renderAll(opts = {}) {
+      const keep = opts.keepView === true;
       const info = DATA.eventInfo || {};
       applyBrandColor(info.brandColor);
       // グラデ終端色（任意）。未指定時は --brand を黒側に振った既定値
@@ -1196,7 +1408,11 @@
       else document.documentElement.style.removeProperty("--brand-2");
       $("eventTitle").textContent = info.logoMain || info.title || "イベント";
       $("eventSubtitle").textContent = info.title || info.logoSub || info.subtitle || "";
-      applyAppIdentity(info);
+      const sig = identitySig(info);
+      if (sig !== lastIdentitySig) {
+        lastIdentitySig = sig;
+        applyAppIdentity(info);
+      }
 
       ROOM_COLOR = {};
       (DATA.rooms || []).forEach((r) => { ROOM_COLOR[r.id] = r.color; ROOM_COLOR[r.name] = r.color; });
@@ -1213,7 +1429,9 @@
       renderBooks();
       renderNextEvent();
       renderNoticeBadge();
-      setTab("program");
+      // setTab は末尾で window.scrollTo({top:0}) まで行うので、静かな差し替えでは呼ばない
+      // （BOOKS を読んでいる最中にプログラムへ引き戻されてしまう）
+      if (!keep) setTab("program");
       setupMascot();
       showInstallBanner();
     }
@@ -2118,11 +2336,24 @@
           `</div>`;
         if (cover) {
           const img = el("img", "img-fade w-16 h-24 object-cover rounded-lg flex-shrink-0 ring-1 ring-slate-200");
-          img.src = safeUrl(cover);
+          const full = safeUrl(cover);
+          // 表示は 64×96 なので DPR3 でも 192px あれば足りる。240 で少し余裕を持たせる
+          img.src = coverUrl(full, 240);
           img.alt = "";
           img.loading = "lazy";
+          // Tailwind のクラスでも枠は取れるが、CSS が届く前のレイアウトシフトを防ぐため属性でも持つ
+          img.width = 64;
+          img.height = 96;
           img.addEventListener("load", () => img.classList.add("is-loaded"));
-          img.addEventListener("error", () => { img.outerHTML = placeholder; });
+          img.addEventListener("error", () => {
+            // 縮小版が無い／仕様が変わった場合に備え、元の URL で一度だけやり直してから諦める
+            if (img.src !== full && !img.dataset.retried) {
+              img.dataset.retried = "1";
+              img.src = full;
+              return;
+            }
+            img.outerHTML = placeholder;
+          });
           // キャッシュ済みで load が発火しない場合に備え即時判定
           if (img.complete && img.naturalWidth > 0) img.classList.add("is-loaded");
           card.insertAdjacentElement("afterbegin", img);
@@ -2189,8 +2420,14 @@
 
       const rows = [];
       if (image) {
+        // aspect-[2/1] で先に高さを確保する。width/height 属性は使えない——バナーの実寸は
+        // イベントごとに違い（1400×685 と 1400×788）、汎用シェルに固有の数値は持てないため。
+        // 比率を固定しておけば画像が届く前に箱が決まり、下の本文が飛ばない（object-cover で収める）。
+        const img = `<img src="${escapeHtml(safeUrl(image))}" alt="${escapeHtml(title)}" loading="lazy" decoding="async" class="w-full aspect-[2/1] max-h-72 object-cover" style="object-position:50% 18%" onerror="this.remove()" />`;
         rows.push(
-          `<img src="${escapeHtml(safeUrl(image))}" alt="${escapeHtml(title)}" loading="lazy" class="w-full max-h-72 object-cover" style="object-position:50% 18%" onerror="this.remove()" />`
+          url
+            ? `<a href="${escapeHtml(safeUrl(url))}" target="_blank" rel="noopener" class="block">${img}</a>`
+            : img
         );
       }
       const body = [];
@@ -2573,6 +2810,18 @@
     const isIos = () =>
       /iphone|ipad|ipod/i.test(navigator.userAgent) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    // 主要な流入は LINE 公式アカウントのキーワード応答なので、多くの人は LINE の
+    // in-app ブラウザでこのページを開く。そこでは beforeinstallprompt が発火せず、
+    // iOS の共有シートにも「ホーム画面に追加」が無いため、案内を分ける必要がある。
+    // LINE の WebView は UA に "Line/<version>" を持つ（"Linux" は / が続かないので誤爆しない）。
+    const isLineApp = () => /\bLine\//i.test(navigator.userAgent);
+    const isInAppBrowser = () => isLineApp() || /FBAN|FBAV|Instagram|Twitter/i.test(navigator.userAgent);
+    // Android の in-app ブラウザから Chrome を直接開く。Chrome が無ければ
+    // browser_fallback_url で既定ブラウザに落ちる。
+    const chromeIntentUrl = () =>
+      "intent://" + location.host + location.pathname + location.search
+      + "#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url="
+      + encodeURIComponent(location.href) + ";end";
     const INSTALL_DISMISS_KEY = "t-pod:install-dismissed";
 
     // ---- LINE 友だち追加ポップアップ（東洋館出版社 公式・全イベント共通） ----
@@ -2593,6 +2842,9 @@
     function showLinePromo() {
       const isEvent = !!getEventId();
       if (isEvent && DATA?.eventInfo?.linePromo !== true) return;
+      // LINE の in-app ブラウザで見ている＝キーワード応答から来た人なので、すでに友だち。
+      // localStorage は汚さないので、外部ブラウザで開き直したときには従来どおり出る。
+      if (isLineApp()) return;
       try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
       let fired = false;
       const open = () => {
@@ -2619,18 +2871,122 @@
     function showInstallBanner() {
       if (!getEventId() || isStandalone()) return;
       try { if (localStorage.getItem(INSTALL_DISMISS_KEY)) return; } catch (e) {}
-      if (!deferredPrompt && !isIos()) return;
+      // in-app ブラウザは beforeinstallprompt が来ないので、Android でもここを通す。
+      if (!deferredPrompt && !isIos() && !isInAppBrowser()) return;
+      const viaBrowser = !deferredPrompt && isInAppBrowser();
+      $("installTitle").textContent = viaBrowser ? "ブラウザで開くとアプリになります" : "アプリとして追加";
+      $("installDesc").textContent = viaBrowser
+        ? "ホーム画面に追加して、当日すぐ開けるように"
+        : "ホーム画面に追加するとすばやく開けます";
+      $("installBtn").textContent = viaBrowser ? "開き方" : "追加";
       $("installBanner").classList.remove("hidden");
     }
     function hideInstallBanner() { $("installBanner").classList.add("hidden"); }
-    function iosInstallHelpHtml() {
+    // ブランド色ベタ塗り＋白文字は増やさない（明るい brandColor で AA を割るため）。
+    // モーダル内のボタンは淡地＋ブランド濃色（brand-800 相当）の文字で作る。
+    const HELP_BTN_CLS = "flex items-center justify-center gap-2 w-full py-3 rounded-xl "
+      + "font-bold text-sm bg-brand-50 border border-brand-200 active:scale-[.99] transition";
+    const HELP_BTN_STYLE = "color:color-mix(in srgb, var(--brand) 48%, black)";
+    function helpSteps(items) {
+      return `<ol class="space-y-2.5">`
+        + items.map(([name, text]) =>
+            `<li class="flex items-center gap-2.5">${icon(name, "w-5 h-5 text-brand-600 flex-shrink-0")}`
+            + `<span>${escapeHtml(text)}</span></li>`).join("")
+        + `</ol>`;
+    }
+    function copyLinkBtnHtml(label = "リンクをコピー") {
+      return `<button type="button" data-copy-url class="${HELP_BTN_CLS}" style="${HELP_BTN_STYLE}">`
+        + `${icon("file", "w-5 h-5 flex-shrink-0")}<span data-copy-label>${escapeHtml(label)}</span></button>`;
+    }
+    // 環境ごとに「ホーム画面に追加」の道筋が違うので、4 分岐で案内を出し分ける。
+    function installHelpHtml() {
+      const inApp = isInAppBrowser();
+      const app = isLineApp() ? "LINE" : "このアプリ";
+      if (inApp && !isIos()) {
+        // A: Android の in-app ブラウザ。ここでは追加できないので、まず Chrome へ出す。
+        return `<div class="space-y-3 text-sm text-slate-700">`
+          + `<p>${escapeHtml(app)}の中のブラウザでは、ホーム画面に追加できません。Chrome で開き直してください。</p>`
+          + `<div class="space-y-2.5">`
+          + `<a href="${escapeHtml(chromeIntentUrl())}" class="${HELP_BTN_CLS}" style="${HELP_BTN_STYLE}">`
+          + `${icon("form", "w-5 h-5 flex-shrink-0")}<span>Chrome で開く</span></a>`
+          + copyLinkBtnHtml()
+          + `</div>`
+          + `<p class="text-xs text-slate-500 pt-1">うまく開かないときは、次の手順でも開けます。</p>`
+          + helpSteps([
+              ["chevron", "画面右下の「⋯」をタップし、「他のブラウザで開く」を選ぶ"],
+              ["chevron", "Chrome の右上の「⋮」をタップ"],
+              ["plusSquare", "「ホーム画面に追加」（端末により「アプリをインストール」）を選ぶ"],
+              ["download", "「追加」「インストール」をタップして完了"],
+            ])
+          + `</div>`;
+      }
+      if (inApp) {
+        // B: iOS の in-app ブラウザ。共有シートに「ホーム画面に追加」が無いので Safari へ。
+        return `<div class="space-y-3 text-sm text-slate-700">`
+          + `<p>${escapeHtml(app)}の中のブラウザでは、ホーム画面に追加できません。Safari で開き直してください。</p>`
+          + copyLinkBtnHtml("リンクをコピーして Safari で開く")
+          + helpSteps([
+              ["chevron", "画面右下の「⋯」をタップし、「Safariで開く」を選ぶ"],
+              ["share", "Safari の画面下の「共有」ボタンをタップ"],
+              ["plusSquare", "「ホーム画面に追加」を選択"],
+              ["download", "右上の「追加」をタップして完了"],
+            ])
+          + `</div>`;
+      }
+      if (isIos()) {
+        // C: Safari。従来どおり。
+        return `<div class="space-y-3 text-sm text-slate-700">`
+          + `<p>Safari の共有メニューから、このページをホーム画面アプリとして追加できます。</p>`
+          + helpSteps([
+              ["share", "画面下の「共有」ボタンをタップ"],
+              ["plusSquare", "「ホーム画面に追加」を選択"],
+              ["download", "右上の「追加」をタップして完了"],
+            ])
+          + `</div>`;
+      }
+      // D: Android の Chrome など（インストール条件が整わず beforeinstallprompt が来ない場合）。
       return `<div class="space-y-3 text-sm text-slate-700">`
-        + `<p>Safari の共有メニューから、このページをホーム画面アプリとして追加できます。</p>`
-        + `<ol class="space-y-2.5">`
-        + `<li class="flex items-center gap-2.5">${icon("share", "w-5 h-5 text-brand-600 flex-shrink-0")}<span>画面下の「共有」ボタンをタップ</span></li>`
-        + `<li class="flex items-center gap-2.5">${icon("plusSquare", "w-5 h-5 text-brand-600 flex-shrink-0")}<span>「ホーム画面に追加」を選択</span></li>`
-        + `<li class="flex items-center gap-2.5">${icon("download", "w-5 h-5 text-brand-600 flex-shrink-0")}<span>右上の「追加」をタップして完了</span></li>`
-        + `</ol></div>`;
+        + `<p>ブラウザのメニューから、このページをホーム画面アプリとして追加できます。</p>`
+        + helpSteps([
+            ["chevron", "画面右上の「⋮」をタップ"],
+            ["plusSquare", "「ホーム画面に追加」（端末により「アプリをインストール」）を選ぶ"],
+            ["download", "「追加」「インストール」をタップして完了"],
+          ])
+        + `</div>`;
+    }
+    // openModal() は innerHTML で本文を差し込むので、リスナは開いた直後に張る
+    // （HTML 文字列に onclick を書かない）。
+    function openInstallHelp() {
+      openModal("ホーム画面に追加", installHelpHtml());
+      const btn = $("modalBody").querySelector("[data-copy-url]");
+      if (!btn) return;
+      btn.addEventListener("click", async () => {
+        const label = btn.querySelector("[data-copy-label]");
+        const done = () => {
+          const prev = label.textContent;
+          label.textContent = "コピーしました";
+          setTimeout(() => { label.textContent = prev; }, 2000);
+        };
+        try {
+          await navigator.clipboard.writeText(location.href);
+          done();
+          return;
+        } catch (e) {}
+        // クリップボード API が使えない WebView 向けのフォールバック（手で選択・コピーできる）。
+        if ($("modalBody").querySelector("[data-copy-fallback]")) return;
+        const box = el("div", "pt-1", "");
+        box.dataset.copyFallback = "1";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.readOnly = true;
+        input.value = location.href;
+        input.className = "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600";
+        box.appendChild(el("p", "text-xs text-slate-500 pb-1", "長押しして「コピー」を選んでください。"));
+        box.appendChild(input);
+        btn.parentNode.insertBefore(box, btn.nextSibling);
+        input.focus();
+        input.select();
+      });
     }
     function setupInstallPrompt() {
       window.addEventListener("beforeinstallprompt", (e) => {
@@ -2649,8 +3005,8 @@
           await deferredPrompt.userChoice;
           deferredPrompt = null;
           hideInstallBanner();
-        } else if (isIos()) {
-          openModal("ホーム画面に追加", iosInstallHelpHtml());
+        } else {
+          openInstallHelp();
         }
       });
     }
@@ -2947,8 +3303,14 @@
     document.addEventListener("visibilitychange", () => { if (!document.hidden) updateNowMarker(false); });
 
     // ---- オフライン表示バナー ----
+    // navigator.onLine は「リンクがあるか」しか見ない。会場のキャプティブポータルや
+    // 「電波は立っているが実質死んでいる Wi-Fi」では true のままなので、
+    // まさに想定した場面で出なかった。「実際に取得できなかった」事実も判定に混ぜる。
+    let netStale = false;
+    function markNetworkStale() { netStale = true; updateOnlineStatus(); }
+    function markNetworkFresh() { netStale = false; updateOnlineStatus(); }
     function updateOnlineStatus() {
-      $("offlineBanner").classList.toggle("hidden", navigator.onLine !== false);
+      $("offlineBanner").classList.toggle("hidden", navigator.onLine !== false && !netStale);
     }
     window.addEventListener("online", updateOnlineStatus);
     window.addEventListener("offline", updateOnlineStatus);

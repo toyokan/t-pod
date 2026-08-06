@@ -31,15 +31,22 @@ def render_event_url_index(index: dict[str, Any]) -> str:
         "",
         "`events.json` から自動生成しています。直接編集せず、生成スクリプトを実行してください。",
         "",
-        "| イベント名 | 開催日 | イベントID | 本番URL |",
-        "| --- | --- | --- | --- |",
+        "LINE 公式アカウントのキーワード応答に貼るリンクは、**LINE配信用URL** の列を使ってください。"
+        "`openExternalBrowser=1` を付けたリンクは LINE 内ブラウザではなく端末の Chrome / Safari で開くため、"
+        "ホーム画面への追加がそのまま行えます。",
+        "",
+        "| イベント名 | 開催日 | イベントID | 本番URL | LINE配信用URL |",
+        "| --- | --- | --- | --- | --- |",
     ]
     for entry in entries:
         event_id = str(entry.get("id", ""))
         title = str(entry.get("title", "")).replace("|", "\\|")
         date_range = str(entry.get("dateRange", "")).replace("|", "\\|")
         url = f"{base_url}?id={quote(event_id, safe='')}"
-        lines.append(f"| {title} | {date_range} | `{event_id}` | [サイトを開く]({url}) |")
+        line_url = f"{url}&openExternalBrowser=1"
+        lines.append(
+            f"| {title} | {date_range} | `{event_id}` | [サイトを開く]({url}) | `{line_url}` |"
+        )
     lines.append("")
     return "\n".join(lines)
 
