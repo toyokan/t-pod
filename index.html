@@ -154,10 +154,14 @@
     /* ブランド基準色（既定＝東洋館イメージカラーのゴールド。一覧ページの基調色）。
        events/<id>.json の brandColor で実行時に上書き */
     :root {
-      /* 浮いたボトムナビの占有高さ（カプセル約 65px ＋ 画面下端との余白 12px）。
+      /* カプセルと画面下端（セーフエリア内側）との余白。ここを縮めるとナビ全体が下がる。
+         #bottomNav の padding-bottom と --nav-h の両方がこの 1 変数から決まるので、
+         上げ下げは必ずここだけ直す（直書きすると 2 箇所がずれる）。 */
+      --nav-gap: 0.375rem;
+      /* 浮いたボトムナビの占有高さ（カプセル約 65px ＋ --nav-gap）。
          マスコット・更新トーストはこの値を基準に持ち上げるので、
          ナビの高さを変えたらここだけ直せば全部が追従する。 */
-      --nav-h: 4.8rem;
+      --nav-h: calc(4.05rem + var(--nav-gap));
       --brand: #ffd900;
       --brand-fg: #1e293b;
       --brand-2: color-mix(in srgb, var(--brand) 68%, black);
@@ -357,13 +361,20 @@
     /* 日付タブは白ピル、ボトムナビは色付きガラス。文字色はブランド背景とのコントラストで自動選択する。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
     .navbtn[aria-current] .navpill { color: color-mix(in srgb, var(--brand) 48%, black); }
+    /* 選択中のアイコンだけは 1 段明るいブランド色にして色味を立てる。
+       文字（48%＝brand-800 相当）は白ピル上で AA 4.5:1 を満たす必要があるが、
+       アイコンは非テキストの UI 部品なので WCAG 1.4.11 の 3:1 でよく、
+       62%（brand-700 相当）まで上げられる（既定の黄 #ffd900 で 3.6:1、amber #f59e0b で 4.9:1）。
+       これ以上明るくすると黄で 3:1 を割るので上げない。 */
+    .navbtn[aria-current] .navpill svg { color: color-mix(in srgb, var(--brand) 62%, black); }
+    .navpill svg { transition: color .2s ease; }
     /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
     /* ナビ本体は当たり判定を持たない位置決めの器（カプセルの左右の余白から本文に触れる）。
        セーフエリアの下に更に余白を足して、カプセルを画面下端から浮かせる。 */
-    #bottomNav { padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem); }
+    #bottomNav { padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-gap)); }
     /* 地の不透明度は「見た目」ではなくコントラストで決めている。書影のような濃い画像が
        真裏を流れても非選択ラベル（slate-600）が AA を割らないよう、静止時 .64（実測 4.7:1）／
        スクロール中 .78（同 5.3:1）で下限を確保する。これ以上透かさないこと。 */
