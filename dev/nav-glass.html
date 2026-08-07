@@ -1,0 +1,60 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ボトムナビ（Liquid Glass）確認</title>
+<style>
+:root{--nav-h:4.5rem;--brand:#ffd900;--brand-fg:#1e293b}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#f8fafc;min-height:100vh}
+.bg{padding:16px 16px 140px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;margin:0 0 12px;box-shadow:0 1px 2px rgba(15,23,42,.06)}
+.stripe{height:120px;border-radius:16px;margin-bottom:12px;background:linear-gradient(90deg,#0f172a,#0ea5e9,#f43f5e,#22c55e,#eab308)}
+h2{margin:.2em 0;font-size:15px}
+/* --- ここから index.html の該当 CSS を写したもの --- */
+.tab-indicator{position:absolute;transition:transform .25s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.navbtn[aria-current] .navpill{color:color-mix(in srgb,var(--brand) 48%,black)}
+.navbtn:not([aria-current]) .navpill{color:rgb(71 85 105)}
+.navpill{transition:color .2s ease}
+#bottomNav{padding-bottom:calc(env(safe-area-inset-bottom) + .75rem)}
+body.is-scrolled .nav-glass{background-color:rgba(226,232,240,.78)}
+.nav-glass{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,.28) 44%,rgba(255,255,255,.46) 100%),rgba(226,232,240,.64);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);box-shadow:0 10px 28px -10px rgba(15,23,42,.30),0 2px 8px -4px rgba(15,23,42,.16),inset 0 1px rgba(255,255,255,.75),inset 0 -1px rgba(255,255,255,.30)}
+.nav-brand-card{position:relative;background:linear-gradient(145deg,color-mix(in srgb,var(--brand) 24%,transparent) 0%,transparent 62%),linear-gradient(180deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.86) 100%);-webkit-backdrop-filter:blur(10px) saturate(1.5);backdrop-filter:blur(10px) saturate(1.5);box-shadow:0 6px 14px -8px color-mix(in srgb,var(--brand) 55%,black),0 1px 3px -1px rgba(15,23,42,.20),inset 0 1px rgba(255,255,255,1),inset 0 -3px 6px -4px color-mix(in srgb,var(--brand) 34%,transparent);transition:transform .28s cubic-bezier(.34,1.56,.64,1);will-change:transform}
+@supports ((-webkit-mask-composite:xor) or (mask-composite:exclude)){
+.nav-glass::before,.nav-brand-card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;background:linear-gradient(150deg,rgba(255,255,255,.95) 0%,rgba(255,255,255,.30) 22%,rgba(255,255,255,0) 46%,rgba(255,255,255,.24) 70%,rgba(255,255,255,.85) 100%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}}
+/* --- 使っている Tailwind ユーティリティの手写し --- */
+#bottomNav{position:fixed;bottom:0;left:0;right:0;z-index:30;max-width:42rem;margin:0 auto;padding-left:.75rem;padding-right:.75rem;pointer-events:none}
+#navBar{pointer-events:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:.375rem;border-radius:9999px}
+#navIndicator{top:.375rem;bottom:.375rem;left:.375rem;width:calc((100% - .75rem)/3);display:flex;justify-content:center}
+#navIndicator>span{width:100%;height:100%;max-width:128px;border-radius:9999px}
+.navbtn{position:relative;display:flex;justify-content:center;background:none;border:0;padding:0;cursor:pointer;font:inherit;-webkit-tap-highlight-color:transparent}
+.navpill{display:flex;flex-direction:column;align-items:center;gap:.25rem;width:100%;max-width:128px;min-height:48px;padding:.375rem 1.25rem;border-radius:9999px;font-size:11px;font-weight:600}
+.navpill svg{width:24px;height:24px}
+</style></head><body>
+<div class="bg">
+  <h2>背後にコントラストの高い帯を置いて、ガラスの透け方と縁の屈折を見る</h2>
+  <div class="stripe"></div>
+  <div class="card">本文カード。浮いたカプセルの下を本文が流れる。</div>
+  <div class="stripe"></div>
+  <div class="card">本文カード。</div>
+  <div class="stripe"></div>
+</div>
+<nav id="bottomNav">
+  <div id="navBar" class="nav-glass">
+    <div id="navIndicator" class="tab-indicator" aria-hidden="true"><span class="nav-brand-card"></span></div>
+    <button class="navbtn" data-tab="program" aria-current="page"><span class="navpill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>TIMETABLE</span></span></button>
+    <button class="navbtn" data-tab="materials"><span class="navpill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg><span>FILES</span></span></button>
+    <button class="navbtn" data-tab="books"><span class="navpill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg><span>BOOKS</span></span></button>
+  </div>
+</nav>
+<script>
+const ORDER=["program","materials","books"];
+document.querySelectorAll(".navbtn").forEach(b=>b.addEventListener("click",()=>{
+  const to=ORDER.indexOf(b.dataset.tab);
+  document.querySelectorAll(".navbtn").forEach(x=>x.dataset.tab===b.dataset.tab?x.setAttribute("aria-current","page"):x.removeAttribute("aria-current"));
+  document.getElementById("navIndicator").style.transform=`translate3d(${to*100}%,0,0)`;
+}));
+addEventListener("scroll",()=>document.body.classList.toggle("is-scrolled",scrollY>48),{passive:true});
+const q=new URLSearchParams(location.search); if(q.get("brand")) document.documentElement.style.setProperty("--brand",q.get("brand"));
+</script></body></html>
