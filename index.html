@@ -365,7 +365,7 @@
     /* 選択中のアイコンだけは 1 段明るいブランド色にして色味を立てる。
        文字（48%＝brand-800 相当）は白ピル上で AA 4.5:1 を満たす必要があるが、
        アイコンは非テキストの UI 部品なので WCAG 1.4.11 の 3:1 でよく、
-       62%（brand-700 相当）まで上げられる（既定の黄 #ffd900 で 3.6:1、amber #f59e0b で 4.9:1）。
+       62%（brand-700 相当）まで上げられる（既定の黄 #ffd900 で 3.55:1、amber #f59e0b で 5.14:1）。
        これ以上明るくすると黄で 3:1 を割るので上げない。 */
     .navbtn[aria-current] .navpill svg { color: color-mix(in srgb, var(--brand) 62%, black); }
     .navpill svg { transition: color .2s ease; }
