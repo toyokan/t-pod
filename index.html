@@ -370,32 +370,23 @@
     #navIndicator.is-dragging-ind { transition: none; }
     /* 日付タブは白ピル、ボトムナビは色付きガラス。文字色はブランド背景とのコントラストで自動選択する。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
-    .navbtn[aria-current] .navpill { color: color-mix(in srgb, var(--brand) 48%, black); }
-    /* 選択中のアイコンだけは 1 段明るいブランド色にして色味を立てる。
-       文字（48%＝brand-800 相当）は白ピル上で AA 4.5:1 を満たす必要があるが、
-       アイコンは非テキストの UI 部品なので WCAG 1.4.11 の 3:1 でよく、
-       62%（brand-700 相当）まで上げられる（既定の黄 #ffd900 で 3.55:1、amber #f59e0b で 5.14:1）。
-       これ以上明るくすると黄で 3:1 を割るので上げない。 */
-    .navbtn[aria-current] .navpill svg { color: color-mix(in srgb, var(--brand) 62%, black); }
+    /* 選択タブは「レンズ越しに見えている」ので、彩度をいちばん濃く出す。
+       --nav-ink / --nav-ink-icon は applyNavInk() が実行時に計算する
+       「ブランドの色相のまま、白ピル上で下限コントラストを満たす最も鮮やかな色」。
+       JS が走る前と、ブランド色が無いイベントのためのフォールバックが color-mix 側
+       （ラベル 48%＝brand-800 相当・アイコン 62%＝brand-700 相当）。
+       **彩度は CSS で伸ばせない**——`oklch(from … calc(c * 2) h)` は sRGB の外へ出た分を
+       ブラウザが素朴にクリップするので色相がずれる（実測で黄 18.5°・amber 28.4°）。 */
+    .navbtn[aria-current] .navpill { color: var(--nav-ink, color-mix(in srgb, var(--brand) 48%, black)); }
+    /* アイコンはラベルより濃く出せる。文字は本文なので AA 4.5:1 が要るが、
+       アイコンは非テキストの UI 部品で WCAG 1.4.11 の 3:1 でよく、
+       そのぶん明度を上げられて sRGB に収まる彩度も大きくなる。 */
+    .navbtn[aria-current] .navpill svg { color: var(--nav-ink-icon, color-mix(in srgb, var(--brand) 62%, black)); }
     .navpill svg { transition: color .2s ease; }
     /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
-    /* 選択タブは「レンズ越しに見えている」ので、アイコンとラベルだけ彩度を上げる。
-       色相と明度はそのままに oklch の C だけ伸ばすのがミソ——`color-mix(… black)` は
-       sRGB で黒を混ぜるため明度と一緒に彩度まで落ち、濃くはなっても鮮やかにはならない。
-       **明度（l）は触らない**ので、上の 48%／62% で確保したコントラストがそのまま生きる
-       （実測: 既定の黄でラベル 5.27:1・アイコン 3.43:1。amber・青・緑・赤はいずれも更に上）。
-       relative color 非対応のブラウザはこの宣言ごと無効になり、上の color-mix が残る。 */
-    @supports (color: oklch(from red l c h)) {
-      .navbtn[aria-current] .navpill {
-        color: oklch(from color-mix(in srgb, var(--brand) 48%, black) l calc(c * 2) h);
-      }
-      .navbtn[aria-current] .navpill svg {
-        color: oklch(from color-mix(in srgb, var(--brand) 62%, black) l calc(c * 2.2) h);
-      }
-    }
     /* レンズを通った像の色収差。**アイコンにだけ**掛ける——11px のラベルに掛けると
        「レンズ越し」ではなく印刷の見当ずれに見えて、文字そのものが読みにくくなる。
        24px のアイコンなら線が太いので、縁のシアン／マゼンタが分散として読める。 */
@@ -890,11 +881,79 @@
       const fg = relativeLuminance(color) > 0.55 ? "#1e293b" : "#ffffff";
       document.documentElement.style.setProperty("--brand-fg", fg);
     }
+    // ---- ボトムナビの「レンズ越し」の文字・アイコン色 ----
+    // ブランド色の色相のまま、白ピルの上で下限コントラストを満たす範囲の**いちばん鮮やかな色**を選ぶ。
+    // CSS 側で oklch の C を伸ばす手（`oklch(from … l calc(c * 2) h)`）は使えない——sRGB の外へ
+    // 出た分をブラウザが素朴にクリップするので、彩度ではなく**色相がずれる**（実測で既定の黄が
+    // 18.5°・amber が 28.4° ずれ、amber は赤に寄っていた）。ここで sRGB に収まる最大の C を
+    // 二分探索して確定させるため、色相は動かない。
+    // 彩度の頭打ちは係数ではなく**明度**で決まる（暗いほど sRGB に入る C が小さい）ので、
+    // コントラスト下限ぎりぎりまで明るくしたところが最も鮮やかになる。
+    const OKLAB_M = [[0.4122214708,0.5363325363,0.0514459929],[0.2119034982,0.6806995451,0.1073969566],[0.0883024619,0.2817188376,0.6299787005]];
+    const srgbToLinear = (v) => (v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+    const linearToSrgb = (v) => (v <= 0.0031308 ? 12.92 * v : 1.055 * Math.pow(v, 1 / 2.4) - 0.055);
+    function hexToRgb01(hex) {
+      let h = hex.trim().slice(1);
+      if (h.length <= 4) h = [...h].map((c) => c + c).join("");
+      return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255);
+    }
+    function brandHue(hex) {
+      const [r, g, b] = hexToRgb01(hex).map(srgbToLinear);
+      const [l, m, s] = OKLAB_M.map((row) => Math.cbrt(row[0] * r + row[1] * g + row[2] * b));
+      const a = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+      const bb = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+      return (Math.atan2(bb, a) * 180) / Math.PI;
+    }
+    function oklchToLinear(L, C, hDeg) {
+      const h = (hDeg * Math.PI) / 180;
+      const a = C * Math.cos(h), b = C * Math.sin(h);
+      const l = Math.pow(L + 0.3963377774 * a + 0.2158037573 * b, 3);
+      const m = Math.pow(L - 0.1055613458 * a - 0.0638541728 * b, 3);
+      const s = Math.pow(L - 0.0894841775 * a - 1.2914855480 * b, 3);
+      return [ 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+              -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+              -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+    }
+    const inSrgb = (v) => v.every((x) => x >= -1e-4 && x <= 1 + 1e-4);
+    // その明度・色相で sRGB に収まる最大の彩度（二分探索）
+    function maxChroma(L, h) {
+      let lo = 0, hi = 0.45;
+      for (let i = 0; i < 32; i++) { const mid = (lo + hi) / 2; if (inSrgb(oklchToLinear(L, mid, h))) lo = mid; else hi = mid; }
+      return lo;
+    }
+    const linLum = (v) => 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+    const contrastOf = (a, b) => { const hi = Math.max(a, b), lo = Math.min(a, b); return (hi + 0.05) / (lo + 0.05); };
+    // 白ピルの明るさ。ブランドのウォッシュがかかる左上を基準にした保守的な値
+    const PILL_LUM = relativeLuminance("#f8f6ef");
+    function navInk(hex, minContrast) {
+      if (!isHexColor(hex)) return null;
+      const h = brandHue(hex);
+      let best = null;
+      for (let L = 0.3; L <= 0.95; L += 0.005) {
+        const C = maxChroma(L, h);
+        const lin = oklchToLinear(L, C, h);
+        // 8bit へ丸めたぶん下振れするので、下限に少し余裕を積む
+        if (contrastOf(linLum(lin), PILL_LUM) < minContrast + 0.08) continue;
+        if (!best || C > best.C) best = { C, lin };
+      }
+      if (!best) return null;
+      return "#" + best.lin
+        .map((x) => Math.round(Math.max(0, Math.min(1, linearToSrgb(x))) * 255).toString(16).padStart(2, "0"))
+        .join("");
+    }
+    function applyNavInk(color) {
+      const root = document.documentElement.style;
+      // ラベルは本文なので 4.5:1、アイコンは非テキスト UI なので 3:1（WCAG 1.4.11）
+      const ink = navInk(color, 4.5), inkIcon = navInk(color, 3);
+      if (ink) root.setProperty("--nav-ink", ink); else root.removeProperty("--nav-ink");
+      if (inkIcon) root.setProperty("--nav-ink-icon", inkIcon); else root.removeProperty("--nav-ink-icon");
+    }
     function applyBrandColor(color) {
-      if (!isHexColor(color)) { updateBrandFg(resolvedBrand()); return; }
+      if (!isHexColor(color)) { updateBrandFg(resolvedBrand()); applyNavInk(resolvedBrand()); return; }
       const c = color.trim();
       document.documentElement.style.setProperty("--brand", c);
       updateBrandFg(c);
+      applyNavInk(c);
       const meta = document.querySelector('meta[name="theme-color"]');
       if (meta) meta.setAttribute("content", c);
       try { const id = getEventId(); if (id) localStorage.setItem("t-pod:theme:" + id, c); } catch (e) {}
