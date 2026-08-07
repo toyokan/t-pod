@@ -154,6 +154,10 @@
     /* ブランド基準色（既定＝東洋館イメージカラーのゴールド。一覧ページの基調色）。
        events/<id>.json の brandColor で実行時に上書き */
     :root {
+      /* 浮いたボトムナビの占有高さ（カプセル約 65px ＋ 画面下端との余白 12px）。
+         マスコット・更新トーストはこの値を基準に持ち上げるので、
+         ナビの高さを変えたらここだけ直せば全部が追従する。 */
+      --nav-h: 4.8rem;
       --brand: #ffd900;
       --brand-fg: #1e293b;
       --brand-2: color-mix(in srgb, var(--brand) 68%, black);
@@ -211,36 +215,63 @@
     .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
     .dot-grad { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); }
-    /* 選択中のピルはブランド色を透かし、白い反射を重ねた色付きガラス（レンズ質感）にする */
-    .nav-brand-card {
+    /* ===== ボトムナビのガラス（iOS 26 Liquid Glass 風）=====
+       画面下端に貼らず、左右に余白を取ったカプセルとして「浮かせる」。本文はバーの下を流れる。
+       屈折は SVG フィルタ（backdrop-filter: url()）で作らない——iOS Safari が非対応で、
+       主要な閲覧環境である iPhone にだけ効かない表現になるため。代わりに
+       「縁のハイライト＋多層グラデーション」だけで光が曲がって見えるように組む（全ブラウザ同じ絵）。 */
+    .nav-glass {
+      position: relative;
+      /* 最下層のスレート地が日付タブと同じ「トラック」の役目を持つ。
+         明るいブランド色でも白ピルが地から浮いて見える（CLAUDE.md のコントラスト制約） */
       background:
-        /* 凸面ガラスの放射状グレア（左上から光が差し込む） */
-        radial-gradient(120% 90% at 28% 8%, rgba(255,255,255,.55) 0%, rgba(255,255,255,.14) 32%, transparent 55%),
-        /* 上端の鋭いスペキュラハイライト */
-        linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.12) 20%, transparent 40%),
-        linear-gradient(155deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.1) 42%, transparent 58%),
-        linear-gradient(145deg,
-          color-mix(in srgb, color-mix(in srgb, var(--brand) 70%, white) 64%, transparent),
-          color-mix(in srgb, var(--brand) 70%, transparent));
-      -webkit-backdrop-filter: blur(12px) saturate(1.3) brightness(1.04);
-      backdrop-filter: blur(12px) saturate(1.3) brightness(1.04);
-      /* 縁の白は上を強く・下を弱く（inset で立体感）。下端に明るいリムを足して光の屈折を演出。
-         scale モーフはオーバーシュート気味に補間 */
+        linear-gradient(180deg, rgba(255,255,255,.62) 0%, rgba(255,255,255,.28) 44%, rgba(255,255,255,.46) 100%),
+        rgba(226,232,240,.64);
+      -webkit-backdrop-filter: blur(22px) saturate(1.7);
+      backdrop-filter: blur(22px) saturate(1.7);
       box-shadow:
-        0 8px 18px -11px color-mix(in srgb, var(--brand) 58%, black),
-        inset 0 1.5px rgba(255,255,255,.85),
-        inset 0 0 0 1px rgba(255,255,255,.5),
-        inset 0 -3px 6px -3px rgba(255,255,255,.55),
-        inset 0 -2px color-mix(in srgb, var(--brand) 34%, transparent);
+        0 10px 28px -10px rgba(15,23,42,.30),
+        0 2px 8px -4px rgba(15,23,42,.16),
+        inset 0 1px rgba(255,255,255,.75),
+        inset 0 -1px rgba(255,255,255,.30);
+    }
+    /* 選択中のピルは白ガラス＋ブランド濃色文字（ベタ塗り＋白文字は AA 未達なので使わない）。
+       ブランド色は薄いウォッシュと影の色だけで効かせ、イベント毎の brandColor に追従させる。 */
+    .nav-brand-card {
+      position: relative;
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--brand) 24%, transparent) 0%, transparent 62%),
+        linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(255,255,255,.86) 100%);
+      -webkit-backdrop-filter: blur(10px) saturate(1.5);
+      backdrop-filter: blur(10px) saturate(1.5);
+      box-shadow:
+        0 6px 14px -8px color-mix(in srgb, var(--brand) 55%, black),
+        0 1px 3px -1px rgba(15,23,42,.20),
+        inset 0 1px rgba(255,255,255,1),
+        inset 0 -3px 6px -4px color-mix(in srgb, var(--brand) 34%, transparent);
       transition: transform .28s cubic-bezier(.34,1.56,.64,1);
       will-change: transform;
     }
-    /* 対応ブラウザ（Chrome/Android 等）では背後を実際に歪ませてレンズ屈折にする。
-       iOS Safari 等 url() 非対応は上の強化ガラスにフォールバック（この宣言が無効なら前の値が残る） */
-    @supports (backdrop-filter: url(#lensGlass)) or (-webkit-backdrop-filter: url(#lensGlass)) {
-      .nav-brand-card {
-        -webkit-backdrop-filter: blur(9px) saturate(1.32) brightness(1.04) url(#lensGlass);
-        backdrop-filter: blur(9px) saturate(1.32) brightness(1.04) url(#lensGlass);
+    /* 縁の屈折。1.5px のリングだけを残すグラデーション枠（padding + mask の xor）で、
+       左上から右下へ光が回り込んで縁で曲がっているように見せる。
+       mask-composite 非対応のブラウザでは ::before がベタ塗りの板になって中身を覆うので、
+       @supports で丸ごと囲って「出さない」ほうへ倒す。 */
+    @supports ((-webkit-mask-composite: xor) or (mask-composite: exclude)) {
+      .nav-glass::before, .nav-brand-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.5px;
+        pointer-events: none;
+        background: linear-gradient(150deg,
+          rgba(255,255,255,.95) 0%, rgba(255,255,255,.30) 22%,
+          rgba(255,255,255,0) 46%, rgba(255,255,255,.24) 70%,
+          rgba(255,255,255,.85) 100%);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
       }
     }
     /* セーフエリア（ノッチ端末）対応 */
@@ -325,17 +356,18 @@
     #navIndicator.is-dragging-ind { transition: none; }
     /* 日付タブは白ピル、ボトムナビは色付きガラス。文字色はブランド背景とのコントラストで自動選択する。 */
     .datebtn[aria-pressed="true"] { color: color-mix(in srgb, var(--brand) 48%, black); }
-    .navbtn[aria-current] .navpill { color: var(--brand-fg); text-shadow: 0 1px rgba(255,255,255,.35); }
+    .navbtn[aria-current] .navpill { color: color-mix(in srgb, var(--brand) 48%, black); }
     /* 非選択はグレーのトラック上。slate-400 は 2.5:1 で読めないため slate-600（約 6.9:1）にする */
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
-    /* 小面積の固定ナビだけ、ぼかしと彩度を補って軽いすりガラス面にする */
-    #bottomNav {
-      -webkit-backdrop-filter: blur(14px) saturate(1.18);
-      backdrop-filter: blur(14px) saturate(1.18);
-    }
-    body.is-scrolled #bottomNav { background-color: rgba(255,255,255,.66); }
+    /* ナビ本体は当たり判定を持たない位置決めの器（カプセルの左右の余白から本文に触れる）。
+       セーフエリアの下に更に余白を足して、カプセルを画面下端から浮かせる。 */
+    #bottomNav { padding-bottom: calc(env(safe-area-inset-bottom) + 0.75rem); }
+    /* 地の不透明度は「見た目」ではなくコントラストで決めている。書影のような濃い画像が
+       真裏を流れても非選択ラベル（slate-600）が AA を割らないよう、静止時 .64（実測 4.7:1）／
+       スクロール中 .78（同 5.3:1）で下限を確保する。これ以上透かさないこと。 */
+    body.is-scrolled .nav-glass { background-color: rgba(226,232,240,.78); }
     #tabViews { touch-action: pan-y; }
     .view.is-dragging { transition: none !important; will-change: transform; }
     .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
@@ -344,11 +376,9 @@
     .datebtn[aria-pressed="false"] .datesub { opacity: .7; }
     /* backdrop-filter 非対応時は不透明塗りへフォールバック */
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-      #bottomNav { background: #fff; }
+      .nav-glass { background: #e2e8f0; }
       .modal-glass-bar { background: #fff; }
-      .nav-brand-card {
-        background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 78%, white), var(--brand));
-      }
+      .nav-brand-card { background: #fff; }
       /* backdrop-filter 非対応時はフロストを使わず不透明塗りに戻す */
       #appHeader.is-compact, #appHeader.is-scrolling {
         background: linear-gradient(145deg,
@@ -374,9 +404,11 @@
     .pop-in { animation: popIn .2s cubic-bezier(.22,1,.36,1) both; }
     /* ===== 右下マスコット（ふせんネコ） =====
        24×24 のドット絵を実行時に SVG 生成し、16 コマを横一列に並べて translate3d でコマ送りする。
-       ボトムナビ（z-30）より下・本文より上の z-20。ナビの高さ（約 81px）＋余白ぶん持ち上げる。
-       ナビ自身も pb-safe を持つので、セーフエリアの inset はこちらでも別に足す。 */
-    #mascot { bottom: calc(env(safe-area-inset-bottom) + 5.5rem); }
+       ボトムナビ（z-30）より下・本文より上の z-20。ナビの占有高さ（--nav-h）＋余白ぶん持ち上げる。
+       ナビ自身もセーフエリアぶんの padding を持つので、inset はこちらでも別に足す。 */
+    #mascot { bottom: calc(env(safe-area-inset-bottom) + var(--nav-h) + 0.5rem); }
+    /* 浮いたナビの上に重ねる要素（更新トースト）も --nav-h から位置を取る */
+    .above-nav { bottom: calc(env(safe-area-inset-bottom) + var(--nav-h) + 1rem); }
     @keyframes catIdle { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-100%, 0, 0); } }
     #mascotStrip { animation: catIdle 4.8s steps(16) infinite; will-change: transform; }
     .cat-frame { flex: 0 0 6.25%; }
@@ -504,12 +536,13 @@
     }
     /* OS で透明効果を抑えている場合は、ガラス面を不透明にして可読性と描画負荷を優先 */
     @media (prefers-reduced-transparency: reduce) {
-      #bottomNav, body.is-scrolled #bottomNav, .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
+      .nav-glass, body.is-scrolled .nav-glass { background: #e2e8f0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+      .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
       #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
-      /* 選択ピルもガラスをやめ、不透明なブランド淡塗りにして可読性を優先 */
+      /* 選択ピルもガラスをやめ、不透明な白ピルにして可読性を優先 */
       .nav-brand-card {
         -webkit-backdrop-filter: none; backdrop-filter: none;
-        background: linear-gradient(145deg, color-mix(in srgb, var(--brand) 78%, white), var(--brand));
+        background: #fff;
       }
       #appHeader.is-compact, #appHeader.is-scrolling {
         background: linear-gradient(145deg,
@@ -524,16 +557,6 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
   <div class="safe-area-top-bg" aria-hidden="true"></div>
-
-  <!-- 選択ピルの背後を歪ませる屈折フィルタ（対応ブラウザのみ backdrop-filter: url() で使用）。
-       低周波ノイズを変位マップにして液体ガラス風のさざ波＋レンズ屈折を作る -->
-  <svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false">
-    <filter id="lensGlass" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.014" numOctaves="2" seed="11" result="noise"/>
-      <feGaussianBlur in="noise" stdDeviation="1.6" result="soft"/>
-      <feDisplacementMap in="SourceGraphic" in2="soft" scale="16" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
-  </svg>
 
   <!-- ===== Sticky ヘッダー（テーマ・お知らせベルを統合） ===== -->
   <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe text-brand-fg rounded-b-[32px] relative overflow-hidden">
@@ -571,7 +594,7 @@
        ブランド色ベタ塗り＋白文字は増やさない方針なので、オフラインバナーと同じ slate に揃える -->
   <!-- 中央寄せは flex で行い、-translate-x-1/2 は使わない。登場演出の fadeInUp が
        transform を both で握るため、transform で位置を作ると演出後に左へ飛ぶ -->
-  <div id="updatedToast" class="hidden fixed inset-x-0 bottom-24 z-30 flex justify-center px-3" role="status">
+  <div id="updatedToast" class="hidden fixed inset-x-0 above-nav z-30 flex justify-center px-3" role="status">
     <div id="updatedToastPill" class="flex items-center gap-2 bg-slate-800 text-white/90 text-xs font-medium rounded-full px-4 py-2 shadow-lg">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 flex-shrink-0" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
       <span>最新の情報に更新しました</span>
@@ -706,33 +729,32 @@
   </div>
 
   <!-- ===== ボトムナビ（3タブ） ===== -->
-  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto bg-white/[.74] border-t border-white/70 rounded-t-2xl shadow-[0_-4px_20px_-4px_rgba(15,23,42,0.12)] pb-safe">
-    <!-- 選択タブはヘッダーの明部に合わせたブランド色グラデーション＋白文字 -->
-    <div class="px-2 pt-1.5 pb-0.5">
-    <div class="relative grid grid-cols-3 bg-slate-200/60 rounded-2xl p-1">
+  <nav id="bottomNav" class="fixed bottom-0 inset-x-0 z-30 max-w-2xl mx-auto px-3 pointer-events-none">
+    <!-- 浮いたガラスのカプセル。バー自体がトラックを兼ね、選択タブは白ガラスのピルで示す。
+         角丸は rounded-full 同士（外 30px / 内 24px）で同心になる。 -->
+    <div id="navBar" class="nav-glass pointer-events-auto relative grid grid-cols-3 p-1.5 rounded-full">
       <!-- アクティブタブを示すピル。setTab() が translate3d で移動させる -->
-      <div id="navIndicator" class="tab-indicator top-1 bottom-1 left-1 w-[calc((100%-0.5rem)/3)] flex justify-center" aria-hidden="true">
-        <span class="nav-brand-card w-full h-full max-w-[120px] rounded-2xl"></span>
+      <div id="navIndicator" class="tab-indicator top-1.5 bottom-1.5 left-1.5 w-[calc((100%-0.75rem)/3)] flex justify-center" aria-hidden="true">
+        <span class="nav-brand-card w-full h-full max-w-[128px] rounded-full"></span>
       </div>
       <button data-tab="program" class="navbtn group relative flex justify-center" aria-label="TIMETABLE">
-        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           <span>TIMETABLE</span>
         </span>
       </button>
       <button data-tab="materials" class="navbtn group relative flex justify-center" aria-label="FILES">
-        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
           <span>FILES</span>
         </span>
       </button>
       <button data-tab="books" class="navbtn group relative flex justify-center" aria-label="BOOKS">
-        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[120px] min-h-[48px] px-5 py-1.5 rounded-2xl text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-semibold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
           <span>BOOKS</span>
         </span>
       </button>
-    </div>
     </div>
   </nav>
 
@@ -3123,7 +3145,8 @@
           axis = Math.abs(dx) > Math.abs(dy) * AXIS_RATIO ? "x" : "y";
           if (axis === "y") { tracking = false; return; }
           if (navSwipe) {
-            navWidth = $("bottomNav").clientWidth;
+            // 進捗はカプセル（実際にタブが並ぶ幅）で測る。器の #bottomNav は左右の余白ぶん広い
+            navWidth = ($("navBar") || $("bottomNav")).clientWidth;
           } else {
             dragView = $("view-" + activeTab);
             dragWidth = $("tabViews").clientWidth;
