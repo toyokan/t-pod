@@ -236,14 +236,16 @@
         inset 0 -1px rgba(255,255,255,.30);
     }
     /* 選択中のピルは白ガラス＋ブランド濃色文字（ベタ塗り＋白文字は AA 未達なので使わない）。
-       ブランド色は薄いウォッシュと影の色だけで効かせ、イベント毎の brandColor に追従させる。 */
+       ブランド色は薄いウォッシュと影の色だけで効かせ、イベント毎の brandColor に追従させる。
+       **ここに backdrop-filter を置かない**——親の .nav-glass が既にぼかしており、入れ子にすると
+       背景の合成が 2 回走る。しかもこのピルは毎フレーム動く（スワイプ追従・スライド）ので、
+       その 2 回目が指を動かしている間ずっと再実行される。ピル自体は白 .98〜.86 でほぼ不透明なため
+       見た目の差は最大 6/255（実測）しかなく、会場の非力な端末には代金だけが残る。 */
     .nav-brand-card {
       position: relative;
       background:
         linear-gradient(145deg, color-mix(in srgb, var(--brand) 24%, transparent) 0%, transparent 62%),
         linear-gradient(180deg, rgba(255,255,255,.98) 0%, rgba(255,255,255,.86) 100%);
-      -webkit-backdrop-filter: blur(10px) saturate(1.5);
-      backdrop-filter: blur(10px) saturate(1.5);
       box-shadow:
         0 6px 14px -8px color-mix(in srgb, var(--brand) 55%, black),
         0 1px 3px -1px rgba(15,23,42,.20),
@@ -283,7 +285,6 @@
       z-index: 29;
       pointer-events: none;
     }
-    .pb-safe { padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem); }
     .pt-safe { padding-top: env(safe-area-inset-top); }
     .scroll-x { -webkit-overflow-scrolling: touch; scrollbar-width: none; }
     .scroll-x::-webkit-scrollbar { display: none; }
@@ -376,7 +377,10 @@
     .datebtn[aria-pressed="false"] .datesub { opacity: .7; }
     /* backdrop-filter 非対応時は不透明塗りへフォールバック */
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-      .nav-glass { background: #e2e8f0; }
+      /* body.is-scrolled 側（詳細度 0,2,0）が後から background-color を透過値で上書きするので、
+         ここでも同じ詳細度で打ち消す。片方だけだと「ぼかし無しで半透明」という
+         いちばん読めない状態が残る。 */
+      .nav-glass, body.is-scrolled .nav-glass { background: #e2e8f0; }
       .modal-glass-bar { background: #fff; }
       .nav-brand-card { background: #fff; }
       /* backdrop-filter 非対応時はフロストを使わず不透明塗りに戻す */
@@ -539,11 +543,8 @@
       .nav-glass, body.is-scrolled .nav-glass { background: #e2e8f0; -webkit-backdrop-filter: none; backdrop-filter: none; }
       .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
       #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
-      /* 選択ピルもガラスをやめ、不透明な白ピルにして可読性を優先 */
-      .nav-brand-card {
-        -webkit-backdrop-filter: none; backdrop-filter: none;
-        background: #fff;
-      }
+      /* 選択ピルは白のグラデーションをやめて不透明な白ベタにする（ピルに backdrop-filter は無い） */
+      .nav-brand-card { background: #fff; }
       #appHeader.is-compact, #appHeader.is-scrolling {
         background: linear-gradient(145deg,
           color-mix(in srgb, var(--brand) 78%, white) 0%,
