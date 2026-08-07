@@ -230,7 +230,7 @@
          明るいブランド色でも白ピルが地から浮いて見える（CLAUDE.md のコントラスト制約） */
       background:
         linear-gradient(180deg, rgba(255,255,255,.62) 0%, rgba(255,255,255,.28) 44%, rgba(255,255,255,.46) 100%),
-        rgba(226,232,240,.64);
+        rgba(226,232,240,.76);
       -webkit-backdrop-filter: blur(22px) saturate(1.7);
       backdrop-filter: blur(22px) saturate(1.7);
       box-shadow:
@@ -253,6 +253,13 @@
       box-shadow:
         0 6px 14px -8px color-mix(in srgb, var(--brand) 55%, black),
         0 1px 3px -1px rgba(15,23,42,.20),
+        /* 縁の外側へ滲む色収差。ガラスの厚みで光が波長ごとにずれて見える演出で、
+           反対色（シアン／マゼンタ）を対で置くと「分散」に見える */
+        0 0 12px -2px rgba(70,185,255,.65),
+        0 0 14px -2px rgba(255,105,200,.55),
+        /* 左右の端にも同じ対を内側から差し、縁の厚みぶんだけ色が寄るようにする */
+        inset 4px 0 10px -8px rgba(0,165,255,.95),
+        inset -4px 0 10px -8px rgba(255,70,185,.85),
         inset 0 1px rgba(255,255,255,1),
         inset 0 -3px 6px -4px color-mix(in srgb, var(--brand) 34%, transparent);
       transition: transform .28s cubic-bezier(.34,1.56,.64,1);
@@ -278,6 +285,19 @@
         -webkit-mask-composite: xor;
         mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
         mask-composite: exclude;
+      }
+      /* 選択ピルのリングだけ、白のかわりにプリズムの色を一周させる（iOS 26 のレンズの色分散）。
+         色が乗るのは**動く要素の縁だけ**——バー側（.nav-glass）は白のままにする。
+         両方に乗せると「虹色の枠が二重」になって、どちらが選択中か分からなくなる。
+         2px は色相を見分けられる下限（1.5px だと淡いパステルの線にしか見えない）。
+         これ以上太くすると縁がネオンに見えてラベルと競り合うので上げないこと。 */
+      .nav-brand-card::before {
+        padding: 2px;
+        background: linear-gradient(150deg,
+          rgba(255,255,255,.95) 0%,  rgba(95,215,255,.92) 18%,
+          rgba(170,140,255,.80) 32%, rgba(255,130,210,.85) 47%,
+          rgba(255,220,120,.78) 62%, rgba(120,250,200,.85) 77%,
+          rgba(255,255,255,.92) 100%);
       }
     }
     /* セーフエリア（ノッチ端末）対応 */
@@ -377,9 +397,12 @@
        セーフエリアの下に更に余白を足して、カプセルを画面下端から浮かせる。 */
     #bottomNav { padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-gap)); }
     /* 地の不透明度は「見た目」ではなくコントラストで決めている。書影のような濃い画像が
-       真裏を流れても非選択ラベル（slate-600）が AA を割らないよう、静止時 .64（実測 4.7:1）／
-       スクロール中 .78（同 5.3:1）で下限を確保する。これ以上透かさないこと。 */
-    body.is-scrolled .nav-glass { background-color: rgba(226,232,240,.78); }
+       真裏を流れても非選択ラベル（slate-600）が AA を割らないよう、静止時 .76（純黒を真裏に
+       敷いて実測 4.77:1）／スクロール中 .82（同 5.18:1）で下限を確保する。これ以上透かさないこと。
+       **値は計算ではなく実測で決めること**——手計算では .64 を 4.7:1 と見積もっていたが、
+       実際に描画して測ると 3.94:1 で AA を割っていた（`backdrop-filter` のぼかしが
+       周囲を巻き込むため、単純なアルファ合成の計算とは合わない）。 */
+    body.is-scrolled .nav-glass { background-color: rgba(226,232,240,.82); }
     #tabViews { touch-action: pan-y; }
     .view.is-dragging { transition: none !important; will-change: transform; }
     .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
@@ -554,8 +577,17 @@
       .nav-glass, body.is-scrolled .nav-glass { background: #e2e8f0; -webkit-backdrop-filter: none; backdrop-filter: none; }
       .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
       #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
-      /* 選択ピルは白のグラデーションをやめて不透明な白ベタにする（ピルに backdrop-filter は無い） */
-      .nav-brand-card { background: #fff; }
+      /* 選択ピルは白のグラデーションをやめて不透明な白ベタにする（ピルに backdrop-filter は無い）。
+         プリズムの色分散もガラスの演出なので、リングを白へ戻し滲みの影を落とす
+         （選択位置は分かる必要があるので、輪郭と影そのものは残す） */
+      .nav-brand-card {
+        background: #fff;
+        box-shadow:
+          0 6px 14px -8px color-mix(in srgb, var(--brand) 55%, black),
+          0 1px 3px -1px rgba(15,23,42,.20),
+          inset 0 1px rgba(255,255,255,1);
+      }
+      .nav-brand-card::before { background: rgba(255,255,255,.9); }
       #appHeader.is-compact, #appHeader.is-scrolling {
         background: linear-gradient(145deg,
           color-mix(in srgb, var(--brand) 78%, white) 0%,
