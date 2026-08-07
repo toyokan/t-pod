@@ -253,13 +253,6 @@
       box-shadow:
         0 6px 14px -8px color-mix(in srgb, var(--brand) 55%, black),
         0 1px 3px -1px rgba(15,23,42,.20),
-        /* 縁の外側へ滲む色収差。ガラスの厚みで光が波長ごとにずれて見える演出で、
-           反対色（シアン／マゼンタ）を対で置くと「分散」に見える */
-        0 0 12px -2px rgba(70,185,255,.65),
-        0 0 14px -2px rgba(255,105,200,.55),
-        /* 左右の端にも同じ対を内側から差し、縁の厚みぶんだけ色が寄るようにする */
-        inset 4px 0 10px -8px rgba(0,165,255,.95),
-        inset -4px 0 10px -8px rgba(255,70,185,.85),
         inset 0 1px rgba(255,255,255,1),
         inset 0 -3px 6px -4px color-mix(in srgb, var(--brand) 34%, transparent);
       transition: transform .28s cubic-bezier(.34,1.56,.64,1);
@@ -286,18 +279,14 @@
         mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
         mask-composite: exclude;
       }
-      /* 選択ピルのリングだけ、白のかわりにプリズムの色を一周させる（iOS 26 のレンズの色分散）。
-         色が乗るのは**動く要素の縁だけ**——バー側（.nav-glass）は白のままにする。
-         両方に乗せると「虹色の枠が二重」になって、どちらが選択中か分からなくなる。
-         2px は色相を見分けられる下限（1.5px だと淡いパステルの線にしか見えない）。
-         これ以上太くすると縁がネオンに見えてラベルと競り合うので上げないこと。 */
+      /* 選択ピルのリングには色を「差す」程度に留める。iOS 26 のタブバーで彩度が乗って見えるのは
+         レンズの枠ではなく**レンズ越しの中身（アイコンとラベル）**なので、色の主役はそちらに置く
+         （下の .navbtn[aria-current] を参照）。ここを虹色に振ると枠だけが目立って中身が負ける。 */
       .nav-brand-card::before {
-        padding: 2px;
         background: linear-gradient(150deg,
-          rgba(255,255,255,.95) 0%,  rgba(95,215,255,.92) 18%,
-          rgba(170,140,255,.80) 32%, rgba(255,130,210,.85) 47%,
-          rgba(255,220,120,.78) 62%, rgba(120,250,200,.85) 77%,
-          rgba(255,255,255,.92) 100%);
+          rgba(255,255,255,.95) 0%,  rgba(190,235,255,.55) 24%,
+          rgba(255,255,255,0) 46%,   rgba(255,205,240,.45) 72%,
+          rgba(255,255,255,.90) 100%);
       }
     }
     /* セーフエリア（ノッチ端末）対応 */
@@ -393,6 +382,26 @@
     .datebtn[aria-pressed="false"],
     .navbtn:not([aria-current]) .navpill { color: rgb(71 85 105); }
     .navpill, .datebtn { transition: color .2s ease; }
+    /* 選択タブは「レンズ越しに見えている」ので、アイコンとラベルだけ彩度を上げる。
+       色相と明度はそのままに oklch の C だけ伸ばすのがミソ——`color-mix(… black)` は
+       sRGB で黒を混ぜるため明度と一緒に彩度まで落ち、濃くはなっても鮮やかにはならない。
+       **明度（l）は触らない**ので、上の 48%／62% で確保したコントラストがそのまま生きる
+       （実測: 既定の黄でラベル 5.27:1・アイコン 3.43:1。amber・青・緑・赤はいずれも更に上）。
+       relative color 非対応のブラウザはこの宣言ごと無効になり、上の color-mix が残る。 */
+    @supports (color: oklch(from red l c h)) {
+      .navbtn[aria-current] .navpill {
+        color: oklch(from color-mix(in srgb, var(--brand) 48%, black) l calc(c * 2) h);
+      }
+      .navbtn[aria-current] .navpill svg {
+        color: oklch(from color-mix(in srgb, var(--brand) 62%, black) l calc(c * 2.2) h);
+      }
+    }
+    /* レンズを通った像の色収差。**アイコンにだけ**掛ける——11px のラベルに掛けると
+       「レンズ越し」ではなく印刷の見当ずれに見えて、文字そのものが読みにくくなる。
+       24px のアイコンなら線が太いので、縁のシアン／マゼンタが分散として読める。 */
+    .navbtn[aria-current] .navpill svg {
+      filter: drop-shadow(-.8px 0 rgba(0,150,255,.70)) drop-shadow(.8px 0 rgba(255,40,170,.65));
+    }
     /* ナビ本体は当たり判定を持たない位置決めの器（カプセルの左右の余白から本文に触れる）。
        セーフエリアの下に更に余白を足して、カプセルを画面下端から浮かせる。 */
     #bottomNav { padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-gap)); }
@@ -578,8 +587,8 @@
       .modal-glass-bar { background: #fff; -webkit-backdrop-filter: none; backdrop-filter: none; }
       #modalBackdrop, #linePopupBackdrop { -webkit-backdrop-filter: none; backdrop-filter: none; }
       /* 選択ピルは白のグラデーションをやめて不透明な白ベタにする（ピルに backdrop-filter は無い）。
-         プリズムの色分散もガラスの演出なので、リングを白へ戻し滲みの影を落とす
-         （選択位置は分かる必要があるので、輪郭と影そのものは残す） */
+         リングも白へ戻す。彩度そのものは残す（色で選択位置を示しているため）が、
+         レンズ越しに見える演出＝アイコンの色収差は落とす。 */
       .nav-brand-card {
         background: #fff;
         box-shadow:
@@ -588,6 +597,7 @@
           inset 0 1px rgba(255,255,255,1);
       }
       .nav-brand-card::before { background: rgba(255,255,255,.9); }
+      .navbtn[aria-current] .navpill svg { filter: none; }
       #appHeader.is-compact, #appHeader.is-scrolling {
         background: linear-gradient(145deg,
           color-mix(in srgb, var(--brand) 78%, white) 0%,
