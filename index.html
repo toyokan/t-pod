@@ -40,6 +40,21 @@
           document.documentElement.style.setProperty("--brand", cached);
         }
       } catch (e) {}
+      // 非力な端末ではガラス（backdrop-filter）を最初から使わない。
+      // コストは「ぼかしの半径」ではなく「有るか無いか」で決まる——スクロール中の
+      // ラスタ処理が実測で 283ms → 741ms（90 フレーム）と 2.6 倍になる一方、
+      // 半径を 8px まで落としても 9% しか変わらない（＝下げるのではなく外すのが効く）。
+      // 判定は端末の申告値だが、**メモリとコア数の両方が低いときだけ**にする。
+      // どちらか片方では誤爆する——コア数はコンテナや省電力で実力より小さく申告されることが
+      // あり（この判定を書いた環境の Chromium も 8GB あって 4 コア申告だった）、
+      // 十分動く端末からガラスを取り上げてしまう。deviceMemory は Safari に無いので
+      // 既定 8 に落ち、iPhone は常に対象外＝ガラスのまま（実機でも重くない）。
+      // 描画前に決めたいのでここで付ける。
+      try {
+        var cores = navigator.hardwareConcurrency || 8;
+        var mem = navigator.deviceMemory || 8;
+        if (cores <= 4 && mem <= 4) document.documentElement.classList.add("no-glass");
+      } catch (e) {}
     })();
   </script>
   <!-- 一覧ページ（?id 無し）の既定 favicon は東洋館出版社サイトと同一のものを使用。
@@ -154,14 +169,20 @@
     /* ブランド基準色（既定＝東洋館イメージカラーのゴールド。一覧ページの基調色）。
        events/<id>.json の brandColor で実行時に上書き */
     :root {
-      /* カプセルと画面下端（セーフエリア内側）との余白。ここを縮めるとナビ全体が下がる。
-         #bottomNav の padding-bottom と --nav-h の両方がこの 1 変数から決まるので、
-         上げ下げは必ずここだけ直す（直書きすると 2 箇所がずれる）。 */
+      /* セーフエリアが無い端末（Android・PC）でカプセルを画面下端から浮かせる余白 */
       --nav-gap: 0.375rem;
-      /* 浮いたボトムナビの占有高さ（カプセル約 65px ＋ --nav-gap）。
-         マスコット・更新トーストはこの値を基準に持ち上げるので、
-         ナビの高さを変えたらここだけ直せば全部が追従する。 */
-      --nav-h: calc(4.05rem + var(--nav-gap));
+      /* ホームインジケータ領域（iPhone は 34px）のうち、詰めてよい分。
+         セーフエリアぶんを丸ごと空けるとカプセルが浮きすぎるので一部を食う。
+         インジケータ自体は最下部の細い線なので、残り 22px あれば重ならない。
+         これ以上増やすと画面下端からの上スワイプ（ホームへ戻る）と競合するので上げない。 */
+      --nav-safe-trim: 0.75rem;
+      /* 画面下端からカプセル下端までの実際の距離。セーフエリアと --nav-gap の
+         **大きいほう**を採る（足し算にすると iPhone で 2 つぶん空いて浮きすぎる）。 */
+      --nav-bottom: max(var(--nav-gap), calc(env(safe-area-inset-bottom) - var(--nav-safe-trim)));
+      /* 画面下端からナビ上端まで（カプセル約 65px ＋ --nav-bottom）。
+         マスコット・更新トーストはこの値だけを基準に持ち上げるので、
+         ナビの高さや位置を変えたらここまでの 3 変数だけ直せば全部が追従する。 */
+      --nav-h: calc(4.05rem + var(--nav-bottom));
       --brand: #ffd900;
       --brand-fg: #1e293b;
       --brand-2: color-mix(in srgb, var(--brand) 68%, black);
@@ -231,8 +252,8 @@
       background:
         linear-gradient(180deg, rgba(255,255,255,.62) 0%, rgba(255,255,255,.28) 44%, rgba(255,255,255,.46) 100%),
         rgba(226,232,240,.76);
-      -webkit-backdrop-filter: blur(22px) saturate(1.7);
-      backdrop-filter: blur(22px) saturate(1.7);
+      -webkit-backdrop-filter: blur(20px) saturate(1.6);
+      backdrop-filter: blur(20px) saturate(1.6);
       box-shadow:
         0 10px 28px -10px rgba(15,23,42,.30),
         0 2px 8px -4px rgba(15,23,42,.16),
@@ -395,7 +416,7 @@
     }
     /* ナビ本体は当たり判定を持たない位置決めの器（カプセルの左右の余白から本文に触れる）。
        セーフエリアの下に更に余白を足して、カプセルを画面下端から浮かせる。 */
-    #bottomNav { padding-bottom: calc(env(safe-area-inset-bottom) + var(--nav-gap)); }
+    #bottomNav { padding-bottom: var(--nav-bottom); }
     /* 地の不透明度は「見た目」ではなくコントラストで決めている。書影のような濃い画像が
        真裏を流れても非選択ラベル（slate-600）が AA を割らないよう、静止時 .76（純黒を真裏に
        敷いて実測 4.77:1）／スクロール中 .82（同 5.18:1）で下限を確保する。これ以上透かさないこと。
@@ -443,10 +464,10 @@
     /* ===== 右下マスコット（ふせんネコ） =====
        24×24 のドット絵を実行時に SVG 生成し、16 コマを横一列に並べて translate3d でコマ送りする。
        ボトムナビ（z-30）より下・本文より上の z-20。ナビの占有高さ（--nav-h）＋余白ぶん持ち上げる。
-       ナビ自身もセーフエリアぶんの padding を持つので、inset はこちらでも別に足す。 */
-    #mascot { bottom: calc(env(safe-area-inset-bottom) + var(--nav-h) + 0.5rem); }
+       --nav-h がセーフエリアぶんを含むので、ここで env() を足してはいけない（二重に空く）。 */
+    #mascot { bottom: calc(var(--nav-h) + 0.5rem); }
     /* 浮いたナビの上に重ねる要素（更新トースト）も --nav-h から位置を取る */
-    .above-nav { bottom: calc(env(safe-area-inset-bottom) + var(--nav-h) + 1rem); }
+    .above-nav { bottom: calc(var(--nav-h) + 1rem); }
     @keyframes catIdle { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-100%, 0, 0); } }
     #mascotStrip { animation: catIdle 4.8s steps(16) infinite; will-change: transform; }
     .cat-frame { flex: 0 0 6.25%; }
@@ -597,6 +618,27 @@
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
       }
+    }
+    /* 非力な端末（head の inline script が付ける .no-glass）。
+       透明効果の設定とは別の理由＝描画コストで外すので、媒体クエリとは分けてある。
+       見た目の行き先は prefers-reduced-transparency と同じ不透明版。 */
+    html.no-glass .nav-glass,
+    html.no-glass body.is-scrolled .nav-glass,
+    html.no-glass .modal-glass-bar {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+    }
+    html.no-glass .nav-glass, html.no-glass body.is-scrolled .nav-glass { background: #e2e8f0; }
+    html.no-glass .modal-glass-bar { background: #fff; }
+    html.no-glass #modalBackdrop, html.no-glass #linePopupBackdrop {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+    }
+    html.no-glass #appHeader.is-compact, html.no-glass #appHeader.is-scrolling {
+      background: linear-gradient(145deg,
+        color-mix(in srgb, var(--brand) 78%, white) 0%,
+        var(--brand) 58%,
+        color-mix(in srgb, var(--brand) 86%, black) 100%);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
     }
   </style>
 </head>
