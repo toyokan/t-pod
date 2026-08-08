@@ -11,7 +11,7 @@
 - イベント別のブランド色、PWA 名・アイコン（実体 `.webmanifest` 推奨）、会場マップに対応
 - TIMETABLE / FILES / BOOKS の3画面と、スマートフォン向けのスワイプ操作
 - 当日は該当する日付タブを初期表示し、現在の進行位置へ自動スクロール
-- 半透明の固定ヘッダー／ボトムナビ、短いタブ切替・押下フィードバックなど、軽量なモダンUI（動きを減らす設定にも対応）
+- 半透明の固定ヘッダーと、画面下端から浮かせたガラス調のボトムナビ（iOS 26 Liquid Glass 風のカプセル）。短いタブ切替・押下フィードバックなど、軽量なモダンUI（動きを減らす設定・透明度を下げる設定・非力な端末では不透明版へ自動で落とす）
 - 右下にドット絵のマスコット「ふせんネコ」。イベントデータと現在時刻から「あと◯日だよ」「いまは◯◯の時間だよ」などを吹き出しで伝える。造形は 24×24 のグリッド定義 1 箇所から実行時生成し、色はイベントのブランド色に追従（`eventInfo.mascot: false` で無効化可）
 - ふせんネコは配布用の SVG 資産（標準・にっこり・まじめ・うれしい・ひらめき）としても取り出せる。同じ定義から生成しているので、アプリ内の表示と配布アイコンでシルエットがずれない
 - JSON 由来テキスト・URL のサニタイズ、モーダルのフォーカストラップ、通信タイムアウト時の再試行導線など、堅牢性・アクセシビリティに配慮
@@ -76,6 +76,18 @@ JSON の構文確認例:
 python3 -m json.tool events.json
 python3 -m json.tool events/2026-zensanken-37.json
 ```
+
+### 検証（CI と同じコマンド）
+
+プルリクエストと `main` への push では、GitHub Actions が次の 2 つを実行します（`.github/workflows/validate-events.yml`）。手元でも同じコマンドで確認できます。
+
+```bash
+python -m pip install -r requirements-tools.txt
+python scripts/validate_events.py                 # イベントJSON・索引・アセットの整合性
+python -m unittest discover -s tests -v           # 回帰テスト
+```
+
+`tests/` が見ているのは、イベント関連スクリプトの挙動（`test_event_tools.py`）、ふせんネコの造形と生成物のずれ（`test_fuseneko.py`）、そして UI シェルのソースそのもの（`test_shell_source.py`）です。最後のひとつは `index.html` に NUL バイトが混ざっていないことを確かめます——HTML パーサーは NUL を U+FFFD へ黙って置き換えてしまい、`grep` や `diff` もこのファイルを「バイナリ」として扱うようになるためです。
 
 ### マスコット「ふせんネコ」
 
