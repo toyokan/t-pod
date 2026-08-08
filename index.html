@@ -1603,8 +1603,9 @@
 
     // アイコン/名前/マニフェストの生成に関わる値だけを束ねた指紋。
     // これが同じなら applyAppIdentity() を回す意味が無い（canvas ラスタライズが要る）
+    // HTML ソース内の NUL はパーサーが U+FFFD に置換するため、エスケープ表記にする。
     const identitySig = (info) =>
-      [info.logoMain, info.appName, info.title, info.brandColor, info.manifestPath].join(" ");
+      [info.logoMain, info.appName, info.title, info.brandColor, info.manifestPath].join("\u0000");
     let lastIdentitySig = null;
 
     // opts.keepView: 見ている場所（タブ・スクロール）を動かさずに描き直す。
