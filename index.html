@@ -7,6 +7,10 @@
   <title>プログラム / タイムテーブル</title>
   <meta name="description" content="教育イベント・研究会向けタイムテーブル PWA" />
   <meta name="robots" content="noindex, nofollow, noarchive" />
+  <!-- 配色は白基調の 1 種類しか持たない。宣言しないと端末のダークモードで
+       フォームコントロール・スクロールバー・input の地だけが暗く反転し、
+       本文（白カード）と食い違う。ライト固定であることをブラウザに伝える。 -->
+  <meta name="color-scheme" content="light" />
 
   <!-- theme-color（ステータスバー/ノッチ部の色）。LINE 等のアプリ内ブラウザはこの値を
        パース時に一度だけ読み、JS の事後更新を反映しないため、下の inline スクリプトが
@@ -709,7 +713,7 @@
   <main class="max-w-2xl mx-auto px-4 pt-4 pb-32">
 
     <!-- 読み込みエラー表示 -->
-    <div id="errorBox" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
+    <div id="errorBox" role="alert" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
       <p>データの読み込みに失敗しました。通信環境をご確認のうえ、再試行してください。</p>
       <div class="mt-2 flex items-center gap-4">
         <button type="button" id="errorRetry" class="text-brand-600 font-medium underline">再試行</button>
@@ -749,7 +753,15 @@
       <nav id="dateTabs" class="relative flex bg-slate-200/80 border border-white/60 rounded-full p-1 mb-3" aria-label="開催日"></nav>
       <div class="flex items-center justify-between mb-3">
         <div id="dayMeta" class="text-xs font-bold text-slate-500"></div>
-        <button id="jumpNow" class="hidden text-[11px] font-black grad-pill shadow-fab rounded-full px-3 py-1.5 active:scale-95 transition">▼ いまの予定へ</button>
+        <!-- 記号（▼）はフォントによって字形・字幅が揺れるので、他の静的箇所と同じくインライン SVG にする -->
+        <!-- hidden の付け外しだけで出し入れするので、display は button に持たせず内側の span で組む
+             （.hidden と .inline-flex はどちらも display なので、同居させると後勝ちで隠れなくなる） -->
+        <button id="jumpNow" class="hidden text-[11px] font-black grad-pill shadow-fab rounded-full pl-2.5 pr-3 py-1.5 active:scale-95 transition">
+          <span class="flex items-center gap-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            <span>いまの予定へ</span>
+          </span>
+        </button>
       </div>
       <div id="timetable"></div>
       <!-- 次回イベントのご案内（eventInfo.nextEvent がある時だけ表示） -->
@@ -760,23 +772,36 @@
     <section id="view-materials" class="view hidden space-y-5">
       <h2 class="text-base font-bold text-slate-700">資料・会場案内</h2>
 
-      <div>
+      <!-- 見出しだけが残らないよう、中身が無いブロックは renderMaterials() が丸ごと隠す -->
+      <div id="venueSection">
         <h3 class="text-sm font-semibold text-slate-600 mb-2">会場マップ</h3>
         <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-card">
-          <img id="venueMap" alt="会場マップ" loading="lazy" decoding="async" class="w-full" />
+          <!-- 会場図は SVG も写真もあり実寸が一定しないので width/height は持てない。
+               aspect + object-contain で「箱」だけ先に確保し、画像が届いたときに
+               下の注記とリンクが飛ばないようにする（バナーと同じ考え方）。
+               読み込み完了まで隠す作りにはしないこと——lazy は display:none だと
+               取得が始まらず、load が来ないまま永久に出なくなる。
+               比率は正方形にしておく。現行 2 枚の会場図は 1349×1459 / 1529×1625 と
+               どちらも縦横ほぼ 1:1 で、object-contain なので違う比率でも歪まず収まる
+               （余白は地の slate-50 になる）。 -->
+          <img id="venueMap" alt="会場マップ" loading="lazy" decoding="async"
+            class="hidden w-full aspect-square object-contain bg-slate-50" />
           <p id="venueNote" class="text-xs text-slate-600 p-3 leading-relaxed"></p>
         </div>
       </div>
 
-      <div>
+      <div id="resourceSection">
         <h3 class="text-sm font-semibold text-slate-600 mb-2">配布資料</h3>
         <div id="resourceLinks" class="space-y-2"></div>
       </div>
 
-      <div>
+      <div id="formSection">
         <h3 class="text-sm font-semibold text-slate-600 mb-2">アンケート・各種フォーム</h3>
         <div id="formLinks" class="space-y-2"></div>
       </div>
+
+      <!-- 資料も会場案内も無いイベント向け。renderMaterials() が上を全部隠したときだけ出す -->
+      <p id="materialsEmpty" class="hidden text-sm text-slate-500 py-8 text-center">資料は準備中です。</p>
     </section>
 
     <!-- (3) 書籍 -->
@@ -1422,12 +1447,20 @@
     // 古い実行のコールバックを黙らせる——放っておくと両方が描画し、showLinePromo() が
     // 二重に走ってスクロールリスナと 30 秒タイマーが 2 本ずつ張られる（ポップアップが 2 回開く）。
     let initRun = 0;
+    let bootstrapped = false; // 一度きりの結線（SW 登録・インストール導線）が済んだか
     async function init() {
       const run = ++initRun;
       const alive = () => run === initRun;
       updateBrandFg(resolvedBrand());
-      registerSW();
-      setupInstallPrompt();
+      // **一度きり**。init() は #errorRetry から呼び直せるので、ここに素で並べると
+      // 呼び直すたびに installBtn / installDismiss の click リスナが増える
+      // （「追加」を 1 回押すと導線が二重に走る）。世代番号（initRun）は非同期の
+      // コールバックしか黙らせないため、同期的な結線はこちらで止める。
+      if (!bootstrapped) {
+        bootstrapped = true;
+        registerSW();
+        setupInstallPrompt();
+      }
       const id = getEventId();
       if (!id) {
         setMode("list");
@@ -1594,11 +1627,15 @@
       ROOM_COLOR = {};
       (DATA.rooms || []).forEach((r) => { ROOM_COLOR[r.id] = r.color; ROOM_COLOR[r.name] = r.color; });
 
-      // テーマ（ヘッダー内バナー）
+      // テーマ（ヘッダー内バナー）。**必ず両方向を書く**——出す条件だけを書くと、
+      // 静かな差し替えで theme が消えたイベントでも古いバナーが残ってしまう
       if (info.theme) {
         const { main, sub } = splitTheme(info.theme);
         $("themeText").innerHTML = escapeHtml(main) + (sub ? `<br>${escapeHtml(sub)}` : "");
         $("themeBanner").classList.remove("hidden");
+      } else {
+        $("themeText").textContent = "";
+        $("themeBanner").classList.add("hidden");
       }
 
       renderDateTabs();
@@ -2094,6 +2131,13 @@
         box.classList.add("hidden");
         box.classList.remove("flex");
       } else {
+        // 逆方向も書く——文言が一度空になった回（日付が壊れた JSON を掴んだ等）に
+        // hidden を付けたまま返すと、次の 7 秒で文言が戻ってもネコが二度と出てこない。
+        // 組み立て前（strip が空）はここで出さず、setupMascot() の rAF に任せる
+        if ($("mascotStrip").children.length) {
+          box.classList.remove("hidden");
+          box.classList.add("flex");
+        }
         setMascotText(mascotMsgs[0]);
       }
       return true;
@@ -2442,22 +2486,42 @@
     function renderMaterials() {
       const venue = (DATA.eventInfo && DATA.eventInfo.venue) || {};
       const map = $("venueMap");
-      if (venue.mapImage) {
-        map.src = safeUrl(venue.mapImage);
-        map.classList.remove("hidden");
-        map.onerror = () => map.classList.add("hidden");
-      } else map.classList.add("hidden");
-      $("venueNote").textContent = venue.mapNote || "";
+      const mapUrl = venue.mapImage ? safeUrl(venue.mapImage) : "";
+      if (mapUrl && mapUrl !== "#") {
+        // **読み込みが終わるまで隠す、はやってはいけない**——`loading="lazy"` の画像は
+        // display:none の間はビューポートに入りようがないので取得自体が始まらず、
+        // load が永久に来ない（＝会場マップが出ない）。表示したまま出し、
+        // ちらつきは HTML 側の aspect（箱の先取り）で受けること。
+        // 前回失敗した URL のときだけは、壊れた枠を出さないよう隠したままにする。
+        if (map.getAttribute("src") !== mapUrl) {
+          delete map.dataset.failed;
+          map.onerror = () => { map.dataset.failed = "1"; map.classList.add("hidden"); };
+          map.src = mapUrl;
+        }
+        map.classList.toggle("hidden", map.dataset.failed === "1");
+      } else {
+        map.classList.add("hidden");
+        map.removeAttribute("src");
+        delete map.dataset.failed;
+      }
+      const note = venue.mapNote || "";
+      $("venueNote").textContent = note;
+      $("venueNote").classList.toggle("hidden", !note);
+      // 画像も注記も無いなら「会場マップ」の見出しごと出さない（空の白カードが残らないように）
+      const hasVenue = !!(mapUrl && mapUrl !== "#") || !!note;
+      $("venueSection").classList.toggle("hidden", !hasVenue);
 
+      const resources = (venue.resourceLinks || []).filter((r) => r && r.url);
       $("resourceLinks").innerHTML = "";
-      (venue.resourceLinks || []).forEach((r) =>
-        $("resourceLinks").appendChild(linkCard(r, "file"))
-      );
+      resources.forEach((r) => $("resourceLinks").appendChild(linkCard(r, "file")));
+      $("resourceSection").classList.toggle("hidden", !resources.length);
 
+      const forms = ((DATA.eventInfo && DATA.eventInfo.forms) || []).filter((f) => f && f.url);
       $("formLinks").innerHTML = "";
-      ((DATA.eventInfo && DATA.eventInfo.forms) || []).forEach((f) =>
-        $("formLinks").appendChild(linkCard(f, "form"))
-      );
+      forms.forEach((f) => $("formLinks").appendChild(linkCard(f, "form")));
+      $("formSection").classList.toggle("hidden", !forms.length);
+
+      $("materialsEmpty").classList.toggle("hidden", hasVenue || !!resources.length || !!forms.length);
     }
 
     function linkCard(item, iconName) {
@@ -3016,13 +3080,18 @@
       });
     }
     let linePromoTrigger = null;
+    let linePromoArmed = false;
     function showLinePromo() {
+      // init() の再実行や、キャッシュ表示→ネットワーク表示の二段構えで二重に仕掛けない
+      // （スクロールリスナと 30 秒タイマーが 2 本ずつ張られ、ポップアップが 2 回開く）
+      if (linePromoArmed) return;
       const isEvent = !!getEventId();
       if (isEvent && DATA?.eventInfo?.linePromo !== true) return;
       // LINE の in-app ブラウザで見ている＝キーワード応答から来た人なので、すでに友だち。
       // localStorage は汚さないので、外部ブラウザで開き直したときには従来どおり出る。
       if (isLineApp()) return;
       try { if (localStorage.getItem(LINE_DISMISS_KEY)) return; } catch (e) {}
+      linePromoArmed = true;
       let fired = false;
       const open = () => {
         if (document.body.classList.contains("modal-open")) { setTimeout(open, 3000); return; }
