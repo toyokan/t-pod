@@ -1,0 +1,136 @@
+{
+  "id": "2026-kokugo-sansu-day3",
+  "eventInfo": {
+    "title": "子どもと創る「国語×算数」授業研究会 Day 3",
+    "subtitle": "[実践編] 授業を見ながら学ぶ",
+    "logoMain": "国語×算数 Day3",
+    "logoSub": "子どもと創る授業研究会",
+    "appName": "国語×算数 Day3",
+    "iconLabel": "国算3",
+    "brandColor": "#9B6BB5",
+    "brandColor2": "#5EBCE1",
+    "theme": "教科書から「定番教材」の授業をどう創るのか？",
+    "venueName": "筑波大学附属小学校",
+    "dateRange": "2026年9月6日(日) 10:00〜15:30",
+    "manifestPath": "events/2026-kokugo-sansu-day3.webmanifest",
+    "organizer": "東洋館出版社",
+    "tagline": "[実践編] 授業を見ながら学ぶ",
+    "linePromo": false,
+    "dates": [
+      {
+        "id": "day1",
+        "label": "9月6日",
+        "date": "2026-09-06",
+        "weekday": "日",
+        "time": "10:00〜15:30"
+      }
+    ],
+    "notices": [
+      {
+        "title": "開催形式",
+        "body": "筑波大学附属小学校での対面開催です。オンライン配信・アーカイブ配信はありません。",
+        "level": "important"
+      },
+      {
+        "title": "参加費",
+        "body": "3,000円",
+        "level": "important"
+      },
+      {
+        "title": "懇親会",
+        "body": "終了後、希望者で懇親会を予定しています。参加費とは別に会費を徴収します。",
+        "level": "info"
+      }
+    ],
+    "forms": [],
+    "venue": {
+      "mapNote": "筑波大学附属小学校（東京都文京区大塚3-29-1）",
+      "resourceLinks": []
+    }
+  },
+  "rooms": [],
+  "sessions": [
+    {
+      "id": "d1-01",
+      "dateId": "day1",
+      "start": "10:00",
+      "end": "",
+      "category": "受付",
+      "note": "受付開始",
+      "items": []
+    },
+    {
+      "id": "d1-02",
+      "dateId": "day1",
+      "start": "10:30",
+      "end": "11:15",
+      "category": "公開授業",
+      "items": [
+        {
+          "title": "算数・2年「かけ算九九」",
+          "meta": [
+            "森本隆史（筑波大学附属小学校・算数部）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-03",
+      "dateId": "day1",
+      "start": "11:20",
+      "end": "12:10",
+      "category": "協議会",
+      "items": [
+        {
+          "title": "公開授業についての協議会",
+          "meta": [
+            "森本隆史（筑波大学附属小学校・算数部）",
+            "富田瑞枝（筑波大学附属小学校・理科部）",
+            "佐藤亜耶（筑波大学附属小学校・国語部）",
+            "白坂洋一（筑波大学附属小学校・国語部）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-04",
+      "dateId": "day1",
+      "start": "12:10",
+      "end": "",
+      "category": "昼休憩",
+      "items": []
+    },
+    {
+      "id": "d1-05",
+      "dateId": "day1",
+      "start": "13:30",
+      "end": "14:20",
+      "category": "講座",
+      "items": [
+        {
+          "title": "国語授業づくり講座",
+          "meta": [
+            "白坂洋一（筑波大学附属小学校・国語部）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-06",
+      "dateId": "day1",
+      "start": "14:30",
+      "end": "15:20",
+      "category": "講座",
+      "afterNote": "終了後、希望者で懇親会を予定しています（別途会費を徴収します）。",
+      "items": [
+        {
+          "title": "算数授業づくり講座",
+          "meta": [
+            "森本隆史（筑波大学附属小学校・算数部）"
+          ]
+        }
+      ]
+    }
+  ],
+  "books": []
+}

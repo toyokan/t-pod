@@ -1,0 +1,26 @@
+{
+  "name": "国語×算数 Day3",
+  "short_name": "国語×算数 Day3",
+  "description": "子どもと創る「国語×算数」授業研究会 Day 3のプログラム・配布資料・関連書籍",
+  "lang": "ja",
+  "start_url": "../?id=2026-kokugo-sansu-day3",
+  "scope": "../",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f8fafc",
+  "theme_color": "#9B6BB5",
+  "icons": [
+    {
+      "src": "../assets/icon-2026-kokugo-sansu-day3.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "../assets/icon-2026-kokugo-sansu-day3.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
