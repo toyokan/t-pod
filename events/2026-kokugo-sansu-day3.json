@@ -5,8 +5,8 @@
     "subtitle": "[実践編] 授業を見ながら学ぶ",
     "logoMain": "国語×算数 Day3",
     "logoSub": "子どもと創る授業研究会",
-    "appName": "国語×算数 Day3",
-    "iconLabel": "国算3",
+    "appName": "創国算D3",
+    "iconLabel": "創国算",
     "brandColor": "#9B6BB5",
     "brandColor2": "#5EBCE1",
     "theme": "教科書から「定番教材」の授業をどう創るのか？",
@@ -42,7 +42,13 @@
         "level": "info"
       }
     ],
-    "forms": [],
+    "forms": [
+      {
+        "label": "詳細・お申し込み",
+        "description": "東洋館出版社の商品ページからお申し込みください。",
+        "url": "https://www.toyokan.co.jp/products/kodomototukuru-jyugyo?variant=51131493744873"
+      }
+    ],
     "venue": {
       "mapNote": "筑波大学附属小学校（東京都文京区大塚3-29-1）",
       "resourceLinks": []
@@ -132,5 +138,62 @@
       ]
     }
   ],
-  "books": []
+  "books": [
+    {
+      "title": "リフレクション型国語科授業ー学びを主体化する国語学習サイクルー",
+      "author": "白坂 洋一・香月 正登・小泉 芳男／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/6409_1_f0f83536-537d-419c-ae82-83a25e17234c.jpg?v=1770078225",
+      "description": "リフレクション（省察）を中核とし、子どもが学びを「自分事」として引き受ける国語授業の具体像を示す。",
+      "url": "https://www.toyokan.co.jp/products/5984"
+    },
+    {
+      "title": "はじめての算数",
+      "author": "森本 隆史／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5777_1.jpg?v=1738814903",
+      "description": "算数の教科特性、授業準備、指導技術、評価、家庭学習まで、授業づくりの基礎・基本をコンパクトに解説。",
+      "url": "https://www.toyokan.co.jp/products/5777"
+    },
+    {
+      "title": "算数授業を左右する 教師の判断力",
+      "author": "森本 隆史／編著、算数授業を子どもと創る研究会／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-124019.png?v=1692938855",
+      "description": "21の場面×3つの判断で、子どもの学びの質を上げる教師の判断の選択肢を示す実践的な事例集。",
+      "url": "https://www.toyokan.co.jp/products/5084"
+    },
+    {
+      "title": "「学びがい」のある学級ー子どもの声を引き出す教師の言葉がけ",
+      "author": "白坂 洋一／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-903415.jpg?v=1692938203",
+      "description": "子どもの願いや問いから出発する学級づくりを、子どもの声を引き出す教師の言葉がけとともに紹介。",
+      "url": "https://www.toyokan.co.jp/products/4345"
+    },
+    {
+      "title": "子どもの思考が動き出す 国語授業４つの発問",
+      "author": "白坂 洋一／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/4-574785.jpg?v=1692938516",
+      "description": "子どもの思考の文脈を大切にする国語授業を、4つの発問と授業実践を通して解説。",
+      "url": "https://www.toyokan.co.jp/products/4034"
+    },
+    {
+      "title": "算数授業を子どもと創る",
+      "author": "森本 隆史／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-910880.jpg?v=1692938856",
+      "description": "教え込みから脱却し、言葉とかかわりを大切にしながら子どもと創る算数授業へ変える視点を紹介。",
+      "url": "https://www.toyokan.co.jp/products/3729"
+    },
+    {
+      "title": "筑波附小の教育　子どもの学びが深まる理科授業デザイン",
+      "author": "志田 正訓・鷲見 辰美・辻 健・富田 瑞枝／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/6346_1.jpg?v=1770077603",
+      "description": "小学校理科の全単元を網羅した36例の授業実践を通して、子どもの学びが深まる理科授業デザインを提案。",
+      "url": "https://www.toyokan.co.jp/products/6346"
+    }
+  ]
 }
