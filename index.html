@@ -1605,7 +1605,7 @@
     // これが同じなら applyAppIdentity() を回す意味が無い（canvas ラスタライズが要る）
     // HTML ソース内の NUL はパーサーが U+FFFD に置換するため、エスケープ表記にする。
     const identitySig = (info) =>
-      [info.logoMain, info.appName, info.title, info.brandColor, info.manifestPath].join("\u0000");
+      [info.logoMain, info.appName, info.bookmarkName, info.title, info.brandColor, info.manifestPath].join("\u0000");
     let lastIdentitySig = null;
 
     // opts.keepView: 見ている場所（タブ・スクロール）を動かさずに描き直す。
@@ -2984,10 +2984,12 @@
     }
     async function applyAppIdentityInner(info) {
       const docTitle = info.logoMain || info.title || "イベント";
+      // ブックマーク名はページ上部のロゴ表記と分けられる（未指定なら同じ名称）。
+      const bookmarkName = info.bookmarkName || info.appName || docTitle;
       // ホーム画面のアプリ名は長いと省略されるため、appName で短い名前を指定できる（未指定なら logoMain）
       const name = info.appName || docTitle;
       const shortName = name;
-      document.title = docTitle;
+      document.title = bookmarkName;
       let appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
       if (!appleTitle) {
         appleTitle = document.createElement("meta");

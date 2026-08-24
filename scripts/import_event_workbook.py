@@ -374,6 +374,7 @@ class EventWorkbook:
             ("アプリ名（短め）", "logoMain"),
             ("ロゴ補足", "logoSub"),
             ("PWA表示名", "appName"),
+            ("ブックマーク名", "bookmarkName"),
             ("アイコン3文字", "iconLabel"),
             ("ブランド色", "brandColor"),
             ("補助ブランド色", "brandColor2"),
