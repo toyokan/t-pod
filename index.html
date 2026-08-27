@@ -252,9 +252,17 @@
     .nav-glass {
       position: relative;
       /* 最下層のスレート地が日付タブと同じ「トラック」の役目を持つ。
-         明るいブランド色でも白ピルが地から浮いて見える（CLAUDE.md のコントラスト制約） */
+         明るいブランド色でも白ピルが地から浮いて見える（CLAUDE.md のコントラスト制約）。
+         上のシーンにごく薄くブランド色を差すのは iOS 27 の「adjustable tint」
+         （ultra clear〜fully tinted）に寄せたもの——選択ピルだけでなくバー全体が
+         環境光のようにブランド色を帯びる。地の不透明度（.76/.82、実測でコントラスト確保済み）は
+         変えず、その上に重なる白いシーン側だけを軽く着色するので下限コントラストへの影響は小さいはずだが、
+         新しい brandColor を足すときは他の配色と同様に実機で確認すること。 */
       background:
-        linear-gradient(180deg, rgba(255,255,255,.62) 0%, rgba(255,255,255,.28) 44%, rgba(255,255,255,.46) 100%),
+        linear-gradient(180deg,
+          color-mix(in srgb, var(--brand) 8%, rgba(255,255,255,.62)) 0%,
+          color-mix(in srgb, var(--brand) 5%, rgba(255,255,255,.28)) 44%,
+          color-mix(in srgb, var(--brand) 7%, rgba(255,255,255,.46)) 100%),
         rgba(226,232,240,.76);
       -webkit-backdrop-filter: blur(20px) saturate(1.6);
       backdrop-filter: blur(20px) saturate(1.6);
@@ -427,7 +435,7 @@
        **値は計算ではなく実測で決めること**——手計算では .64 を 4.7:1 と見積もっていたが、
        実際に描画して測ると 3.94:1 で AA を割っていた（`backdrop-filter` のぼかしが
        周囲を巻き込むため、単純なアルファ合成の計算とは合わない）。 */
-    body.is-scrolled .nav-glass { background-color: rgba(226,232,240,.82); }
+    body.is-scrolled .nav-glass { background-color: color-mix(in srgb, var(--brand) 6%, rgba(226,232,240,.82)); }
     #tabViews { touch-action: pan-y; }
     .view.is-dragging { transition: none !important; will-change: transform; }
     .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
