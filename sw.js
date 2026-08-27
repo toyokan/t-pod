@@ -19,7 +19,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v116";
+const CACHE_VERSION = "v117";
 // シェル（HTML/JS/アセット）。版ごとに作り直す
 const SHELL_CACHE = `t-pod-${CACHE_VERSION}`;
 // 版に依存しない長寿命キャッシュ。events/<id>.json・フォント実体・Tailwind を入れる
