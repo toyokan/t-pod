@@ -292,7 +292,9 @@
       will-change: transform;
     }
     /* 縁の屈折。1.5px のリングだけを残すグラデーション枠（padding + mask の xor）で、
-       左上から右下へ光が回り込んで縁で曲がっているように見せる。
+       上下から光が回り込んで縁で曲がっているように見せる（上下対称。Apple公式 iOS 27 UI Kit の
+       選択ピル実測値でも、縁の陰影は X 方向オフセット 0 の上下対称インナーシャドウだった——
+       斜め方向の光源ではない）。
        mask-composite 非対応のブラウザでは ::before がベタ塗りの板になって中身を覆うので、
        @supports で丸ごと囲って「出さない」ほうへ倒す。 */
     @supports ((-webkit-mask-composite: xor) or (mask-composite: exclude)) {
@@ -303,10 +305,10 @@
         border-radius: inherit;
         padding: 1.5px;
         pointer-events: none;
-        background: linear-gradient(150deg,
+        background: linear-gradient(180deg,
           rgba(255,255,255,.95) 0%, rgba(255,255,255,.30) 22%,
-          rgba(255,255,255,0) 46%, rgba(255,255,255,.24) 70%,
-          rgba(255,255,255,.85) 100%);
+          rgba(255,255,255,0) 46%, rgba(255,255,255,.30) 74%,
+          rgba(255,255,255,.95) 100%);
         -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
         -webkit-mask-composite: xor;
         mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -316,9 +318,9 @@
          レンズの枠ではなく**レンズ越しの中身（アイコンとラベル）**なので、色の主役はそちらに置く
          （下の .navbtn[aria-current] を参照）。ここを虹色に振ると枠だけが目立って中身が負ける。 */
       .nav-brand-card::before {
-        background: linear-gradient(150deg,
+        background: linear-gradient(180deg,
           rgba(255,255,255,.95) 0%,  rgba(190,235,255,.55) 24%,
-          rgba(255,255,255,0) 46%,   rgba(255,205,240,.45) 72%,
+          rgba(255,255,255,0) 46%,   rgba(255,205,240,.45) 74%,
           rgba(255,255,255,.90) 100%);
       }
     }
