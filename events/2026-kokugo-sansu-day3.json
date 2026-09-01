@@ -52,7 +52,13 @@
     ],
     "venue": {
       "mapNote": "筑波大学附属小学校（東京都文京区大塚3-29-1）",
-      "resourceLinks": []
+      "resourceLinks": [
+        {
+          "label": "資料ダウンロード",
+          "description": "公開授業指導案、講演資料はこちらからダウンロードしてください。",
+          "url": "https://drive.google.com/file/d/1sstr8rl3Tp7JnyM1eMKcduHn-oUI3vR9/view?usp=sharing"
+        }
+      ]
     }
   },
   "rooms": [],
