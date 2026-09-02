@@ -129,6 +129,7 @@ python3 scripts/build_fuseneko.py --preview FN_HAPPY   # 表情を重ねて描�
 - [公開範囲の検討記録](docs/repository-visibility-review.md)
 - [Codex 向け作業ガイド](AGENTS.md)
 - [iPhone から Codex クラウドタスクを使う](docs/codex-cloud-setup.md)
+- [Claude の定期実行（Routine）設定メモ](docs/claude-routines.md)
 
 詳細仕様は README から `docs/requirements.md` へ分離しています。なお、リポジトリが public の場合は同ファイルも公開されます。
 
