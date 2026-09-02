@@ -4,6 +4,15 @@
   "siteUrl": "https://events.toyokan.co.jp/",
   "events": [
     {
+      "id": "2026-souzou-kokugo-shakai-1",
+      "title": "第1回 創造国語 × 創造社会 セミナー",
+      "theme": "学びを創造する子どもを育む —子どもが夢中になる授業デザイン—",
+      "dateRange": "2026年9月19日(土) 09:00〜16:30",
+      "venueName": "筑波大学附属小学校",
+      "sortDate": "2026-09-19",
+      "brandColor": "#FACD4B"
+    },
+    {
       "id": "2026-sanjuken-osaka",
       "title": "『算数授業研究』公開講座 in 大阪 2026",
       "theme": "子どもの思考に寄り添う算数の授業",

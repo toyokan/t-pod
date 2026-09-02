@@ -1,0 +1,280 @@
+{
+  "id": "2026-souzou-kokugo-shakai-1",
+  "eventInfo": {
+    "title": "第1回 創造国語 × 創造社会 セミナー",
+    "subtitle": "子どもが夢中になる授業デザイン",
+    "logoMain": "創造国社2026",
+    "logoSub": "創造国語 × 創造社会",
+    "appName": "創造国社2026",
+    "bookmarkName": "創造国社2026",
+    "iconLabel": "創国社",
+    "brandColor": "#FACD4B",
+    "theme": "学びを創造する子どもを育む —子どもが夢中になる授業デザイン—",
+    "venueName": "筑波大学附属小学校",
+    "dateRange": "2026年9月19日(土) 09:00〜16:30",
+    "manifestPath": "events/2026-souzou-kokugo-shakai-1.webmanifest",
+    "organizer": "東洋館出版社",
+    "tagline": "国語科と社会科の第一線が集う合同セミナー",
+    "linePromo": false,
+    "dates": [
+      {
+        "id": "day1",
+        "label": "9月19日",
+        "date": "2026-09-19",
+        "weekday": "土",
+        "time": "09:00〜16:30"
+      }
+    ],
+    "notices": [
+      {
+        "title": "参加費",
+        "body": "2,500円（税込）。お申し込み時に決済し、当日受付で「5桁の注文番号」と氏名をご提示ください。",
+        "level": "important"
+      },
+      {
+        "title": "申込・キャンセル期限",
+        "body": "申込は9月18日(金)まで、キャンセルは9月16日(水)までです。",
+        "level": "important"
+      },
+      {
+        "title": "撮影・録音の禁止",
+        "body": "会場内での写真撮影・録画・録音は一律禁止です。",
+        "level": "important"
+      },
+      {
+        "title": "開催形式",
+        "body": "筑波大学附属小学校（3階・講堂）での対面開催です。オンライン配信・アーカイブ配信はありません。",
+        "level": "info"
+      },
+      {
+        "title": "上履き",
+        "body": "校舎内は上履きが必要です。上履きと靴袋をご持参ください。",
+        "level": "info"
+      },
+      {
+        "title": "交通",
+        "body": "駐車場はありません。公共交通機関でお越しください。",
+        "level": "info"
+      },
+      {
+        "title": "昼食",
+        "body": "会場での昼食販売はありません。ご持参いただくか、周辺の飲食店をご利用ください（12:00〜12:45が昼食・休憩）。",
+        "level": "info"
+      }
+    ],
+    "forms": [
+      {
+        "label": "詳細・お申し込み",
+        "description": "東洋館出版社の商品ページからお申し込みください。",
+        "url": "https://www.toyokan.co.jp/products/9-19souzou_kokugo_syakai"
+      }
+    ],
+    "venue": {
+      "mapNote": "筑波大学附属小学校 3階・講堂（東京都文京区大塚3-29-1）",
+      "resourceLinks": []
+    }
+  },
+  "rooms": [],
+  "sessions": [
+    {
+      "id": "d1-01",
+      "dateId": "day1",
+      "start": "09:00",
+      "end": "",
+      "category": "受付",
+      "note": "受付開始",
+      "items": []
+    },
+    {
+      "id": "d1-02",
+      "dateId": "day1",
+      "start": "09:30",
+      "end": "10:00",
+      "category": "趣旨説明",
+      "items": [
+        {
+          "title": "趣旨説明",
+          "meta": [
+            "茅野政徳（創造国語代表・山梨大学教授）",
+            "由井薗健（創造社会代表・筑波大学附属小学校校長）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-03",
+      "dateId": "day1",
+      "start": "10:00",
+      "end": "11:10",
+      "category": "公開授業",
+      "items": [
+        {
+          "title": "創造国語 公開授業①「物語の結末を創造する」",
+          "meta": [
+            "教材「風切るつばさ」（東京書籍6年）",
+            "授業者：櫛谷孝徳（筑波大学附属小学校）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-04",
+      "dateId": "day1",
+      "start": "11:10",
+      "end": "12:00",
+      "category": "公開授業",
+      "items": [
+        {
+          "title": "創造社会 公開授業② 5年・社会「未来を支える食料生産」",
+          "meta": [
+            "授業者：鈴木遼輔（筑波大学附属小学校）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-05",
+      "dateId": "day1",
+      "start": "12:00",
+      "end": "12:45",
+      "category": "昼休憩",
+      "note": "昼食・休憩（45分）",
+      "items": []
+    },
+    {
+      "id": "d1-06",
+      "dateId": "day1",
+      "start": "12:45",
+      "end": "14:00",
+      "category": "協議会",
+      "items": [
+        {
+          "title": "国語・社会 合同協議会",
+          "meta": [
+            "授業者：櫛谷孝徳、鈴木遼輔",
+            "パネリスト（創造国語）：森壽彦（お茶の水女子大学附属小学校）、佐野裕基（神奈川県・平塚市立花水小学校）",
+            "パネリスト（創造社会）：木下智実（常葉大学講師）、三浦健太朗（青森県・八戸市立鮫小学校）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-07",
+      "dateId": "day1",
+      "start": "14:00",
+      "end": "15:10",
+      "category": "ワークショップ",
+      "note": "5本並行開催",
+      "items": [
+        {
+          "title": "①『子どもの「好き」が教材になる！ ー映像×文章で創る新しい国語ー』",
+          "meta": [
+            "創造国語",
+            "白川治（お茶の水女子大学附属小学校）"
+          ]
+        },
+        {
+          "title": "②『言葉の名探偵は、教室にいる ー「謎解き物語文」で変わる！国語の授業ー』",
+          "meta": [
+            "創造国語",
+            "麻生達也（神奈川県・秦野市立堀川小学校）"
+          ]
+        },
+        {
+          "title": "③『基礎なくして、学びの深まりなし ―教材研究・問い・教師の出に着目して―』",
+          "meta": [
+            "創造国語",
+            "曽根朋之（東京学芸大学附属竹早小学校）、佐藤綾花（東京都・渋谷区立神南小学校）"
+          ]
+        },
+        {
+          "title": "④『地域素材から社会認識を育む ―概念形成を支える生成AIの活用を通して―』",
+          "meta": [
+            "創造社会",
+            "山口小百合（鹿児島県・鹿児島市立小山田小学校）"
+          ]
+        },
+        {
+          "title": "⑤『子どもが「社会に一歩近づく」しかけと手立て作戦会議』",
+          "meta": [
+            "創造社会",
+            "清水紀昭（筑波大学附属小学校）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-08",
+      "dateId": "day1",
+      "start": "15:10",
+      "end": "16:20",
+      "category": "対談",
+      "items": [
+        {
+          "title": "対談「学びを創造する子どもを育む（仮）」",
+          "meta": [
+            "茅野政徳 × 由井薗健"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-09",
+      "dateId": "day1",
+      "start": "16:20",
+      "end": "16:30",
+      "category": "閉会",
+      "items": []
+    }
+  ],
+  "books": [
+    {
+      "title": "授業の見方　国語",
+      "author": "茅野 政徳・櫛谷 孝徳／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/6382_1.jpg?v=1770035053",
+      "description": "子どもの姿・教師の働きかけ・教材の扱い方をどう読み取るか。授業参観から協議会での言語化まで、46項目で国語の授業を見る視点を示す。",
+      "url": "https://www.toyokan.co.jp/products/6382"
+    },
+    {
+      "title": "はじめての国語",
+      "author": "茅野 政徳・櫛谷 孝徳／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5775_1.jpg?v=1738810443",
+      "description": "教科の特性、授業準備、指導技術、学習評価まで、国語授業の基礎・基本を6章でコンパクトに解説。",
+      "url": "https://www.toyokan.co.jp/products/5775"
+    },
+    {
+      "title": "小学校国語　読みのスイッチでつなぐ　教材研究と授業づくり　物語文編",
+      "author": "茅野 政徳・櫛谷 孝徳／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-683701.jpg",
+      "description": "令和6年版光村教科書の物語文教材28作品を「ユニット×スイッチ」で分析し、発問と子どもの反応例まで示す。",
+      "url": "https://www.toyokan.co.jp/products/5443"
+    },
+    {
+      "title": "小学校国語　読みのスイッチでつなぐ　教材研究と授業づくり　説明文編",
+      "author": "茅野 政徳・櫛谷 孝徳／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-778342.jpg?v=1709858031&width=1200",
+      "description": "令和6年版光村教科書の説明文教材を5つのユニットと28のスイッチで整理し、付けたい力を系統的に示す。",
+      "url": "https://www.toyokan.co.jp/products/5442"
+    },
+    {
+      "title": "「まったく書けない」子の苦手を克服！　教室で使えるカクトレ　学年区分別シリーズ",
+      "author": "曽根 朋之・茅野 政徳／監修、安藤 浩太・佐野 裕基／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-372994.jpg?v=1692938204",
+      "description": "子どものつまずきから作った「書くこと」のワークシート集。低・中・高学年別に、基礎スキルから説明文・意見文までを3段階で扱う。",
+      "url": "https://www.toyokan.co.jp/products/va4921"
+    },
+    {
+      "title": "小学校国語　教材研究ハンドブック",
+      "author": "茅野 政徳／編著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-595656.png?v=1692938600",
+      "description": "物語文35・説明文28の「スイッチ」で、どんな教材でも読めるようになる開かれた教材研究を提案。教科書会社4社の教材を例示。",
+      "url": "https://www.toyokan.co.jp/products/4763"
+    }
+  ]
+}
