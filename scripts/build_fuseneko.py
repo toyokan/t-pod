@@ -15,6 +15,14 @@ import re
 import sys
 from pathlib import Path
 
+
+# 呼び出し側の設定に依存せず、標準出力・標準エラーをUTF-8にする。
+# 日本語Windowsの既定はCP932で、-X utf8 を付け忘れると日本語が文字化けする。
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parent.parent
 GRID_JS = ROOT / "assets" / "fuseneko" / "fuseneko-grid.js"
 OUT_DIR = ROOT / "assets" / "fuseneko"

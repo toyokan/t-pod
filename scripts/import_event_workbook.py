@@ -32,12 +32,16 @@ try:  # Windows の cp932 端末でも UTF-8 で出力する
 except (AttributeError, ValueError):
     pass
 
+OPENPYXL_HINT = (
+    "openpyxl が必要です。python -m pip install -r requirements-tools.txt を実行してください。"
+)
+
+# import 時には落とさない。落とすとこのモジュールが読み込めなくなり、
+# openpyxl を使わないテストまで収集段階で巻き添えになる。案内は実際に使う時点で出す。
 try:
     from openpyxl import load_workbook
-except ImportError as exc:  # pragma: no cover - 利用環境向け案内
-    raise SystemExit(
-        "openpyxl が必要です。python -m pip install -r requirements-tools.txt を実行してください。"
-    ) from exc
+except ImportError:  # pragma: no cover - 利用環境向け案内
+    load_workbook = None
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -167,6 +171,8 @@ class EventWorkbook:
     """v2入力シートの読み取り・検証・変換を担当する。"""
 
     def __init__(self, path: Path) -> None:
+        if load_workbook is None:
+            raise SystemExit(OPENPYXL_HINT)
         self.path = path
         self.issues: list[Issue] = []
         self.workbook = load_workbook(path, data_only=True, read_only=True)
