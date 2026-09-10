@@ -92,6 +92,11 @@
       "mapNote": "八尾市立志紀小学校（〒581-0095 大阪府八尾市田井中3丁目101）。上履き・昼食をご持参ください。",
       "resourceLinks": [
         {
+          "label": "紀要PDF",
+          "description": "公開講座の紀要（ご挨拶・時程・提案授業の趣旨など）です。",
+          "url": "https://drive.google.com/file/d/1x6UQ5pcbfM55SehzGLmYYeGX7JSWk8sg/view?usp=sharing"
+        },
+        {
           "label": "マイアカウント",
           "description": "購入済みコンテンツ・注文履歴はこちらから確認できます。",
           "url": "https://www.toyokan.co.jp/account"
@@ -223,6 +228,15 @@
   ],
   "books": [
     {
+      "title": "算数授業研究 No.166　現場からひらく 次期学習指導要領を見据えた算数授業",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491064703_27788299-c8ea-4369-bcc2-891f5edec8cf.jpg?v=1788508388&width=1200",
+      "description": "次期学習指導要領を見据えた最新動向を、重要キーワード20から読み解く特集号。",
+      "url": "https://www.toyokan.co.jp/products/6470",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491064709"
+    },
+    {
       "title": "算数授業研究 No.165　その授業、どうやって思い浮かんだのか？",
       "author": "筑波大学附属小学校算数部／編",
       "publisher": "東洋館出版社",
@@ -277,13 +291,22 @@
       "amazon_url": "https://www.amazon.co.jp/dp/4491058547"
     },
     {
-      "title": "多様な子どもが共に学ぶ 学力差に寄り添う算数授業",
-      "author": "田中 英海／編著ほか",
+      "title": "子どもに委ねる算数授業　――子どもの学力差に応じるビルドアップ型授業の新展望",
+      "author": "大野 桂／著",
       "publisher": "東洋館出版社",
-      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491063540.09.LZZZZZZZ.jpg",
-      "description": "学力差を「個性」として活かす、クラス全員に正対した授業づくり。",
-      "url": "https://www.toyokan.co.jp/products/6354",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491063540"
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-795531.jpg?v=1692938517&width=1200",
+      "description": "子ども自身が学びのスタートラインを見いだし決める、子ども主体のビルドアップ型問題解決授業を提案。",
+      "url": "https://www.toyokan.co.jp/products/4823?variant=44731951153385",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491048231"
+    },
+    {
+      "title": "すべての子どもの学力に応じる ビルドアップ型算数授業",
+      "author": "大野 桂／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-937538.jpg?v=1692938207&width=1200",
+      "description": "学力差に左右されず全員の知識を積み上げる、新しい形の問題解決型「ビルドアップ型」算数授業を提案。",
+      "url": "https://www.toyokan.co.jp/products/3089",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491030898"
     },
     {
       "title": "割合の見方・考え方を働かせる算数授業",
@@ -307,7 +330,7 @@
       "title": "算数授業を左右する 教師の判断力",
       "author": "森本 隆史／編著、算数授業を子どもと創る研究会／著",
       "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-124019.png?v=1692938855&width=1200",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-329984.jpg?v=1692938855&width=1200",
       "description": "21の場面×３つの判断で、子どもの学びの質を上げる教師の判断の選択肢を示す実践的な事例集。",
       "url": "https://www.toyokan.co.jp/products/5084?variant=44731724660969",
       "amazon_url": "https://www.amazon.co.jp/dp/4491050848"
@@ -325,28 +348,10 @@
       "title": "算数授業を子どもと創る",
       "author": "森本 隆史／著",
       "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-910880.jpg?v=1692938856&width=1200",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-579291.jpg?v=1692938856&width=1200",
       "description": "教え込みから脱却し、言葉とかかわりを大切にしながら子どもと創る算数授業へ変える視点を紹介。",
       "url": "https://www.toyokan.co.jp/products/3729?variant=44664927387881",
       "amazon_url": "https://www.amazon.co.jp/dp/4491037299"
-    },
-    {
-      "title": "子どもに委ねる算数授業　――子どもの学力差に応じるビルドアップ型授業の新展望",
-      "author": "大野 桂／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-973231.jpg?v=1692938517&width=1200",
-      "description": "子ども自身が学びのスタートラインを見いだし決める、子ども主体のビルドアップ型問題解決授業を提案。",
-      "url": "https://www.toyokan.co.jp/products/4823?variant=44731951153385",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491048231"
-    },
-    {
-      "title": "すべての子どもの学力に応じる ビルドアップ型算数授業",
-      "author": "大野 桂／著",
-      "publisher": "東洋館出版社",
-      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-216850.jpg?v=1692938207&width=1200",
-      "description": "学力差に左右されず全員の知識を積み上げる、新しい形の問題解決型「ビルドアップ型」算数授業を提案。",
-      "url": "https://www.toyokan.co.jp/products/3089",
-      "amazon_url": "https://www.amazon.co.jp/dp/4491030898"
     },
     {
       "title": "教師が知っておきたい 学級づくりの技術と心",
@@ -365,6 +370,15 @@
       "description": "教師や子どもが変わった瞬間を42の実践やメッセージから紹介し、授業や学級経営に悩む先生の成長を後押しする一冊。",
       "url": "https://www.toyokan.co.jp/products/6329?variant=50566204457193",
       "amazon_url": "https://www.amazon.co.jp/dp/449106329X"
+    },
+    {
+      "title": "多様な子どもが共に学ぶ 学力差に寄り添う算数授業",
+      "author": "田中 英海／編著ほか",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491063540.09.LZZZZZZZ.jpg",
+      "description": "学力差を「個性」として活かす、クラス全員に正対した授業づくり。",
+      "url": "https://www.toyokan.co.jp/products/6354",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491063540"
     }
   ]
 }
