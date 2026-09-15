@@ -1817,6 +1817,21 @@
             html += `</div>`;
           });
           if (manyItems) html += `</div>`;
+          const sessionLinks = (s.links || []).filter((l) => l && l.url);
+          if (sessionLinks.length) {
+            html += `<div class="session-links mt-3 space-y-2 hidden">`;
+            sessionLinks.forEach((l) => {
+              html +=
+                `<a href="${escapeHtml(safeUrl(l.url))}" target="_blank" rel="noopener" class="flex items-center gap-2.5 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2.5 hover:border-brand-300 transition">` +
+                `<span class="flex-shrink-0 text-brand-600">${icon("file", "w-4 h-4")}</span>` +
+                `<span class="min-w-0 flex-1">` +
+                `<span class="block text-[12.5px] font-bold text-brand-800">${escapeHtml(l.label || "")}</span>` +
+                (l.description ? `<span class="block text-[10.5px] text-brand-700/80 mt-0.5 leading-relaxed">${escapeHtml(l.description)}</span>` : "") +
+                `</span>` +
+                `</a>`;
+            });
+            html += `</div>`;
+          }
           card.innerHTML = html;
           row.appendChild(card);
           if (s.afterNote) {
@@ -1847,6 +1862,19 @@
       return idx;
     }
 
+    // セッション内リンクの解禁判定：その日が既に過ぎているか、当日で開始時刻を過ぎていれば表示。
+    // 一度解禁したら（セッション終了後も）隠さない——資料は後から見返す用途があるため。
+    function sessionLinksRevealed(s, dayObj) {
+      if (!dayObj || !dayObj.date) return false;
+      const today = localDateStr();
+      if (dayObj.date < today) return true;
+      if (dayObj.date > today) return false;
+      const stMin = toMin(s.start);
+      if (stMin === null) return false;
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes() >= stMin;
+    }
+
     // 「現在」ハイライト：進行中カードに枠＋進行中バッジ＋経過バー＋残り時間（再描画なし）
     function updateNowMarker(allowScroll) {
       if (!currentRows.length) return;
@@ -1873,6 +1901,8 @@
         if (!card) return;
         const badge = card.querySelector(".now-badge");
         const isCard = card.classList.contains("bg-white");
+        const linksBlock = card.querySelector(".session-links");
+        if (linksBlock) linksBlock.classList.toggle("hidden", !sessionLinksRevealed(currentSessions[i], currentDayObj));
         const on = i === idx;
         if (on) {
           const s = currentSessions[i];
