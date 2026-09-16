@@ -5,3 +5,9 @@ __pycache__/
 # （担当者名・社内メールアドレス・共有リンクが入りうるため。正本は events/<id>.json）
 outputs/
 tmp/
+
+# ローカル開発環境（requirements-tools.txt 用の仮想環境とテスト一時領域）
+.venv/
+.test-tmp/
+.pytest_cache/
+__pycache__/
