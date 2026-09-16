@@ -1205,3 +1205,19 @@ localStorage の追加は不要だった。造形定義（`assets/fuseneko/fusen
 - `index.html` / `sw.js` は今回のセッションリンク機能の変更のみで、並行タスクとの重複・競合なし。
 
 **確認したこと**: `python scripts/validate_events.py` → 6イベント／エラー0／警告0。ローカル `main` と `origin/main` の乖離なし（push不要）。
+
+### 2026-09-16 — 創造国語×創造社会セミナーに会場図（SVG）を追加
+
+対象: `events/2026-souzou-kokugo-shakai-1.json`（`scripts/find_event.py "創造国語"` で id・title・dateRange（2026年9月19日）を確認済み、現行イベント）。
+
+ユーザーから渡されたVisio書き出しのSVG（`縦書き・横書き崩れに注意`という指示付き）を会場図として追加した。
+
+- `assets/venue-map-2026-souzou-kokugo-shakai-1.svg` として保存（イベント別命名規則どおり）。既存の `assets/venue-map-<id>.svg` 運用と同じ。
+- `eventInfo.venue.mapImage` に相対パスを設定。
+- ローカルサーバー＋ブラウザプレビューで会場マップタブの表示を確認。縦書きテキスト（`writing-mode="tb-rl"` の「（３階南）」「（２階南）」「（１階南）」）が崩れずに縦のまま表示されることを確認した。
+
+コミット後 `git push origin main` が `fetch first` で拒否された。同時刻に別のコミット（`2f95c34` Update venue information for multiple sessions (#88)、ワークショップ会場のmeta文言を「２階・２部５年」のように階数付きへ修正）が同じJSONファイルの**別セクション**（ワークショップの `items[].meta`）に入っていたため、`git fetch` → `git merge origin/main` で自動マージ（衝突なし）し、`mapImage` の追加とワークショップ会場文言の階数付与の両方が反映されていることを確認してから再度 `git push origin main` した。
+
+リモートに存在した未マージブランチ `napple02-patch-1`（#88のもと）と `claude/creative-language-society-fix-rsk5vu`（進行記録コミットのみ）は、差分を確認したところどちらも内容がすでに main に取り込み済みで、追加でマージすべき変更は無かった（オープンPRも0件）。
+
+**確認したこと**: `python -m json.tool` でJSON構文チェック、`python scripts/validate_events.py` → 6イベント／エラー0／警告0。ブラウザプレビューで会場図表示を目視確認。`git push origin main` 成功（`2f95c34..7fbd7c4`）。
