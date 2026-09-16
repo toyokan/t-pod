@@ -89,7 +89,7 @@ GitHub **Settings → Pages → Source: `main` / `/ (root)`** → `https://<user
 - 終了後もページは削除せず公開維持（旧チラシ QR のため）。
 - **終了判定は日付から自動**（手動フラグ不要）: **最終開催日 + 7 日 < 今日** で「終了済み」。最終開催日 = 個別 JSON `eventInfo.dates[]` の最終 `date`（無ければ `events.json` の `sortDate`）。例: 最終日 7/19 → 7/26 まで現行、7/27 以降が終了。
 - **終了済みの `events/<id>.json` は原則更新・複製しない**。編集・生成対象は上記判定で現行イベントに限定し、「似た名称・同じ会の別回」との取り違えを避ける。
-- 特殊ケースのみ個別 JSON ルート直下 `"_status": "ended"`/`"active"` で手動固定（日付判定より優先。UI 未使用）。
+- 特殊ケースのみ個別 JSON ルート直下 `"_status": "ended"`/`"active"` で手動固定（日付判定より優先。`scripts/find_event.py` と UI のマスコット場面判定が参照）。
 
 ## 禁止 / 注意事項
 - **過去の `events/<id>.json` と `events.json` の索引を削除しない**（旧チラシのQRリンクと開発者向けURL台帳を維持する）。

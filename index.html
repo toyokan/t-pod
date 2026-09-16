@@ -203,7 +203,7 @@
         color-mix(in srgb, var(--brand) 78%, white) 0%,
         var(--brand) 58%,
         color-mix(in srgb, var(--brand) 86%, black) 100%);
-      color: #fff;
+      color: var(--brand-fg);
       box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--brand) 65%, black), inset 0 1px rgba(255,255,255,.28);
       transition: box-shadow .2s ease;
     }
@@ -240,9 +240,9 @@
     #appHeader.is-scrolling .deco-right-sm { will-change: transform; }
     #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 1px 4px color-mix(in srgb, var(--brand) 45%, transparent); }
     #themeBanner { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px rgba(255,255,255,.12); }
-    .brand-bg { background: var(--brand); color: #fff; }
-    .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
-    .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
+    .brand-bg { background: var(--brand); color: var(--brand-fg); }
+    .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: var(--brand-fg); }
+    .grad-pill { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); color: var(--brand-fg); }
     .dot-grad { background-image: linear-gradient(135deg, var(--brand), var(--brand-2)); }
     /* ===== ボトムナビのガラス（iOS 26 Liquid Glass 風）=====
        画面下端に貼らず、左右に余白を取ったカプセルとして「浮かせる」。本文はバーの下を流れる。
@@ -678,7 +678,7 @@
         </button>
       </div>
       <div id="themeBanner" class="hidden mt-3 bg-white/20 rounded-2xl px-4 py-2 text-xs font-bold leading-relaxed">
-        <span class="inline-block align-middle text-[10px] font-black tracking-widest mr-2 bg-white rounded-full px-2 py-0.5" style="color:var(--brand-2)">テーマ</span><span id="themeText" class="inline-block align-middle"></span>
+        <span class="inline-block align-middle text-[10px] font-black tracking-widest mr-2 bg-white rounded-full px-2 py-0.5" style="color:color-mix(in srgb, var(--brand) 48%, black)">テーマ</span><span id="themeText" class="inline-block align-middle"></span>
       </div>
     </div>
   </header>
@@ -726,8 +726,8 @@
     <div id="errorBox" role="alert" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
       <p>データの読み込みに失敗しました。通信環境をご確認のうえ、再試行してください。</p>
       <div class="mt-2 flex items-center gap-4">
-        <button type="button" id="errorRetry" class="text-brand-600 font-medium underline">再試行</button>
-        <a href="./" class="text-brand-600 font-medium underline">案内ページへ戻る</a>
+        <button type="button" id="errorRetry" class="text-brand-800 font-medium underline">再試行</button>
+        <a href="./" class="text-brand-800 font-medium underline">案内ページへ戻る</a>
       </div>
     </div>
 
@@ -1767,12 +1767,16 @@
         row.appendChild(el("span", `now-dot absolute -left-[18px] ${admin ? "top-3" : "top-3.5"} w-3 h-3 rounded-full ring-4 ring-slate-50 ${dot}`, ""));
 
         if (admin) {
-          // 運営系（受付・昼食など）：時刻＋名称のコンパクト行
+          // 運営系（受付・昼食など）：時刻＋名称のコンパクト行。
+          // note が無くても items[].title は入力されていることがあるので補足として拾う——
+          // 拾わないと入力済みの「閉会のあいさつ」等が黙って表示から消える。
+          const adminNote = s.note
+            || (s.items || []).map((it) => (it && it.title) || "").filter(Boolean).join("／");
           const bar = el("div", "session-card bg-slate-200/60 rounded-full px-4 py-2 flex items-center gap-2.5");
           bar.innerHTML =
             `<span class="text-[13.5px] font-extrabold tabular-nums text-slate-500">${escapeHtml(s.start || "")}</span>` +
             `<span class="text-[12.5px] font-bold text-slate-500">${escapeHtml(s.category || "")}</span>` +
-            (s.note ? `<span class="text-[11px] text-slate-400 truncate">${escapeHtml(s.note)}</span>` : "");
+            (adminNote ? `<span class="text-[11px] text-slate-400 truncate">${escapeHtml(adminNote)}</span>` : "");
           row.appendChild(bar);
         } else {
           // 内容カード
@@ -1823,10 +1827,10 @@
             sessionLinks.forEach((l) => {
               html +=
                 `<a href="${escapeHtml(safeUrl(l.url))}" target="_blank" rel="noopener" class="flex items-center gap-2.5 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2.5 hover:border-brand-300 transition">` +
-                `<span class="flex-shrink-0 text-brand-600">${icon("file", "w-4 h-4")}</span>` +
+                `<span class="flex-shrink-0 text-brand-700">${icon("file", "w-4 h-4")}</span>` +
                 `<span class="min-w-0 flex-1">` +
                 `<span class="block text-[12.5px] font-bold text-brand-800">${escapeHtml(l.label || "")}</span>` +
-                (l.description ? `<span class="block text-[10.5px] text-brand-700/80 mt-0.5 leading-relaxed">${escapeHtml(l.description)}</span>` : "") +
+                (l.description ? `<span class="block text-[10.5px] text-brand-800 mt-0.5 leading-relaxed">${escapeHtml(l.description)}</span>` : "") +
                 `</span>` +
                 `</a>`;
             });
@@ -1939,7 +1943,7 @@
             } else {
             const html =
               `<div class="now-badge">` +
-              `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-700 mb-1">` +
+              `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-800 mb-1">` +
               `<span class="w-2 h-2 rounded-full bg-brand-500"></span>進行中` +
               `<span class="now-remain">${remain !== null ? ` · あと${remain}分` : ""}</span></div>` +
               `<div class="now-round inline-flex items-center text-[11px] font-black text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-2.5 py-0.5 mb-1.5${roundLabel ? "" : " hidden"}">${roundLabel ? `ただいま ${escapeHtml(roundLabel)}` : ""}</div>` +
@@ -2574,7 +2578,7 @@
       a.target = "_blank";
       a.rel = "noopener";
       a.innerHTML =
-        `<span class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">${icon(iconName)}</span>` +
+        `<span class="flex-shrink-0 w-10 h-10 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center">${icon(iconName)}</span>` +
         `<span class="flex-1 min-w-0">` +
         `<span class="block text-[14.5px] font-bold text-slate-800">${escapeHtml(item.label)}</span>` +
         (item.description ? `<span class="block text-xs text-slate-500 mt-0.5">${escapeHtml(item.description)}</span>` : "") +
@@ -2659,13 +2663,13 @@
       card.target = "_blank";
       card.rel = "noopener";
       card.innerHTML =
-        `<div class="w-11 h-11 flex-shrink-0 rounded-xl bg-white text-brand-600 flex items-center justify-center shadow-sm">${icon("store", "w-6 h-6")}</div>` +
+        `<div class="w-11 h-11 flex-shrink-0 rounded-xl bg-white text-brand-700 flex items-center justify-center shadow-sm">${icon("store", "w-6 h-6")}</div>` +
         `<div class="min-w-0 flex-1">` +
-        `<div class="inline-block text-[10px] font-bold tracking-wide bg-white text-brand-600 rounded-full px-2 py-0.5 mb-1">SALE</div>` +
-        `<div class="text-sm font-bold text-white leading-snug">${escapeHtml(label)}</div>` +
-        (note ? `<div class="text-xs text-white mt-0.5">${escapeHtml(note)}</div>` : "") +
+        `<div class="inline-block text-[10px] font-bold tracking-wide bg-white text-brand-800 rounded-full px-2 py-0.5 mb-1">SALE</div>` +
+        `<div class="text-sm font-bold leading-snug">${escapeHtml(label)}</div>` +
+        (note ? `<div class="text-xs mt-0.5">${escapeHtml(note)}</div>` : "") +
         `</div>` +
-        `<span class="flex-shrink-0 text-white">${icon("chevron", "w-5 h-5")}</span>`;
+        `<span class="flex-shrink-0">${icon("chevron", "w-5 h-5")}</span>`;
       box.appendChild(card);
     }
 
@@ -2727,7 +2731,7 @@
       if (desc) body.push(`<p class="text-xs text-slate-600 leading-relaxed mt-3">${escapeHtml(desc)}</p>`);
       if (url) {
         body.push(
-          `<a href="${escapeHtml(safeUrl(url))}" target="_blank" rel="noopener" class="grad-pill mt-4 inline-flex items-center justify-center gap-1.5 w-full text-white text-sm font-bold rounded-full px-4 py-2.5 shadow-fab active:scale-[0.99] transition">` +
+          `<a href="${escapeHtml(safeUrl(url))}" target="_blank" rel="noopener" class="grad-pill mt-4 inline-flex items-center justify-center gap-1.5 w-full text-sm font-bold rounded-full px-4 py-2.5 shadow-fab active:scale-[0.99] transition">` +
             `<span>${escapeHtml(linkLabel)}</span>${icon("chevron", "w-4 h-4")}` +
           `</a>`
         );
@@ -2783,7 +2787,7 @@
         const names = [].concat(info[key] || []).filter((n) => String(n || "").trim());
         if (!names.length) return "";
         return `<div class="flex items-start gap-1.5 text-xs text-slate-600 mt-1">` +
-          `${icon("users", "w-4 h-4 mt-0.5 flex-shrink-0 text-brand-500")}` +
+          `${icon("users", "w-4 h-4 mt-0.5 flex-shrink-0 text-brand-700")}` +
           `<span>${label}：${escapeHtml(names.join("／"))}</span></div>`;
       }).join("");
     }
@@ -2795,10 +2799,10 @@
       body +=
         `<div class="bg-brand-50 border border-brand-100 rounded-xl p-4">` +
         `<div class="text-base font-bold text-brand-800 leading-snug">${escapeHtml(info.title || "")}</div>` +
-        (info.tagline ? `<div class="text-xs text-brand-600 mt-0.5">${escapeHtml(info.tagline)}</div>` : "") +
-        (info.theme ? `<div class="text-sm text-brand-700 mt-2 font-medium">テーマ：${escapeHtml(info.theme)}</div>` : "") +
-        (info.dateRange ? `<div class="flex items-center gap-1.5 text-xs text-slate-600 mt-2.5">${icon("calendar", "w-4 h-4 text-brand-500")}<span>${escapeHtml(info.dateRange)}</span></div>` : "") +
-        (info.venueName ? `<div class="flex items-center gap-1.5 text-xs text-slate-600 mt-1">${icon("mapPin", "w-4 h-4 text-brand-500")}<span>${escapeHtml(info.venueName)}</span></div>` : "") +
+        (info.tagline ? `<div class="text-xs text-brand-800 mt-0.5">${escapeHtml(info.tagline)}</div>` : "") +
+        (info.theme ? `<div class="text-sm text-brand-800 mt-2 font-medium">テーマ：${escapeHtml(info.theme)}</div>` : "") +
+        (info.dateRange ? `<div class="flex items-center gap-1.5 text-xs text-slate-600 mt-2.5">${icon("calendar", "w-4 h-4 text-brand-700")}<span>${escapeHtml(info.dateRange)}</span></div>` : "") +
+        (info.venueName ? `<div class="flex items-center gap-1.5 text-xs text-slate-600 mt-1">${icon("mapPin", "w-4 h-4 text-brand-700")}<span>${escapeHtml(info.venueName)}</span></div>` : "") +
         orgRows(info) +
         `</div>`;
       if (!notices.length) body += `<p class="text-sm text-slate-500">現在お知らせはありません。</p>`;
@@ -3179,7 +3183,7 @@
     function helpSteps(items) {
       return `<ol class="space-y-2.5">`
         + items.map(([name, text]) =>
-            `<li class="flex items-center gap-2.5">${icon(name, "w-5 h-5 text-brand-600 flex-shrink-0")}`
+            `<li class="flex items-center gap-2.5">${icon(name, "w-5 h-5 text-brand-700 flex-shrink-0")}`
             + `<span>${escapeHtml(text)}</span></li>`).join("")
         + `</ol>`;
     }

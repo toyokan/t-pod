@@ -47,21 +47,45 @@ def normalize(value: Any) -> str:
     return unicodedata.normalize("NFKC", value).lower().replace(" ", "").replace("　", "")
 
 
-def last_event_date(entry: dict[str, Any]) -> date | None:
-    """イベントの最終開催日を返す（個別JSONの dates 優先、無ければ sortDate）。"""
+_EVENT_CACHE: dict[str, dict[str, Any]] = {}
+
+
+def load_event(entry: dict[str, Any]) -> dict[str, Any]:
+    """個別イベントJSONを読む（読めなければ空）。同じidは読み直さない。"""
     event_id = str(entry.get("id", ""))
+    if event_id in _EVENT_CACHE:
+        return _EVENT_CACHE[event_id]
+    data: dict[str, Any] = {}
     path = EVENTS_DIR / f"{event_id}.json"
-    dates: list[date] = []
     if path.is_file():
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-            for item in data.get("eventInfo", {}).get("dates", []) or []:
-                try:
-                    dates.append(date.fromisoformat(str(item.get("date", ""))))
-                except ValueError:
-                    continue
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                data = loaded
         except (json.JSONDecodeError, OSError):
             pass
+    _EVENT_CACHE[event_id] = data
+    return data
+
+
+def manual_status(entry: dict[str, Any]) -> str:
+    """個別JSONルートの _status（手動固定）を返す。無ければ空文字。
+
+    中止・延期・恒久保留などの特殊ケース用で、日付判定より優先する
+    （index.html のマスコット場面判定と同じ規則）。
+    """
+    value = load_event(entry).get("_status")
+    return value if value in ("ended", "active") else ""
+
+
+def last_event_date(entry: dict[str, Any]) -> date | None:
+    """イベントの最終開催日を返す（個別JSONの dates 優先、無ければ sortDate）。"""
+    dates: list[date] = []
+    for item in load_event(entry).get("eventInfo", {}).get("dates", []) or []:
+        try:
+            dates.append(date.fromisoformat(str(item.get("date", ""))))
+        except (ValueError, TypeError, AttributeError):
+            continue
     if dates:
         return max(dates)
     try:
@@ -79,7 +103,10 @@ def start_event_date(entry: dict[str, Any]) -> date | None:
 
 
 def is_ended(entry: dict[str, Any], today: date) -> bool:
-    """最終開催日＋7日を過ぎていれば終了済みとみなす。"""
+    """最終開催日＋7日を過ぎていれば終了済みとみなす（_status があればそちらが優先）。"""
+    status = manual_status(entry)
+    if status:
+        return status == "ended"
     last = last_event_date(entry)
     if last is None:
         return False
@@ -88,6 +115,11 @@ def is_ended(entry: dict[str, Any], today: date) -> bool:
 
 def status_label(entry: dict[str, Any], today: date) -> str:
     """終了済／開催中／今後 のラベルを返す。"""
+    status = manual_status(entry)
+    if status == "ended":
+        return "終了済(手動固定)"
+    if status == "active":
+        return "現行(手動固定)"
     start = start_event_date(entry)
     last = last_event_date(entry)
     if last is not None and last + timedelta(days=ENDED_GRACE_DAYS) < today:

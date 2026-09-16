@@ -35,6 +35,7 @@ HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 TIME_RE = re.compile(r"^(?:[01]?\d|2[0-3]):[0-5]\d$")
 ROOM_COLORS = {"blue", "blueDeep", "green", "greenDeep", "orange", "orangeDeep", "purple", "purpleDeep", "yellow", "yellowDeep"}
 NOTICE_LEVELS = {"important", "info"}
+WEEKDAYS = ("月", "火", "水", "木", "金", "土", "日")
 PLACEHOLDER_MARKERS = ("example", "xxxx", "your-", "<id>")
 
 
@@ -80,6 +81,17 @@ class Validator:
             self.warn(location, "仮URLらしい文字列が残っています")
 
 
+def to_minutes(value: Any) -> int | None:
+    """"H:MM" を 0 時からの分に直す。形式が違えば None。"""
+    if not isinstance(value, str):
+        return None
+    m = TIME_RE.fullmatch(value.strip())
+    if not m:
+        return None
+    hour, minute = value.strip().split(":")
+    return int(hour) * 60 + int(minute)
+
+
 def normalize_display_text(value: Any) -> str:
     """全角半角と空白だけの表記差を比較用に吸収する。"""
     if not isinstance(value, str):
@@ -117,6 +129,10 @@ def validate_event_data(
             f"ファイル名／events.json の id と一致しません（別イベント・別年度の取り違えの可能性）。"
             f"{event_id!r} を指定してください（現在: {self_id!r}）",
         )
+
+    # 終了判定の手動固定。綴り違い（"end" など）は黙って無視されてしまうので弾く
+    if "_status" in data and data["_status"] not in ("ended", "active"):
+        validator.error(f"{base}._status", 'ended または active を指定してください（不要なら項目ごと削除）')
 
     info = data.get("eventInfo")
     if not isinstance(info, dict):
@@ -163,7 +179,16 @@ def validate_event_data(
             date.fromisoformat(raw_date)
         except ValueError:
             validator.error(f"{loc}.date", "YYYY-MM-DDの実在日付が必要です")
-        validator.require_str(item, "weekday", loc)
+        weekday = validator.require_str(item, "weekday", loc)
+        # 曜日は手入力なので、日付から求めた実際の曜日と突き合わせる
+        # （チラシ・告知と食い違うと当日の来場判断に直接響く）
+        if weekday:
+            try:
+                actual = WEEKDAYS[date.fromisoformat(raw_date).weekday()]
+            except ValueError:
+                actual = ""
+            if actual and weekday != actual:
+                validator.error(f"{loc}.weekday", f"{raw_date} の曜日は {actual} です（現在: {weekday}）")
         validator.require_str(item, "time", loc)
 
     rooms = data.get("rooms", [])
@@ -192,6 +217,7 @@ def validate_event_data(
         validator.error(f"{base}.sessions", "1件以上の配列が必要です")
         sessions = []
     session_ids: set[str] = set()
+    day_starts: dict[str, list[tuple[int, str, int]]] = {}
     for i, session in enumerate(sessions):
         loc = f"{base}.sessions[{i}]"
         if not isinstance(session, dict):
@@ -211,6 +237,15 @@ def validate_event_data(
                 validator.error(f"{loc}.{time_key}", "文字列が必要です")
             elif raw_time and not TIME_RE.fullmatch(raw_time):
                 validator.error(f"{loc}.{time_key}", "H:MM または HH:MM で指定してください")
+        start_min = to_minutes(session.get("start"))
+        end_min = to_minutes(session.get("end"))
+        if start_min is not None and end_min is not None and end_min < start_min:
+            validator.error(f"{loc}.end", "終了時刻が開始時刻より前です")
+        if date_id and start_min is not None:
+            day_starts.setdefault(date_id, []).append((i, session_id, start_min))
+        # セッション内リンク（時刻で解禁される配布資料）。UI から開けるので URL 形式まで確かめる
+        if "links" in session:
+            validate_links(session["links"], f"{loc}.links", validator)
         if "afterNote" in session and not isinstance(session["afterNote"], str):
             validator.error(f"{loc}.afterNote", "文字列が必要です")
         items = session.get("items")
@@ -235,6 +270,15 @@ def validate_event_data(
                 validator.error(f"{item_loc}.meta", "空でない文字列の配列が必要です")
             if "subtle" in item and not isinstance(item["subtle"], bool):
                 validator.error(f"{item_loc}.subtle", "true / false の真偽値が必要です")
+
+    # タイムテーブルは配列の順にそのまま描画されるので、開始時刻が前後していると表示が逆転する
+    for day_id, entries in day_starts.items():
+        for (_, prev_id, prev_min), (idx, cur_id, cur_min) in zip(entries, entries[1:]):
+            if cur_min < prev_min:
+                validator.warn(
+                    f"{base}.sessions[{idx}]",
+                    f"開始時刻が前のセッションより早いため表示順が逆転します（{prev_id} → {cur_id}）",
+                )
 
     notices = info.get("notices", [])
     if not isinstance(notices, list):

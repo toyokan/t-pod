@@ -53,6 +53,10 @@ class EventWorkbookTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
+            # 検証スクリプトは UTF-8 で出力する（Windows の既定 cp932 で読むと
+            # 日本語のメッセージで UnicodeDecodeError になり、stdout が None になる）
+            encoding="utf-8",
+            errors="replace",
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

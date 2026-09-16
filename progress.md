@@ -1221,3 +1221,85 @@ localStorage の追加は不要だった。造形定義（`assets/fuseneko/fusen
 リモートに存在した未マージブランチ `napple02-patch-1`（#88のもと）と `claude/creative-language-society-fix-rsk5vu`（進行記録コミットのみ）は、差分を確認したところどちらも内容がすでに main に取り込み済みで、追加でマージすべき変更は無かった（オープンPRも0件）。
 
 **確認したこと**: `python -m json.tool` でJSON構文チェック、`python scripts/validate_events.py` → 6イベント／エラー0／警告0。ブラウザプレビューで会場図表示を目視確認。`git push origin main` 成功（`2f95c34..7fbd7c4`）。
+
+### 2026-09-16 — 創造国語×創造社会セミナーの公開前点検とコントラスト不整合の修正
+
+対象: `events/2026-souzou-kokugo-shakai-1.json`（`scripts/find_event.py "創造国語"` で確認。9/19 開催の現行イベント）と汎用シェル全体。
+
+#### ブランド面の文字色（実害のあったバグ）
+
+`#appHeader` が `color: #fff` を直書きしており、`<header>` に付けてある `text-brand-fg`（クラス＝詳細度 0,1,0）に
+ID セレクタ（1,0,0）が勝って**常に白文字**になっていた。このイベントの `brandColor` は明るい黄（`#FACD4B`）なので、
+見出しの実測コントラストは **1.51:1**（WCAG AA は 4.5:1、大きな文字でも 3:1）。`.brand-bg` / `.brand-card` / `.grad-pill`
+も同じく白固定だったため、「追加」ボタン・「いまの予定へ」・進行中チップが同じ状態だった。
+輝度から文字色を選ぶ `updateBrandFg()` は以前から `--brand-fg` を正しく計算していたので、**参照させるだけで直る**。
+
+- `#appHeader` / `.brand-bg` / `.brand-card` / `.grad-pill` の `color: #fff` → `var(--brand-fg)`。
+  濃いブランド色のイベント（teal・navy・sky・purple）は `--brand-fg` が白のままなので**見た目は変わらない**。
+- `.brand-card` / `.grad-pill` の中で `text-white` を直書きしていた箇所（特設販売カード・次回案内の CTA）を外し、面の文字色に従わせた。
+- 淡地の上の**文字**は 48%（`text-brand-800`）へ統一（再試行リンク・進行中ラベル・テーマ行・SALE ピル・tagline）。
+  ヘッダーの「テーマ」ピルは白地に `--brand-2`（68%）で **3.26:1** だったので 48% に変更（実測 5.88:1）。
+- **アイコン**（非テキスト＝3:1 でよい）は 82%（`text-brand-600`）だと黄で 2.5:1 まで落ちるため 62%（`text-brand-700`、実測 3.84:1）へ。
+- `text-brand-700/80` は Tailwind が `color-mix()` にアルファを付けられず**ルールが生成されていなかった**（無指定と同じ）。`text-brand-800` に置換。
+- シェル変更のため `CACHE_VERSION` を v119→v120。
+
+実測はブラウザの canvas に実際に描いて RGB を取る方法（CLAUDE.md の手順）で確認した。ヘッダー見出しは 1.51:1 → **9.68:1**。
+
+#### 検証の穴を塞ぐ
+
+- `scripts/validate_events.py` に 4 つの検査を追加した。いずれも既存 6 イベントは素通り（エラー 0／警告 0）。
+  - `dates[].weekday` を日付の実曜日と突き合わせる（ERROR）。チラシとの食い違いは来場判断に直結する。
+  - `sessions[].end` が `start` より前なら ERROR。
+  - `sessions[].links`（時刻で解禁される配布資料）を `validate_links` に通す。**追加時に検証が漏れていた**——
+    `javascript:` の URL でも通ってしまう状態だった（描画側の `safeUrl()` が防ぐので実害は無かった）。
+  - 同じ日の中で開始時刻が逆転していたら WARN（タイムテーブルは配列順にそのまま描くため）。
+- `tests/test_event_tools.py` の `subprocess.run` が Windows の既定 cp932 で UTF-8 出力を読もうとして
+  `UnicodeDecodeError` になり、テストがエラーになっていた（`encoding="utf-8"` を明示）。
+- `tests/test_shell_source.py` に回帰テストを 2 本追加。
+  - `RUNTIME_CACHE` の名前が `index.html` と `sw.js` で一致すること（ビルド工程が無く定数が 2 箇所にあるため）。
+  - ブランド面（`#appHeader` / `.brand-bg` / `.brand-card` / `.grad-pill`）に白文字を直書きしていないこと。
+
+**確認したこと**: `python -m unittest discover -s tests` → 15 件すべて成功。`python scripts/validate_events.py` → 6イベント／エラー0／警告0。
+ローカルサーバー＋ブラウザで、イベントページ（PC 幅・スマホ幅 375px）・資料タブ（会場図）・書籍タブ・お知らせモーダル・
+一覧ページ・`?id=does-not-exist` のエラー画面を目視確認。`Date` を差し替えて 9/19 当日の進行中ハイライトと
+資料リンクの解禁（15:10 以降）、マスコットの全 mood を確認した。コンソールエラーなし。
+
+#### タイムテーブルの文言（ユーザー確認のうえ反映）
+
+- 公開授業①の教材表記を「（東京書籍5年）」→「**（東京書籍6年）**」へ。「風切るつばさ」は東京書籍6年の教材
+  （みんなの教育技術・明治図書とも「東京書籍／6年」）で、9/16 の修正(#86)で授業学年に引きずられて5年になっていた。
+  授業タイトルの「5年・国語」はそのまま（5年児童に6年教材で行う公開授業）。
+- 以下は確認のうえ**現状維持**とした: 資料ダウンロードリンクの 15:10 解禁（対談セッションに紐づけたまま）、
+  対談タイトルの「（仮）」、BOOKS の関連書籍（国語6点のみ）。
+
+#### 追加の整備（2回目）
+
+- **`outputs/` を追跡対象から外す方針にした**。受領したワークブック 2 件が公開リポジトリにコミットされており、
+  1 件には社内メールアドレスと Canva の編集用 URL が含まれていた（メール自体は `events/2026-sanjuken-osaka.json` の
+  問い合わせ先として公開済みの値と同じ）。`.gitignore` に `outputs/` と `tmp/` を追加。
+  **追跡解除（`git rm --cached -r outputs`）は権限で止められたため未実施**——実行しないと .gitignore だけでは追跡が続く。
+  なお削除コミットを積んでも**過去の履歴からは消えない**ので、履歴除去まで行うかは要判断（force push を伴う）。
+- `scripts/find_event.py` が `_status`（終了判定の手動固定）を見ていなかった。README・CLAUDE.md・AGENTS.md・
+  requirements.md では「日付判定より優先」と定めているのに、イベント特定ツールだけ日付でしか判断していなかったので実装した
+  （`終了済(手動固定)` / `現行(手動固定)` と表示する）。個別 JSON は 1 回だけ読んでキャッシュする。
+- `scripts/validate_events.py` に `_status` の値検査を追加（`"end"` のような綴り違いは黙って無視されてしまうため）。
+- ドキュメント 4 箇所の「`_status` は UI 未使用」という記述を実態に合わせた（`mascotState()` の終了判定で使っている）。
+- 運営系カテゴリ（受付・休憩・閉会など）のコンパクト行が `note` しか出さず、**入力済みの `items[].title` が黙って消えていた**。
+  このイベントの `d1-09`「閉会」に入っている「閉会のあいさつ」が該当。`note` が無いときは items のタイトルを拾うようにした。
+
+**確認したこと**: `python -m unittest discover -s tests` → 15 件成功。`python scripts/validate_events.py` → エラー0／警告0。
+`python scripts/build_fuseneko.py --check` → 6 件一致。`python scripts/find_event.py "創造国語" / --upcoming` の表示、
+`_status` を差し替えたときの判定（ended/active の両方）を確認。ブラウザでタイムテーブル全行の描画（「16:20 閉会 閉会のあいさつ」を含む）を確認。
+
+#### 引き継ぎ（このセッションで閉じていない事項）
+
+1. **`git rm --cached -r outputs` が未実行**。`.gitignore` に `outputs/` を足しただけでは既に追跡済みのファイルは外れない。
+   権限で止められたため実行していない。実行してもコミット履歴からは消えないので、履歴除去まで行うかは別途判断が必要
+   （force push を伴う。中身は社内メールアドレスと Canva の編集用 URL で、メール自体は
+   `events/2026-sanjuken-osaka.json` の問い合わせ先として公開済みの値と同じ）。
+2. **`updateBrandFg()` の輝度閾値 0.55 の見直しは保留**（ユーザー判断）。amber `#f59e0b` などは白文字が 2.15:1 のままだが、
+   コントラスト最大で選ぶ方式に変えると既存イベントのヘッダーが一斉に白→濃色へ変わるため今回は触らない。
+   直す場合は `index.html` の `updateBrandFg()` / `buildAppIconSvg()` と `scripts/import_event_workbook.py` の 3 箇所を揃える。
+3. **未コミット**。この 2 回分の変更（13 ファイル）はすべて作業ツリーに置いたまま。差分を確認のうえコミットすること。
+4. 創造国語×創造社会セミナーの文言は、教材表記のみ修正。資料リンクの 15:10 解禁・対談の「（仮）」・関連書籍の構成は
+   ユーザー確認のうえ現状維持とした。
