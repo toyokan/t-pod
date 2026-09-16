@@ -98,8 +98,8 @@
       "dateId": "day1",
       "start": "09:00",
       "end": "",
-      "category": "受付",
-      "note": "受付開始",
+      "category": "受付開始",
+      "note": "受付　(09:00-09:30)",
       "items": []
     },
     {
@@ -107,7 +107,7 @@
       "dateId": "day1",
       "start": "09:30",
       "end": "09:45",
-      "category": "趣旨説明",
+      "category": "開会のあいさつ",
       "items": [
         {
           "title": "趣旨説明",
@@ -123,7 +123,7 @@
       "dateId": "day1",
       "start": "09:45",
       "end": "09:50",
-      "category": "ワークショップアピール",
+      "category": "ワークショップ紹介",
       "items": [
         {
           "title": "1分間ワークショップアピール"
@@ -274,7 +274,7 @@
       "dateId": "day1",
       "start": "16:20",
       "end": "16:30",
-      "category": "閉会",
+      "category": "閉会のあいさつ",
       "items": [
         {
           "title": "閉会のあいさつ"
