@@ -1822,19 +1822,23 @@
           });
           if (manyItems) html += `</div>`;
           const sessionLinks = (s.links || []).filter((l) => l && l.url);
-          if (sessionLinks.length) {
-            html += `<div class="session-links mt-3 space-y-2 hidden">`;
-            sessionLinks.forEach((l) => {
-              html +=
-                `<a href="${escapeHtml(safeUrl(l.url))}" target="_blank" rel="noopener" class="flex items-center gap-2.5 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2.5 hover:border-brand-300 transition">` +
-                `<span class="flex-shrink-0 text-brand-700">${icon("file", "w-4 h-4")}</span>` +
-                `<span class="min-w-0 flex-1">` +
-                `<span class="block text-[12.5px] font-bold text-brand-800">${escapeHtml(l.label || "")}</span>` +
-                (l.description ? `<span class="block text-[10.5px] text-brand-800 mt-0.5 leading-relaxed">${escapeHtml(l.description)}</span>` : "") +
-                `</span>` +
-                `</a>`;
-            });
-            html += `</div>`;
+          // 既定は「開始時刻を過ぎたら出す」（sessionLinksRevealed）。事前受付のアンケート等は
+          // links[].always: true で常時表示にする（ゲートされる .session-links とは別ブロックへ入れる）。
+          const linkHtml = (l) =>
+            `<a href="${escapeHtml(safeUrl(l.url))}" target="_blank" rel="noopener" class="flex items-center gap-2.5 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2.5 hover:border-brand-300 transition">` +
+            `<span class="flex-shrink-0 text-brand-700">${icon("file", "w-4 h-4")}</span>` +
+            `<span class="min-w-0 flex-1">` +
+            `<span class="block text-[12.5px] font-bold text-brand-800">${escapeHtml(l.label || "")}</span>` +
+            (l.description ? `<span class="block text-[10.5px] text-brand-800 mt-0.5 leading-relaxed">${escapeHtml(l.description)}</span>` : "") +
+            `</span>` +
+            `</a>`;
+          const alwaysLinks = sessionLinks.filter((l) => l.always === true);
+          const timedLinks = sessionLinks.filter((l) => l.always !== true);
+          if (alwaysLinks.length) {
+            html += `<div class="mt-3 space-y-2">` + alwaysLinks.map(linkHtml).join("") + `</div>`;
+          }
+          if (timedLinks.length) {
+            html += `<div class="session-links mt-3 space-y-2 hidden">` + timedLinks.map(linkHtml).join("") + `</div>`;
           }
           card.innerHTML = html;
           row.appendChild(card);
