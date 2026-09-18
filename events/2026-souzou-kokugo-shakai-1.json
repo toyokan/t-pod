@@ -64,17 +64,17 @@
     ],
     "forms": [
       {
-        "label": "ワークショップ参加希望アンケート",
-        "description": "参加を希望するワークショップをこちらのフォームからご回答ください。",
-        "url": "https://docs.google.com/forms/d/e/1FAIpQLSfev44jh2R4dlcZ4BESn26d3iwvwnMIm-h2OWTULb0hnhsX4Q/viewform"
-      },
-      {
-        "label": "詳細・お申し込み",
+        "label": "【申込】セミナー詳細・お申し込み",
         "description": "東洋館出版社の商品ページからお申し込みください。",
         "url": "https://www.toyokan.co.jp/products/9-19souzou_kokugo_syakai"
       },
       {
-        "label": "事後アンケート",
+        "label": "【事前】ワークショップ参加希望",
+        "description": "参加を希望するワークショップを、こちらのフォームからご回答ください。",
+        "url": "https://docs.google.com/forms/d/e/1FAIpQLSfev44jh2R4dlcZ4BESn26d3iwvwnMIm-h2OWTULb0hnhsX4Q/viewform"
+      },
+      {
+        "label": "【事後】セミナーアンケート",
         "description": "本日のセミナーについてのアンケートにご協力ください。",
         "url": "https://docs.google.com/forms/d/e/1FAIpQLSdhhqC0vasn3lTCBl6wDvYqm7E1TUOFvmEw6STFYuAaVXjRmA/viewform"
       }
