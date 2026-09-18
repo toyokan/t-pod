@@ -72,6 +72,11 @@
         "label": "詳細・お申し込み",
         "description": "東洋館出版社の商品ページからお申し込みください。",
         "url": "https://www.toyokan.co.jp/products/9-19souzou_kokugo_syakai"
+      },
+      {
+        "label": "事後アンケート",
+        "description": "本日のセミナーについてのアンケートにご協力ください。",
+        "url": "https://docs.google.com/forms/d/e/1FAIpQLSdhhqC0vasn3lTCBl6wDvYqm7E1TUOFvmEw6STFYuAaVXjRmA/viewform"
       }
     ],
     "venue": {
@@ -270,6 +275,13 @@
       "items": [
         {
           "title": "閉会のあいさつ"
+        }
+      ],
+      "links": [
+        {
+          "label": "事後アンケート",
+          "description": "本日のセミナーについてのアンケートにご協力ください。",
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdhhqC0vasn3lTCBl6wDvYqm7E1TUOFvmEw6STFYuAaVXjRmA/viewform"
         }
       ]
     }
