@@ -783,6 +783,16 @@
       <h2 class="text-base font-bold text-slate-700">資料・会場案内</h2>
 
       <!-- 見出しだけが残らないよう、中身が無いブロックは renderMaterials() が丸ごと隠す -->
+      <div id="resourceSection">
+        <h3 class="text-sm font-semibold text-slate-600 mb-2">配布資料</h3>
+        <div id="resourceLinks" class="space-y-2"></div>
+      </div>
+
+      <div id="formSection">
+        <h3 class="text-sm font-semibold text-slate-600 mb-2">アンケート・各種フォーム</h3>
+        <div id="formLinks" class="space-y-2"></div>
+      </div>
+
       <div id="venueSection">
         <h3 class="text-sm font-semibold text-slate-600 mb-2">会場マップ</h3>
         <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-card">
@@ -798,16 +808,6 @@
             class="hidden w-full aspect-square object-contain bg-slate-50" />
           <p id="venueNote" class="text-xs text-slate-600 p-3 leading-relaxed"></p>
         </div>
-      </div>
-
-      <div id="resourceSection">
-        <h3 class="text-sm font-semibold text-slate-600 mb-2">配布資料</h3>
-        <div id="resourceLinks" class="space-y-2"></div>
-      </div>
-
-      <div id="formSection">
-        <h3 class="text-sm font-semibold text-slate-600 mb-2">アンケート・各種フォーム</h3>
-        <div id="formLinks" class="space-y-2"></div>
       </div>
 
       <!-- 資料も会場案内も無いイベント向け。renderMaterials() が上を全部隠したときだけ出す -->
