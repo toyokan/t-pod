@@ -82,7 +82,12 @@
     "venue": {
       "mapNote": "筑波大学附属小学校（東京都文京区大塚3-29-1）\n受付・全体会：3階・講堂",
       "mapImage": "assets/venue-map-2026-souzou-kokugo-shakai-1.svg",
-      "resourceLinks": []
+      "resourceLinks": [
+        {
+          "label": "【資料】公開授業指導案",
+          "url": "https://drive.google.com/file/d/1xft7mDjcgayUIwUwIaKuO8TzTkRFWGDO/view?usp=drivesdk"
+        }
+      ]
     }
   },
   "rooms": [
