@@ -211,7 +211,7 @@
       "id": "d1-07",
       "dateId": "day1",
       "start": "14:15",
-      "end": "15:25",
+      "end": "15:15",
       "category": "ワークショップ",
       "note": "5本並行開催",
       "items": [
@@ -260,7 +260,7 @@
     {
       "id": "d1-08",
       "dateId": "day1",
-      "start": "15:25",
+      "start": "15:15",
       "end": "16:20",
       "category": "対談",
       "items": [
