@@ -153,7 +153,7 @@
       "dateId": "day1",
       "start": "10:00",
       "end": "11:10",
-      "category": "公開授業",
+      "category": "公開授業1",
       "items": [
         {
           "room": "創造国語",
@@ -170,7 +170,7 @@
       "dateId": "day1",
       "start": "11:10",
       "end": "12:00",
-      "category": "公開授業",
+      "category": "公開授業2",
       "items": [
         {
           "room": "創造社会",
