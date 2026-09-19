@@ -1514,3 +1514,36 @@ DotGothic16 実物を入れた Chromium で、4 画面幅（320/360/375/390）×
   `.nb` と組み合わせ、題の途中を割る前に題全体を幅の広い次行へ送る。
 - シェル変更に合わせて `CACHE_VERSION` を v126 から v127 へ更新した。
 - 幅・余白と改行候補をソース回帰テストへ追加した。
+
+## 2026-09-19 — 本日分の見直し（運営系 links が永久に出ない不具合ほか）
+
+本日の変更（#102〜#120）を通しで見直し、次を直した。
+
+### 運営系セッションの時刻ゲート付き links が永久に表示されない（#120 の取りこぼし）
+
+`#120` で運営系（`isAdminCat()` が真＝受付・閉会など）のコンパクト行にも `links` を出せるように
+したが、**admin 側は links ブロックを bar の「中」ではなく `row` の直下（bar の兄弟）に置いている**。
+一方 `updateNowMarker()` のゲートは `card.querySelector(".session-links")` で探していたため
+admin 行では見つからず、`hidden` が外れないまま**開始時刻を過ぎても出てこなかった**。
+
+- ゲートの探索起点を `card` から `row` へ変更。内容カード側（links は card の中）も同じ 1 本で拾える。
+- `if (!card) return;` より**前**へ移した。card が無い行が将来できてもゲートだけは回る。
+- 併せて、`#120` で forEach の頭へ括り出した `sessionLinks` / `linkHtml` / `alwaysLinks` / `timedLinks` が
+  内容カード側の分岐にそのまま残って二重定義になっていたので、内側を削除した（ブロックスコープの
+  シャドーイングなので動いてはいたが、片方だけ直すと食い違う）。
+- ソース回帰テスト `test_session_links_gate_is_scoped_to_row` を追加。
+- シェル変更に合わせて `CACHE_VERSION` を v128 から v129 へ更新した。
+
+なお現行イベントの該当 links はいずれも `always: true`（＝ゲートを通らない別ブロック）だったため、
+本番の表示は無事だった。ゲート付きの links を運営系へ足した時点で出なくなる不具合。
+
+### データ側の表記ゆれ（`validate_events.py` の WARN 2 件）
+
+- `events.json` の創造国語×創造社会セミナーの `theme` がダッシュだけ `—`（em dash）で、
+  個別 JSON の `―`（horizontal bar。他イベントの表記もこちら）と食い違っていた → `―` に統一。
+- 同イベントの `dateRange` の時刻区切りが個別 JSON だけ `-` で、`events.json` と他 6 イベントの
+  `〜` と食い違っていた → `〜` に統一。
+- `events/2026-shisanken-09.webmanifest` の `description` に全角空白＋半角空白が続く箇所があったので
+  半角空白 1 つに直した。
+
+これで `python scripts/validate_events.py` は **エラー0件 / 警告0件**。
