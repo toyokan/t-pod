@@ -85,7 +85,7 @@
       "resourceLinks": [
         {
           "label": "【資料】公開授業指導案",
-          "url": "https://drive.google.com/file/d/1xft7mDjcgayUIwUwIaKuO8TzTkRFWGDO/view?usp=drivesdk"
+          "url": "https://drive.google.com/file/d/1LB-WVHKyrXmMqrc-g0kHWeRi6DosVj4d/view?usp=drivesdk"
         },
         {
           "label": "【資料】ワークショップ資料",
@@ -298,7 +298,8 @@
         {
           "label": "事後アンケート",
           "description": "本日のセミナーについてのアンケートにご協力ください。",
-          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdhhqC0vasn3lTCBl6wDvYqm7E1TUOFvmEw6STFYuAaVXjRmA/viewform"
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdhhqC0vasn3lTCBl6wDvYqm7E1TUOFvmEw6STFYuAaVXjRmA/viewform",
+          "always": true
         }
       ]
     }
