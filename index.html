@@ -1962,19 +1962,8 @@
             html += `</div>`;
           });
           if (manyItems) html += `</div>`;
-          const sessionLinks = (s.links || []).filter((l) => l && l.url);
-          // 既定は「開始時刻を過ぎたら出す」（sessionLinksRevealed）。事前受付のアンケート等は
-          // links[].always: true で常時表示にする（ゲートされる .session-links とは別ブロックへ入れる）。
-          const linkHtml = (l) =>
-            `<a href="${escapeHtml(safeUrl(l.url))}" target="_blank" rel="noopener" class="flex items-center gap-2.5 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2.5 hover:border-brand-300 transition">` +
-            `<span class="flex-shrink-0 text-brand-700">${icon("file", "w-4 h-4")}</span>` +
-            `<span class="min-w-0 flex-1">` +
-            `<span class="block text-[12.5px] font-bold text-brand-800">${escapeHtml(l.label || "")}</span>` +
-            (l.description ? `<span class="block text-[10.5px] text-brand-800 mt-0.5 leading-relaxed">${escapeHtml(l.description)}</span>` : "") +
-            `</span>` +
-            `</a>`;
-          const alwaysLinks = sessionLinks.filter((l) => l.always === true);
-          const timedLinks = sessionLinks.filter((l) => l.always !== true);
+          // links の組み立ては admin / 内容カードで共通なので、この forEach の頭で
+          // 済ませてある（sessionLinks / linkHtml / alwaysLinks / timedLinks）。
           if (alwaysLinks.length) {
             html += `<div class="mt-3 space-y-2">` + alwaysLinks.map(linkHtml).join("") + `</div>`;
           }
@@ -2058,11 +2047,15 @@
       currentRows.forEach((row, i) => {
         const card = row.querySelector(".session-card");
         const dotEl = row.querySelector(".now-dot");
+        // **時刻ゲートの探索は card ではなく row から行う**——運営系（admin）のコンパクト行は
+        // links を bar の「中」ではなく row の直下（bar の兄弟）に置くので、card 起点だと
+        // 見つからず hidden のまま永久に出てこない。row 起点なら内容カード側（card の中）も
+        // 同じ 1 本で拾える。card が無い行でもゲートだけは回るよう、早期 return より前に置く。
+        const linksBlock = row.querySelector(".session-links");
+        if (linksBlock) linksBlock.classList.toggle("hidden", !sessionLinksRevealed(currentSessions[i], currentDayObj));
         if (!card) return;
         const badge = card.querySelector(".now-badge");
         const isCard = card.classList.contains("bg-white");
-        const linksBlock = card.querySelector(".session-links");
-        if (linksBlock) linksBlock.classList.toggle("hidden", !sessionLinksRevealed(currentSessions[i], currentDayObj));
         const on = i === idx;
         if (on) {
           const s = currentSessions[i];

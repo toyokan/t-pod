@@ -55,6 +55,16 @@ class ShellSourceTest(unittest.TestCase):
         self.assertIn('<wbr><span class="nb">${escapeHtml(part)}</span><wbr>', source)
         self.assertRegex(source, r"#mascotBubble \.nb\s*\{[^}]*word-break:\s*keep-all")
 
+    def test_session_links_gate_is_scoped_to_row(self):
+        """運営系（admin）の links は card の外（row 直下）に置くので、ゲートは row から探す。"""
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('const linksBlock = row.querySelector(".session-links");', source)
+        self.assertNotIn('card.querySelector(".session-links")', source)
+        # card が無い行でもゲートが回るよう、早期 return より前に置く
+        gate = source.index('const linksBlock = row.querySelector(".session-links");')
+        guard = source.index("if (!card) return;")
+        self.assertLess(gate, guard, "links のゲートが if (!card) return; より後ろにあります")
+
 
 if __name__ == "__main__":
     unittest.main()
