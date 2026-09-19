@@ -39,6 +39,22 @@ class ShellSourceTest(unittest.TestCase):
                 f"{selector} がブランド面の文字色を白で固定しています",
             )
 
+    def test_mascot_bubble_keeps_room_for_text(self):
+        """狭い端末でもネコの幅を引いた残りを吹き出しに使い、左右余白を対称に保つ。"""
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        block = re.search(r"#mascotBubble\s*\{(.*?)\}", source, re.S)
+        self.assertIsNotNone(block, "#mascotBubble の定義が見つかりません")
+        css = block.group(1)
+        self.assertIn("max-width: min(calc(100vw - 6rem), 19rem)", css)
+        self.assertIn("padding: 4px 10px", css)
+        self.assertNotRegex(css, r"max-width:\s*[^;]*52vw")
+
+    def test_mascot_bubble_marks_title_boundaries(self):
+        """短い演目名の前後を優先改行位置にし、題の語中改行を避ける。"""
+        source = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<wbr><span class="nb">${escapeHtml(part)}</span><wbr>', source)
+        self.assertRegex(source, r"#mascotBubble \.nb\s*\{[^}]*word-break:\s*keep-all")
+
 
 if __name__ == "__main__":
     unittest.main()
