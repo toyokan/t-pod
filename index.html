@@ -130,6 +130,19 @@
         now: "0 8px 24px -8px color-mix(in srgb, var(--brand) 55%, transparent)",
         fab: "0 8px 24px -6px color-mix(in srgb, var(--brand) 50%, transparent)",
       },
+
+      // 字面のウェイト段階を「実際に読み込んでいる字体」に合わせる。
+      // Zen Kaku Gothic New は 400/500/700/900 の 4 種だけ読んでいるので、
+      // Tailwind 既定の 600(semibold)/800(extrabold) は CSS のフォント照合で
+      // それぞれ 700/900 へ吸い寄せられ、font-bold / font-black と見分けが付かなくなる
+      // （＝4 段のつもりが実質 3 段になり、10〜13px の和文が 900 で潰れる）。
+      // 読み込んでいるウェイトへ明示的に割り当てて 400/500/700/900 の 4 段を取り戻す。
+      // ウェイトを増やして解決しない——和文は unicode-range で 100 以上のサブセットに
+      // 割れるため、1 ウェイト足すだけでフォントの転送量が 25% 増える。
+      fontWeight: {
+        semibold: "500",
+        extrabold: "700",
+      },
     },
   },
 
@@ -238,7 +251,7 @@
     #appHeader.is-scrolling::before,
     #appHeader.is-scrolling .deco-right-lg,
     #appHeader.is-scrolling .deco-right-sm { will-change: transform; }
-    #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.015em; text-shadow: 0 1px 4px color-mix(in srgb, var(--brand) 45%, transparent); }
+    #appHeader #eventTitle { font-size: 1.7rem; letter-spacing: -.005em; text-shadow: 0 1px 4px color-mix(in srgb, var(--brand) 45%, transparent); }
     #themeBanner { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.2); box-shadow: inset 0 1px rgba(255,255,255,.12); }
     .brand-bg { background: var(--brand); color: var(--brand-fg); }
     .brand-card { background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: var(--brand-fg); }
@@ -348,8 +361,27 @@
         rgb(248 250 252) 30rem);
       background-repeat: no-repeat;
       -webkit-font-smoothing: antialiased;
-      text-rendering: optimizeLegibility;
+      -moz-osx-font-smoothing: grayscale;
+      /* 和文は 1 文字が正方形で詰まって見えるので、わずかに字間を開けると読み取りが速くなる。
+         .01em は 13px で 0.13px——折り返し位置を動かさない範囲に留める（大きくすると
+         「全10プログラム」のような whitespace-nowrap の要素がはみ出す）。 */
+      letter-spacing: .01em;
+      /* 禁則処理を厳格側に倒す。既定（auto/normal）だと「ぁぃゅゃー」などの小書き仮名と
+         長音符が行頭に来てしまい、和文としては読みにくい。 */
+      line-break: strict;
+      word-break: normal;
     }
+    /* 見出しは palt（プロポーショナルメトリクス）で約物まわりの余白を詰める。
+       「（）：・」の前後が半角ぶん空くのが和文見出しでいちばん目立つ崩れなので、
+       ここだけは字形ごとの幅に切り替える。本文には掛けない——長文で字送りが
+       不均一になり、かえって読みにくくなる。
+       text-wrap: balance で最終行 1 文字だけの泣き別れも防ぐ（非対応なら無視される）。 */
+    h1, h2, h3 {
+      font-feature-settings: "palt" 1;
+      text-wrap: balance;
+    }
+    /* 段落は最終行が極端に短くならないように整える（balance と違い長文でも安全） */
+    p { text-wrap: pretty; }
     /* スクロール時のヘッダー縮小（縦空間の確保）。縮小時はテーマ・副題を畳む */
     #appHeader .hd { transition: padding .15s ease; }
     #appHeader #eventTitle { transition: font-size .15s ease; }
@@ -724,7 +756,7 @@
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
           <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight">読み込み中…</h1>
-          <p id="eventSubtitle" class="text-[11px] font-semibold opacity-85 mt-0.5"></p>
+          <p id="eventSubtitle" class="text-[11px] font-bold opacity-85 mt-0.5"></p>
         </div>
         <!-- お知らせ（旧FABをヘッダーへ移設） -->
         <button id="noticeBtn" aria-label="お知らせを見る"
@@ -879,7 +911,7 @@
     </div>
 
     <!-- クレジット（全タブ共通・本文最下部） -->
-    <p class="mt-6 text-center text-[10px] font-normal text-slate-300">App by TOYOKAN PUBLISHING CO., LTD.</p>
+    <p class="mt-6 text-center text-[10px] font-normal text-slate-500">App by TOYOKAN PUBLISHING CO., LTD.</p>
   </main>
 
   <!-- ===== 右下マスコット（ふせんネコ） =====
@@ -916,19 +948,19 @@
         <span class="nav-brand-card w-full h-full max-w-[128px] rounded-full"></span>
       </div>
       <button data-tab="program" class="navbtn group relative flex justify-center" aria-label="TIMETABLE">
-        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-bold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
           <span>TIMETABLE</span>
         </span>
       </button>
       <button data-tab="materials" class="navbtn group relative flex justify-center" aria-label="FILES">
-        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-bold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
           <span>FILES</span>
         </span>
       </button>
       <button data-tab="books" class="navbtn group relative flex justify-center" aria-label="BOOKS">
-        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-semibold transition group-active:scale-95">
+        <span class="navpill flex flex-col items-center gap-1 w-full max-w-[128px] min-h-[48px] px-5 py-1.5 rounded-full text-[11px] font-bold transition group-active:scale-95">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6" aria-hidden="true"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
           <span>BOOKS</span>
         </span>
@@ -1832,7 +1864,7 @@
           bar.innerHTML =
             `<span class="text-[13.5px] font-extrabold tabular-nums text-slate-500">${escapeHtml(s.start || "")}</span>` +
             `<span class="text-[12.5px] font-bold text-slate-500">${escapeHtml(s.category || "")}</span>` +
-            (adminNote ? `<span class="text-[11px] text-slate-400 truncate">${escapeHtml(adminNote)}</span>` : "");
+            (adminNote ? `<span class="text-[11px] text-slate-500 truncate">${escapeHtml(adminNote)}</span>` : "");
           row.appendChild(bar);
         } else {
           // 内容カード
@@ -1847,7 +1879,7 @@
             `<span class="cat-chip inline-block text-[11px] font-black text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-3 py-1 transition">${escapeHtml(s.category || "")}</span>` +
             (manyItems ? `<span class="text-[10.5px] font-bold text-slate-500 whitespace-nowrap">全${sessionItems.length}プログラム</span>` : "") +
             `</div>` +
-            `<div class="text-[12.5px] font-extrabold tabular-nums text-slate-400 flex-shrink-0">${range}</div>` +
+            `<div class="text-[12.5px] font-extrabold tabular-nums text-slate-500 flex-shrink-0">${range}</div>` +
             `</div>`;
           if (s.note) html += `<p class="text-xs text-slate-500 mt-1.5 leading-relaxed">${escapeHtml(s.note)}</p>`;
           if (manyItems) html += `<div class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">`;
@@ -2691,7 +2723,7 @@
           badge +
           `<div class="text-[14.5px] font-bold text-slate-800 leading-snug">${escapeHtml(b.title)}</div>` +
           (b.author ? `<div class="text-xs text-slate-500 mt-0.5">${escapeHtml(b.author)}</div>` : "") +
-          (b.publisher ? `<div class="text-[11px] text-slate-400">${escapeHtml(b.publisher)}</div>` : "") +
+          (b.publisher ? `<div class="text-[11px] text-slate-500">${escapeHtml(b.publisher)}</div>` : "") +
           (b.description ? `<div class="text-xs text-slate-600 mt-1 line-clamp-3">${escapeHtml(b.description)}</div>` : "") +
           `</div>`;
         if (cover) {
