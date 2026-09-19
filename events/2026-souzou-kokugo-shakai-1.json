@@ -259,6 +259,13 @@
             "三浦 健太朗（青森県・八戸市立鮫小学校）"
           ]
         }
+      ],
+      "links": [
+        {
+          "label": "ワークショップ資料ダウンロード",
+          "description": "ワークショップ資料はこちらからダウンロードしてください。",
+          "url": "https://drive.google.com/drive/folders/10LdaH1llz4ldMZIbLAExJ1Za-fmpmDIB?usp=sharing"
+        }
       ]
     },
     {
@@ -273,13 +280,6 @@
           "meta": [
             "茅野 政徳 × 由井薗 健"
           ]
-        }
-      ],
-      "links": [
-        {
-          "label": "ワークショップ資料ダウンロード",
-          "description": "ワークショップ資料はこちらからダウンロードしてください。",
-          "url": "https://drive.google.com/drive/folders/10LdaH1llz4ldMZIbLAExJ1Za-fmpmDIB?usp=sharing"
         }
       ]
     },
