@@ -647,6 +647,14 @@
        影はぼかさず 1 段ずらすだけ（drop-shadow なら角の階段としっぽの形にも沿う）。 */
     #mascotBubble {
       position: relative;
+      box-sizing: border-box;
+      /* 52vw で一律に切ると 320px 端末では内寸が約 142px しか残らず、短い演目名まで
+         語中で割れる。ネコ・gap・ページ余白を先に取り分け、残りを吹き出しに使う。
+         短文は flex item の内容幅のまま、長文だけこの上限まで広がる。 */
+      max-width: min(calc(100vw - 6rem), 19rem);
+      /* 1ドット=2px の偶数値で左右を同じにする。枠 6px + 本文 10px を確保し、
+         文字がドット枠へ張り付いて見えないようにする。 */
+      padding: 4px 10px;
       font-family: "DotGothic16", "Zen Kaku Gothic New", monospace;
       background: none;
       border-radius: 0;
@@ -944,7 +952,7 @@
   <div id="mascot" class="hidden fixed inset-x-0 z-20 max-w-2xl mx-auto px-3 justify-end items-center gap-2.5 pointer-events-none">
     <!-- 7秒ごとに差し替わる装飾的な一言なので aria-live は付けない（読み上げが繰り返されるのを避ける） -->
     <!-- 背面の白いセッションカードに埋もれないよう、枠線を濃く・影を強くし、::after で三角のしっぽを出す -->
-    <p id="mascotBubble" class="max-w-[min(52vw,17rem)] px-1.5 py-0.5 text-[13px] font-normal text-slate-800 leading-relaxed"></p>
+    <p id="mascotBubble" class="text-[13px] font-normal text-slate-800 leading-relaxed"></p>
     <!-- 名前（ふせんネコ）はここと CAT_NAME の 2 箇所。素早く 3 回つつくと自分から名乗る -->
     <!-- ドラッグでずらす層。ボタン自身は active:scale-95 の transform を持つので、
          二重に持てない分をここに逃がす（コマ送り／呼吸を別要素に分けているのと同じ理由） -->
@@ -2286,7 +2294,9 @@
       return String(text == null ? "" : text)
         .split(/(「[^」]*」)/)
         .map((part, i) => (i % 2 === 1 && part.length - 2 <= BUBBLE_NOBREAK_MAX
-          ? `<span class="nb">${escapeHtml(part)}</span>`
+          // wbr で題の前後を明示的な改行候補にする。「いまは」や「の時間だよ」を
+          // 題へ押し込んでから語中で割るより、題全体を幅のある次行へ送ることを優先する。
+          ? `<wbr><span class="nb">${escapeHtml(part)}</span><wbr>`
           : escapeHtml(part)))
         .join("");
     }
