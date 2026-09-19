@@ -6,7 +6,7 @@ LINE 公式アカウントのキーワード応答に貼るリンクは、**LINE
 
 | イベント名 | 開催日 | イベントID | 本番URL | LINE配信用URL |
 | --- | --- | --- | --- | --- |
-| 志の算数授業研究会　第９回　 授業研究会 | 2026年10月4日（日） | `2026-shisanken-09` | [サイトを開く](https://events.toyokan.co.jp/?id=2026-shisanken-09) | `https://events.toyokan.co.jp/?id=2026-shisanken-09&openExternalBrowser=1` |
+| 志の算数授業研究会 第９回 授業研究会 | 2026年10月4日（日） | `2026-shisanken-09` | [サイトを開く](https://events.toyokan.co.jp/?id=2026-shisanken-09) | `https://events.toyokan.co.jp/?id=2026-shisanken-09&openExternalBrowser=1` |
 | 第1回 創造国語 × 創造社会 セミナー | 2026年9月19日(土) 09:00〜16:30 | `2026-souzou-kokugo-shakai-1` | [サイトを開く](https://events.toyokan.co.jp/?id=2026-souzou-kokugo-shakai-1) | `https://events.toyokan.co.jp/?id=2026-souzou-kokugo-shakai-1&openExternalBrowser=1` |
 | 『算数授業研究』公開講座 in 大阪 2026 | 2026年9月12日(土) 09:50〜16:00 | `2026-sanjuken-osaka` | [サイトを開く](https://events.toyokan.co.jp/?id=2026-sanjuken-osaka) | `https://events.toyokan.co.jp/?id=2026-sanjuken-osaka&openExternalBrowser=1` |
 | 子どもと創る「国語×算数」授業研究会 Day 3 | 2026年9月6日(日) 10:00〜15:30 | `2026-kokugo-sansu-day3` | [サイトを開く](https://events.toyokan.co.jp/?id=2026-kokugo-sansu-day3) | `https://events.toyokan.co.jp/?id=2026-kokugo-sansu-day3&openExternalBrowser=1` |
