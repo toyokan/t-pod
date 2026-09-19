@@ -298,7 +298,8 @@
         {
           "label": "事後アンケート",
           "description": "本日のセミナーについてのアンケートにご協力ください。",
-          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdhhqC0vasn3lTCBl6wDvYqm7E1TUOFvmEw6STFYuAaVXjRmA/viewform"
+          "url": "https://docs.google.com/forms/d/e/1FAIpQLSdhhqC0vasn3lTCBl6wDvYqm7E1TUOFvmEw6STFYuAaVXjRmA/viewform",
+          "always": true
         }
       ]
     }
