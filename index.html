@@ -1886,6 +1886,21 @@
         const dot = roomItem ? roomColor(roomItem.room).dot : admin ? NEUTRAL.dot : "dot-grad";
         row.appendChild(el("span", `now-dot absolute -left-[18px] ${admin ? "top-3" : "top-3.5"} w-3 h-3 rounded-full ring-4 ring-slate-50 ${dot}`, ""));
 
+        // 既定は「開始時刻を過ぎたら出す」（sessionLinksRevealed）。事前受付のアンケート等は
+        // links[].always: true で常時表示にする（ゲートされる .session-links とは別ブロックへ入れる）。
+        // 受付・閉会など運営系（admin）のコンパクト行にも同じ links を出せるよう、カード種別に関わらず先に組む。
+        const sessionLinks = (s.links || []).filter((l) => l && l.url);
+        const linkHtml = (l) =>
+          `<a href="${escapeHtml(safeUrl(l.url))}" target="_blank" rel="noopener" class="flex items-center gap-2.5 bg-brand-50 border border-brand-200 rounded-xl px-3 py-2.5 hover:border-brand-300 transition">` +
+          `<span class="flex-shrink-0 text-brand-700">${icon("file", "w-4 h-4")}</span>` +
+          `<span class="min-w-0 flex-1">` +
+          `<span class="block text-[12.5px] font-bold text-brand-800">${escapeHtml(l.label || "")}</span>` +
+          (l.description ? `<span class="block text-[10.5px] text-brand-800 mt-0.5 leading-relaxed">${escapeHtml(l.description)}</span>` : "") +
+          `</span>` +
+          `</a>`;
+        const alwaysLinks = sessionLinks.filter((l) => l.always === true);
+        const timedLinks = sessionLinks.filter((l) => l.always !== true);
+
         if (admin) {
           // 運営系（受付・昼食など）：時刻＋名称のコンパクト行。
           // note が無くても items[].title は入力されていることがあるので補足として拾う——
@@ -1898,6 +1913,12 @@
             `<span class="text-[12.5px] font-bold text-slate-500">${escapeHtml(s.category || "")}</span>` +
             (adminNote ? `<span class="text-[11px] text-slate-500 truncate">${escapeHtml(adminNote)}</span>` : "");
           row.appendChild(bar);
+          if (alwaysLinks.length) {
+            row.appendChild(el("div", "mt-2 space-y-2", alwaysLinks.map(linkHtml).join("")));
+          }
+          if (timedLinks.length) {
+            row.appendChild(el("div", "session-links mt-2 space-y-2 hidden", timedLinks.map(linkHtml).join("")));
+          }
         } else {
           // 内容カード
           const card = el("div", "session-card bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-card");
