@@ -1368,3 +1368,19 @@ Tailwind Play CDN へ出られないため、カードの角丸・枠・白地�
 光は当初 `white 72%` で混ぜていたが縁が消えたように見えたため 45% に下げた。
 `tests/test_shell_source.py` / `tests/test_fuseneko.py` 通過（`test_event_tools.py` の 2 件は openpyxl 未導入による既存のエラー）。
 
+**マージ後の確認（PR #103・`ee0cc30`）**: `Validate event data` 成功、`pages build and deployment` 成功（00:55Z ＝ 09:55 JST）。
+**当日開催中（09:00〜16:30）の公開になったので、`CACHE_VERSION` v123 への更新でシェルのキャッシュが一度捨てられている**
+（`RUNTIME_CACHE` のイベント JSON・フォント・Tailwind は版をまたいで残る設計なので、代金は 171KB の HTML の取り直しに留まる）。
+続けて Chromium で `updateNowMarker()` を直接叩き、付け外しの経路を実測した:
+- 同じカードのまま再実行 → **器は作り直されず同一要素のまま**（`rings: 1`・回転が先頭へ戻らない）。
+- 次のセッションへ進行（11:05→13:30）→ リングは新しいカードへ移り、**重複しない**（`rings: 1`）。
+- 全日程終了後（23:50）→ `is-now` もリングも消える（`rings: 0`）。**取り残しなし**。
+- `prefers-reduced-motion: reduce` → リング `display: none`・波 `animation-name: none`。
+- `html.no-glass` → リング `display: none`。
+- **mask 非対応環境の再現**（`@supports` 内の指定を `all: revert` で打ち消す）→ 器は **0×0 に畳まれ、カードの高さは 145px のまま変化なし**。
+  未対応ブラウザでは「ベタ塗りの板が覆う」のではなく**何も描かれない**ことを確認（レイアウトのずれも無い）。
+
+**積み残し（次にシェルを触るときに一緒に直す）**: `.now-ring` の `content: "";` は `::after` から書き起こした名残で、
+実要素では無視される**死んだ宣言**。消しても見た目は変わらないが、**それだけのために `CACHE_VERSION` を上げると
+開催中のイベントでシェルのキャッシュをもう一度捨てることになる**ので、単独では直さず次の変更に相乗りさせる。
+
