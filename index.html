@@ -647,10 +647,6 @@
        影はぼかさず 1 段ずらすだけ（drop-shadow なら角の階段としっぽの形にも沿う）。 */
     #mascotBubble {
       position: relative;
-      /* p { text-wrap: pretty } は最終行の孤立語を避けるだけで、短い吹き出しでは
-         行の長さがそろわず不格好になる（実例: 「いまは「公開授／業」の時間だよ」）。
-         見出しと同じ balance に上書きし、2〜3 行の短文を均等な行幅に整える。 */
-      text-wrap: balance;
       font-family: "DotGothic16", "Zen Kaku Gothic New", monospace;
       background: none;
       border-radius: 0;
@@ -673,6 +669,14 @@
       width: 8px; height: 12px; margin-top: -6px;
       background: var(--cat-arrow) center / 100% 100% no-repeat;
     }
+    /* 吹き出しの「…」で囲んだ演目名を語中で割らせない（setMascotText() が短い題だけ包む）。
+       keep-all は文字と文字のあいだの改行だけを禁じるので、「・」「（」などの約物では
+       従来どおり折り返す（和文としてはここが自然な切れ目）。収まらないときは
+       overflow-wrap が非常口として働くので、枠の外へはみ出すことはない。
+       **text-wrap: balance は使わない**——行の長さをそろえようとして
+       「ワークショッ／プ①」のように語の途中で割る回数がかえって増える
+       （実測 4 画面幅 × 12 文言で pretty 14 件に対し balance 24 件）。 */
+    #mascotBubble .nb { word-break: keep-all; overflow-wrap: break-word; }
     #mascot.is-folded #mascotBubble { opacity: 0; transform: scale(.9) translate3d(6px, 0, 0); }
     #mascotBubble.is-swapping { opacity: 0; }
     /* 隠し要素: 横に引っぱると遊べる。位置は覚えず、離すとバネで定位置へ戻る。
@@ -2269,14 +2273,33 @@
     // 自己紹介など、数秒だけ文言を固定したいときの期限（ミリ秒。7 秒タイマーがこの間だけ休む）
     let mascotPinUntil = 0;
 
-    // 文言差し替えは opacity のフェードを挟む。textContent で入れるので innerHTML の混入は無い
+    // 「…」で囲んだ演目名を「語中で割らない」スパンに包む。包まれた題は 1 行に収まらないとき
+    // 丸ごと次の行へ送られるので、そのぶん広い幅を貰えて語が無傷のまま収まりやすくなる。
+    // 上限は実データに合わせた 12 文字——`events/*.json` の `category` は最長 11 文字
+    // （「パネルディスカッション」等）なので全部が対象に入る。**これ以上長い題は包まない**：
+    // 次の行へ送っても収まらず、「いまは」だけが 1 行目に残ったうえで結局は題の途中で折り返す。
+    // 収まらない場合は `.nb` の overflow-wrap が改行を許すので、枠の外へはみ出すことはない。
+    const BUBBLE_NOBREAK_MAX = 12;
+    function bubbleHtml(text) {
+      // 捕獲グループで分けると奇数番目が「…」の部分。長さは escape 前の生テキストで数える
+      // （`&` が `&amp;` に膨らむと 5 文字と数えてしまい、本来包める題が漏れるため）
+      return String(text == null ? "" : text)
+        .split(/(「[^」]*」)/)
+        .map((part, i) => (i % 2 === 1 && part.length - 2 <= BUBBLE_NOBREAK_MAX
+          ? `<span class="nb">${escapeHtml(part)}</span>`
+          : escapeHtml(part)))
+        .join("");
+    }
+
+    // 文言差し替えは opacity のフェードを挟む。escapeHtml を通してから組み立てるので、
+    // 演目名に < や & が入っていてもタグとして解釈されることはない
     function setMascotText(text) {
       const bubble = $("mascotBubble");
       if (!bubble || bubble.textContent === text) return;
-      if (!bubble.textContent) { bubble.textContent = text; return; }
+      if (!bubble.textContent) { bubble.innerHTML = bubbleHtml(text); return; }
       bubble.classList.add("is-swapping");
       setTimeout(() => {
-        bubble.textContent = text;
+        bubble.innerHTML = bubbleHtml(text);
         bubble.classList.remove("is-swapping");
       }, 180);
     }
