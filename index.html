@@ -647,6 +647,10 @@
        影はぼかさず 1 段ずらすだけ（drop-shadow なら角の階段としっぽの形にも沿う）。 */
     #mascotBubble {
       position: relative;
+      /* p { text-wrap: pretty } は最終行の孤立語を避けるだけで、短い吹き出しでは
+         行の長さがそろわず不格好になる（実例: 「いまは「公開授／業」の時間だよ」）。
+         見出しと同じ balance に上書きし、2〜3 行の短文を均等な行幅に整える。 */
+      text-wrap: balance;
       font-family: "DotGothic16", "Zen Kaku Gothic New", monospace;
       background: none;
       border-radius: 0;
