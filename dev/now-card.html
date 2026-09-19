@@ -1,0 +1,182 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>進行中カードの演出 確認</title>
+<style>
+:root{--brand:#ffd900;--brand-fg:#1e293b;--brand-2:color-mix(in srgb,var(--brand) 68%,black)}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#f8fafc;color:#1e293b}
+.wrap{max-width:42rem;margin:0 auto;padding:16px 16px 64px}
+h1{font-size:16px;margin:0 0 4px}
+p.lead{font-size:12px;color:#64748b;margin:0 0 16px;line-height:1.7}
+h2{font-size:13px;margin:22px 0 8px;color:#475569}
+.bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.bar button{font:inherit;font-size:12px;padding:4px 10px;border:1px solid #cbd5e1;background:#fff;border-radius:9999px;cursor:pointer}
+.bar button[aria-pressed="true"]{background:#1e293b;color:#fff;border-color:#1e293b}
+.swatch{width:16px;height:16px;border-radius:4px;border:1px solid rgba(15,23,42,.15);display:inline-block;vertical-align:-3px;margin-right:4px}
+.rail{position:relative;padding-left:18px}
+.rail>.line{position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:#e2e8f0;border-radius:9999px}
+.row{position:relative;margin-bottom:10px}
+.now-dot{position:absolute;left:-18px;top:14px;width:12px;height:12px;border-radius:9999px;
+  box-shadow:0 0 0 4px #f8fafc;background-image:linear-gradient(135deg,var(--brand),var(--brand-2))}
+.row.on .now-dot{box-shadow:0 0 0 4px color-mix(in srgb,var(--brand) 30%,white)}
+
+/* ===== ここから index.html の該当 CSS を写したもの（変えたら写し直す） ===== */
+.session-card{transition:transform .12s ease,background-color .2s ease}
+.session-card:active{transform:scale(.985)}
+@keyframes nowGlow{from{opacity:.7;transform:scale(.96)}to{opacity:0;transform:scale(1.08)}}
+.session-card.is-now{position:relative;background:color-mix(in srgb,var(--brand) 7%,white)}
+.session-card.is-now::after{content:"";position:absolute;inset:-3px;
+  border:2px solid color-mix(in srgb,var(--brand) 58%,transparent);border-radius:inherit;
+  pointer-events:none;animation:nowGlow .7s ease-out both}
+@keyframes nowSpin{to{transform:translate(-50%,-50%) rotate(1turn)}}
+@supports ((-webkit-mask-composite:xor) or (mask-composite:exclude)){
+  .session-card.is-now>.now-ring{position:absolute;inset:0;border-radius:inherit;padding:2px;
+    overflow:hidden;pointer-events:none;
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;
+    mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    mask-composite:exclude}
+  .session-card.is-now>.now-ring>i{position:absolute;top:50%;left:50%;width:140%;aspect-ratio:1;
+    transform:translate(-50%,-50%) rotate(0turn);
+    background:conic-gradient(from 0deg,
+      transparent 0deg 50deg,
+      rgba(255,255,255,.40) 85deg,
+      transparent 120deg,
+      rgba(0,0,0,.34) 205deg,
+      transparent 270deg 360deg);
+    animation:nowSpin 7s linear infinite;will-change:transform}}
+html.no-glass .session-card.is-now>.now-ring{display:none}
+@keyframes nowPing{0%{opacity:.5;transform:scale(1)}70%,100%{opacity:0;transform:scale(2.6)}}
+.now-live-dot{position:relative}
+.now-live-dot::after{content:"";position:absolute;inset:0;border-radius:9999px;background:var(--brand);
+  animation:nowPing 2.4s cubic-bezier(0,0,.2,1) infinite;pointer-events:none}
+.now-fill{transform-origin:left center;transition:transform .6s ease}
+.grad-pill{background-image:linear-gradient(135deg,var(--brand),var(--brand-2));color:var(--brand-fg)}
+@media (prefers-reduced-motion: reduce){
+  .session-card.is-now::after{animation:none}
+  .session-card.is-now>.now-ring{display:none}
+  .now-live-dot::after{animation:none;opacity:0}
+  .session-card{transition:none}
+  .now-fill{transition:none}}
+
+/* ===== 使っている Tailwind ユーティリティの手写し ===== */
+.card{background:#fff;border:1px solid rgba(226,232,240,.8);border-radius:1rem;padding:.875rem;
+  box-shadow:0 1px 3px 0 rgb(15 23 42 / .05)}
+.card.on{border-width:2px;border-color:var(--brand);
+  box-shadow:0 8px 24px -8px color-mix(in srgb,var(--brand) 55%,transparent)}
+.head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.chip{display:inline-block;font-size:11px;font-weight:900;border-radius:9999px;padding:.25rem .75rem;
+  color:color-mix(in srgb,var(--brand) 48%,black);background:color-mix(in srgb,var(--brand) 8%,white);
+  border:1px solid color-mix(in srgb,var(--brand) 30%,white)}
+.card.on .chip{border-color:transparent;background-image:linear-gradient(135deg,var(--brand),var(--brand-2));
+  color:var(--brand-fg);background-color:transparent}
+.range{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;color:#94a3b8}
+.title{font-size:13.5px;font-weight:700;margin:.6rem 0 0;line-height:1.6}
+.sub{font-size:12px;color:#64748b;margin:.25rem 0 0;line-height:1.6}
+.now-badge .lbl{display:flex;align-items:center;gap:.375rem;font-size:11px;font-weight:900;
+  color:color-mix(in srgb,var(--brand) 48%,black);margin-bottom:.25rem}
+.now-badge .lbl>span:first-child{width:.5rem;height:.5rem;border-radius:9999px;background:var(--brand)}
+.track{height:4px;background:color-mix(in srgb,var(--brand) 16%,white);border-radius:9999px;
+  margin-bottom:.5rem;overflow:hidden}
+.track>div{height:100%;width:100%;border-radius:9999px}
+</style></head><body>
+<div class="wrap">
+  <h1>進行中カードの演出</h1>
+  <p class="lead">
+    回る縁（<code>.now-ring</code>）と「進行中」ドットの波（<code>.now-live-dot</code>）を、
+    ブランド色を変えながら確認するためのページ。Tailwind CDN 無しで動くよう、該当ユーティリティは手写ししてある
+    （<code>index.html</code> の CSS を変えたらここも写し直すこと）。<br>
+    ブランド色は <code>?brand=%23005860</code> のようにクエリでも指定できる。
+  </p>
+
+  <div class="bar" id="brandBar"></div>
+  <div class="bar">
+    <button id="toggleGlass" aria-pressed="false">html.no-glass（非力な端末）</button>
+    <button id="toggleDark">濃い背景に置く</button>
+    <span style="font-size:11px;color:#64748b">※ <code>prefers-reduced-motion</code> は OS 側の設定で確認</span>
+  </div>
+
+  <h2>進行中（縁が回る・波が出る）と、その前後のカード</h2>
+  <div class="rail">
+    <div class="line"></div>
+
+    <div class="row">
+      <span class="now-dot"></span>
+      <div class="session-card card">
+        <div class="head"><span class="chip">公開授業</span><span class="range">09:00–09:50</span></div>
+        <p class="title">創造国語公開授業 ① 国語・5年「物語の結末を創造する」</p>
+        <p class="sub">終了したセッション（強調なし）</p>
+      </div>
+    </div>
+
+    <div class="row on">
+      <span class="now-dot"></span>
+      <div class="session-card card on is-now">
+        <span class="now-ring" aria-hidden="true"><i></i></span>
+        <div class="now-badge">
+          <div class="lbl"><span class="now-live-dot"></span>進行中<span> · あと15分</span></div>
+          <div class="track"><div class="grad-pill now-fill" id="fill" style="transform:scaleX(.62)"></div></div>
+        </div>
+        <div class="head"><span class="chip">公開授業</span><span class="range">10:00–11:10</span></div>
+        <p class="title">創造社会公開授業 ② 社会・6年「子どもが社会に一歩近づく」</p>
+        <p class="sub">いま進行中のセッション。縁の光が 7 秒で一周する。</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <span class="now-dot"></span>
+      <div class="session-card card">
+        <div class="head"><span class="chip">ワークショップ</span><span class="range">13:30–14:40</span></div>
+        <p class="title">創造社会ワークショップ ⑤</p>
+        <p class="sub">これからのセッション（強調なし）</p>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+// 実イベントで使っているブランド色。明るい色でも縁が読めるかをここで見る
+const BRANDS = [
+  ["既定の黄", "#ffd900"], ["amber", "#f59e0b"], ["teal", "#005860"],
+  ["navy", "#001f43"], ["coral", "#e2725b"], ["violet", "#6d28d9"],
+];
+const qs = new URLSearchParams(location.search);
+const bar = document.getElementById("brandBar");
+function setBrand(hex) {
+  document.documentElement.style.setProperty("--brand", hex);
+  // index.html の updateBrandFg() と同じ考え方（輝度で白/濃色を選ぶ）
+  const n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const lin = (c) => (c <= .03928 ? c / 12.92 : Math.pow((c + .055) / 1.055, 2.4));
+  const L = .2126 * lin(r) + .7152 * lin(g) + .0722 * lin(b);
+  document.documentElement.style.setProperty("--brand-fg", L > .55 ? "#1e293b" : "#ffffff");
+  [...bar.children].forEach((b2) => b2.setAttribute("aria-pressed", String(b2.dataset.hex === hex)));
+}
+BRANDS.forEach(([name, hex]) => {
+  const b = document.createElement("button");
+  b.dataset.hex = hex;
+  b.innerHTML = `<span class="swatch" style="background:${hex}"></span>${name}`;
+  b.onclick = () => setBrand(hex);
+  bar.appendChild(b);
+});
+setBrand(qs.get("brand") || BRANDS[0][1]);
+
+const tg = document.getElementById("toggleGlass");
+tg.onclick = () => {
+  const on = document.documentElement.classList.toggle("no-glass");
+  tg.setAttribute("aria-pressed", String(on));
+};
+let dark = false;
+document.getElementById("toggleDark").onclick = () => {
+  dark = !dark;
+  document.body.style.background = dark ? "#0f172a" : "#f8fafc";
+  document.querySelectorAll(".now-dot").forEach((d) => {
+    d.style.boxShadow = `0 0 0 4px ${dark ? "#0f172a" : "#f8fafc"}`;
+  });
+};
+// 進行バーが scaleX で滑らかに伸びるのを見る
+let pct = .62;
+setInterval(() => {
+  pct = pct >= .98 ? .05 : pct + .06;
+  document.getElementById("fill").style.transform = `scaleX(${pct.toFixed(3)})`;
+}, 2000);
+</script>
+</body></html>

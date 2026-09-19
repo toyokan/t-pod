@@ -386,12 +386,19 @@
        「リング状に切り抜いた器（.now-ring）＋その中で回る大きな四角（i）」に分け、
        **回すのは transform だけ**にする（GPU 合成・ビルド工程なしを維持）。
        器は padding + mask の xor 合成でカード枠と同じ 2px の帯だけを残すので、
-       下の border-brand-500 の上に光だけが重なる（枠が消える瞬間が無い）。
+       下の border-brand-500 の上に光だけが重なる。
+       **光はブランド色を混ぜた不透明な色ではなく、白と黒の半透明で作る**——
+       color-mix で作った色は枠を「置き換える」ので、一周ごとに縁が途切れて見えた
+       （navy #001f43 で実測: 枠そのままの 15.7:1 が光沢のピークで 1.8:1 まで落ちる）。
+       半透明なら下の枠の色が必ず残る。**濃さは手計算で決めず、合成後の色を地（#f8fafc）と突き合わせて測る**——
+       白 .40 / 黒 .34 での光沢のピークは 黄 1.18 / amber 1.52 / coral 1.85 / violet 2.95 / teal 2.97 /
+       navy 4.28（いずれも枠そのままから落ちるが消えはしない）。**白をこれ以上濃くしない**（.70 だと navy が 1.8、
+       黄が 1.07 まで落ちて縁が切れて見える）。陰のほうは逆に枠を濃くするので明るい色ほど効く
+       （黄 1.32→3.04、amber 2.05→4.44）＝**明るい brandColor では陰が、暗い brandColor では光沢が動きを伝える**。
        mask 非対応だとベタ塗りの板がカードを覆うため、@supports で必ず囲う。 */
     @keyframes nowSpin { to { transform: translate(-50%, -50%) rotate(1turn); } }
     @supports ((-webkit-mask-composite: xor) or (mask-composite: exclude)) {
       .session-card.is-now > .now-ring {
-        content: "";
         position: absolute;
         inset: 0;
         border-radius: inherit;
@@ -413,10 +420,11 @@
         aspect-ratio: 1;
         transform: translate(-50%, -50%) rotate(0turn);
         background: conic-gradient(from 0deg,
-          transparent 0deg 70deg,
-          color-mix(in srgb, white 45%, var(--brand)) 140deg,
-          color-mix(in srgb, var(--brand) 62%, black) 210deg,
-          transparent 280deg 360deg);
+          transparent 0deg 50deg,
+          rgba(255, 255, 255, .40) 85deg,
+          transparent 120deg,
+          rgba(0, 0, 0, .34) 205deg,
+          transparent 270deg 360deg);
         animation: nowSpin 7s linear infinite;
         will-change: transform;
       }
