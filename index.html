@@ -432,7 +432,12 @@
     @supports ((-webkit-mask-composite: xor) or (mask-composite: exclude)) {
       .session-card.is-now > .now-ring {
         position: absolute;
-        inset: 0;
+        /* **inset は 0 ではなく -2px**——絶対配置の基準はカードの border box ではなく
+           **padding box**（＝枠の内側）なので、0 にすると枠の「上」ではなく「内側」に
+           もう 1 本 2px の帯が出て罫線が二重に見える。さらに border-radius: inherit は
+           カードの外側の半径（16px）なのに、padding box の角は 16-2=14px なので
+           左右下の角でアールが食い違ってズレる。枠幅ぶん外へ広げて border box に合わせる。 */
+        inset: -2px;
         border-radius: inherit;
         padding: 2px;
         overflow: hidden;
@@ -683,7 +688,10 @@
         scroll-behavior: auto !important;
       }
       .animate-in, .animate-pulse, .animate-out,
-      .view-in-right, .view-in-left, .pop-in, .session-card.is-now::after { animation: none; }
+      .view-in-right, .view-in-left, .pop-in { animation: none; }
+      /* 一度だけ光る枠は animation: none で止めると opacity 1 のまま残り、
+         カードの 3px 外側にもう 1 本の輪が出たままになる（＝罫線が二重）。消すこと。 */
+      .session-card.is-now::after { display: none; }
       .session-card.is-now > .now-ring { display: none; }
       .now-live-dot::after { animation: none; opacity: 0; }
       #skeleton > div::after { animation: none; opacity: 0; }
