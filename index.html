@@ -2273,13 +2273,22 @@
     // 自己紹介など、数秒だけ文言を固定したいときの期限（ミリ秒。7 秒タイマーがこの間だけ休む）
     let mascotPinUntil = 0;
 
-    // 「…」で囲んだ演目名のうち、1 行に収まる長さのものだけ「語中で割らない」スパンに包む。
-    // 長い題は包まない——包むと題そのものが丸ごと次の行へ送られ、「いまは」だけが 1 行目に
-    // 取り残される（実測。結局は題の途中で折り返すので、見た目だけが悪くなる）。
-    const BUBBLE_NOBREAK_MAX = 10;
+    // 「…」で囲んだ演目名を「語中で割らない」スパンに包む。包まれた題は 1 行に収まらないとき
+    // 丸ごと次の行へ送られるので、そのぶん広い幅を貰えて語が無傷のまま収まりやすくなる。
+    // 上限は実データに合わせた 12 文字——`events/*.json` の `category` は最長 11 文字
+    // （「パネルディスカッション」等）なので全部が対象に入る。**これ以上長い題は包まない**：
+    // 次の行へ送っても収まらず、「いまは」だけが 1 行目に残ったうえで結局は題の途中で折り返す。
+    // 収まらない場合は `.nb` の overflow-wrap が改行を許すので、枠の外へはみ出すことはない。
+    const BUBBLE_NOBREAK_MAX = 12;
     function bubbleHtml(text) {
-      return escapeHtml(text).replace(/「[^」]*」/g, (m) =>
-        m.length - 2 <= BUBBLE_NOBREAK_MAX ? `<span class="nb">${m}</span>` : m);
+      // 捕獲グループで分けると奇数番目が「…」の部分。長さは escape 前の生テキストで数える
+      // （`&` が `&amp;` に膨らむと 5 文字と数えてしまい、本来包める題が漏れるため）
+      return String(text == null ? "" : text)
+        .split(/(「[^」]*」)/)
+        .map((part, i) => (i % 2 === 1 && part.length - 2 <= BUBBLE_NOBREAK_MAX
+          ? `<span class="nb">${escapeHtml(part)}</span>`
+          : escapeHtml(part)))
+        .join("");
     }
 
     // 文言差し替えは opacity のフェードを挟む。escapeHtml を通してから組み立てるので、
