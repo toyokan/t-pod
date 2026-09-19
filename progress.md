@@ -1343,3 +1343,28 @@ multiple sessions）を調べた。中身はワークショップ会場の階数
 **確認したこと**: 各PRで `python3 -m json.tool events/2026-souzou-kokugo-shakai-1.json`・`python3 scripts/validate_events.py`
 （エラー0件、既存警告2件のみ）を実行。`tests/test_shell_source.py`・`tests/test_fuseneko.py` 通過を確認。
 GitHub Actions の `validate` チェックはPR #98〜#100すべてで成功、4件とも `napple02` により承認・マージ済み。
+
+### 2026-09-19 — 進行中カードの演出を追加（回る縁のグラデーション＋「進行中」ドットの波）
+
+タイムテーブルの「進行中」カードに、ゆっくり回る縁の光と、進行中ドットの広がる波を足した（`index.html` / `CACHE_VERSION` v122→v123）。
+
+1. **回る縁（`.now-ring`）**: `conic-gradient(from var(--angle))` を `@property` で回すと縁を毎フレーム塗り直すため採らず、
+   **リング状に切り抜いた器＋その中で回る大きな四角**に分け、動かすのは `transform: rotate()` だけにした（CLAUDE.md の
+   「transform / opacity のみ」を維持）。器は `padding` ＋ `mask` の xor 合成でカード枠と同じ 2px の帯だけを残すので、
+   下の `border-brand-500` の上に光だけが重なり、**枠が消える瞬間が無い**（進行中の目印は常に読める）。
+   中の四角は幅 140% の正方形——カードの対角線より大きいので回しても角が覗かず、横長にしないことで光の進みが一定に見える。
+   周期 7 秒。ボトムナビのリングと同じく `@supports ((-webkit-mask-composite: xor) or (mask-composite: exclude))` で囲った
+   （非対応だと mask が効かずベタ塗りの板がカードを覆う）。
+2. **「進行中」ドットの波（`.now-live-dot::after`）**: 外側へ広がって消える波を 1 枚だけ重ねる（`scale` ＋ `opacity`）。周期 2.4 秒。
+3. **取りこぼし対策**: `prefers-reduced-motion` ブロックに両方を追記（リングは `display:none`、波は `animation:none; opacity:0`）。
+   非力な端末（`html.no-glass`）でもリングは回さない——静止した枠だけで「進行中」は伝わる。
+4. **器は作り直さない**: リングは DOM の実体が要るので `setNowRing()` が付け外しするが、既にあるときは触らない。
+   作り直すと 1 分ごとの `updateNowMarker()` のたびに回転が先頭へ戻ってしまう。
+
+**確認したこと**: Chromium（Playwright・390×844・Asia/Tokyo・時刻を 2026-09-19 11:05 に固定）で開催中イベント
+`2026-souzou-kokugo-shakai-1` を描画し、`.now-ring` の生成・`mask-composite: exclude`・`animation-name: nowSpin` /
+`nowPing` を実測。1.2 秒おきのスクリーンショットで光の位置が回っていることを確認した（このサンドボックスは
+Tailwind Play CDN へ出られないため、カードの角丸・枠・白地は確認用に手写ししてから撮影）。
+光は当初 `white 72%` で混ぜていたが縁が消えたように見えたため 45% に下げた。
+`tests/test_shell_source.py` / `tests/test_fuseneko.py` 通過（`test_event_tools.py` の 2 件は openpyxl 未導入による既存のエラー）。
+

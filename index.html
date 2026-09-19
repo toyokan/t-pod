@@ -381,6 +381,60 @@
       pointer-events: none;
       animation: nowGlow .7s ease-out both;
     }
+    /* 進行中の縁をゆっくり回る光にする。
+       角度を持つ conic-gradient を CSS 変数で回すと毎フレーム塗り直しになるので、
+       「リング状に切り抜いた器（.now-ring）＋その中で回る大きな四角（i）」に分け、
+       **回すのは transform だけ**にする（GPU 合成・ビルド工程なしを維持）。
+       器は padding + mask の xor 合成でカード枠と同じ 2px の帯だけを残すので、
+       下の border-brand-500 の上に光だけが重なる（枠が消える瞬間が無い）。
+       mask 非対応だとベタ塗りの板がカードを覆うため、@supports で必ず囲う。 */
+    @keyframes nowSpin { to { transform: translate(-50%, -50%) rotate(1turn); } }
+    @supports ((-webkit-mask-composite: xor) or (mask-composite: exclude)) {
+      .session-card.is-now > .now-ring {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 2px;
+        overflow: hidden;
+        pointer-events: none;
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+      }
+      /* 幅の 140% の正方形＝カードの対角線より大きいので、回しても角が覗かない。
+         正方形にするのは角速度を一定に見せるため（横長だと光の進みが速い所と遅い所が出る） */
+      .session-card.is-now > .now-ring > i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 140%;
+        aspect-ratio: 1;
+        transform: translate(-50%, -50%) rotate(0turn);
+        background: conic-gradient(from 0deg,
+          transparent 0deg 70deg,
+          color-mix(in srgb, white 45%, var(--brand)) 140deg,
+          color-mix(in srgb, var(--brand) 62%, black) 210deg,
+          transparent 280deg 360deg);
+        animation: nowSpin 7s linear infinite;
+        will-change: transform;
+      }
+    }
+    /* 非力な端末では回さない（静止した枠だけで十分に「進行中」と分かる） */
+    html.no-glass .session-card.is-now > .now-ring { display: none; }
+    /* 「進行中」の点：外側へ広がって消える波を 1 枚重ねる（transform/opacity のみ） */
+    @keyframes nowPing { 0% { opacity: .5; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(2.6); } }
+    .now-live-dot { position: relative; }
+    .now-live-dot::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      background: var(--brand);
+      animation: nowPing 2.4s cubic-bezier(0, 0, .2, 1) infinite;
+      pointer-events: none;
+    }
     /* スケルトンの shimmer：各バーに左→右へ光を流す（translateX のみ・GPU 合成） */
     @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
     #skeleton > div { position: relative; overflow: hidden; }
@@ -590,6 +644,8 @@
       }
       .animate-in, .animate-pulse, .animate-out,
       .view-in-right, .view-in-left, .pop-in, .session-card.is-now::after { animation: none; }
+      .session-card.is-now > .now-ring { display: none; }
+      .now-live-dot::after { animation: none; opacity: 0; }
       #skeleton > div::after { animation: none; opacity: 0; }
       .session-card { transition: none; }
       .session-card:active,
@@ -1883,6 +1939,17 @@
       return now.getHours() * 60 + now.getMinutes() >= stMin;
     }
 
+    // 回る光の器（.now-ring）を付け外しする。CSS の :where では作れない実体が要るので DOM に置くが、
+    // 既にあるときは触らない——作り直すと 1 分ごとの更新のたびに回転が先頭へ戻る。
+    function setNowRing(card, on) {
+      const ring = card.querySelector(":scope > .now-ring");
+      if (on) {
+        if (!ring) card.insertAdjacentHTML("afterbegin", '<span class="now-ring" aria-hidden="true"><i></i></span>');
+      } else if (ring) {
+        ring.remove();
+      }
+    }
+
     // 「現在」ハイライト：進行中カードに枠＋進行中バッジ＋経過バー＋残り時間（再描画なし）
     function updateNowMarker(allowScroll) {
       if (!currentRows.length) return;
@@ -1927,6 +1994,7 @@
           if (dotEl) dotEl.classList.add("ring-brand-200");
           if (ongoing && isCard) {
             card.classList.add("is-now");
+            setNowRing(card, true);
             const remain = endMin !== null ? Math.max(0, endMin - nowMin) : null;
             const pct = (stMin !== null && endMin !== null && endMin > stMin)
               ? Math.min(100, Math.max(0, Math.round(((nowMin - stMin) / (endMin - stMin)) * 100))) : 0;
@@ -1948,7 +2016,7 @@
             const html =
               `<div class="now-badge">` +
               `<div class="flex items-center gap-1.5 text-[11px] font-black text-brand-800 mb-1">` +
-              `<span class="w-2 h-2 rounded-full bg-brand-500"></span>進行中` +
+              `<span class="now-live-dot w-2 h-2 rounded-full bg-brand-500"></span>進行中` +
               `<span class="now-remain">${remain !== null ? ` · あと${remain}分` : ""}</span></div>` +
               `<div class="now-round inline-flex items-center text-[11px] font-black text-brand-800 bg-brand-50 border border-brand-200 rounded-full px-2.5 py-0.5 mb-1.5${roundLabel ? "" : " hidden"}">${roundLabel ? `ただいま ${escapeHtml(roundLabel)}` : ""}</div>` +
               (endMin !== null ? `<div class="h-1 bg-brand-100 rounded-full mb-2 overflow-hidden"><div class="h-full w-full grad-pill rounded-full now-fill" style="transform:scaleX(${scaleX})"></div></div>` : "") +
@@ -1958,6 +2026,7 @@
             }
           } else if (!ongoing) {
             card.classList.remove("is-now");
+            setNowRing(card, false);
             const slot = card.querySelector(".now-slot");
             if (slot) slot.innerHTML = "";
             if (badge) badge.remove();
@@ -1965,6 +2034,7 @@
         } else {
           if (isCard) {
             card.classList.remove("is-now");
+            setNowRing(card, false);
             card.classList.remove("border-2", "border-brand-500", "shadow-now");
             card.classList.add("border", "border-slate-200/80");
             const chip = card.querySelector(".cat-chip");
