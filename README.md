@@ -4,12 +4,14 @@
 
 教育イベント・研究会向けのタイムテーブル PWA です。参加者はスマートフォンから、プログラム・配布資料・関連書籍を閲覧できます。
 
+🔗 https://events.toyokan.co.jp/ （参加者には `?id=<イベントID>` 付きのURLを配布します）
+
 ## 特徴
 
 - 静的サイト（HTML / Vanilla JS / Tailwind CSS Play CDN）として GitHub Pages で公開
 - `?id=<イベントID>` で複数イベントを切り替え
 - UI とイベントデータを分離し、新規イベントは JSON の追加だけで運用
-- Service Worker の Network First キャッシュによるオフライン対応
+- 会場の「つながっているが極端に遅い」回線を前提にした Service Worker（経路ごとにキャッシュ戦略を切替）とオフライン表示
 - イベント別のブランド色、PWA 名・アイコン（実体 `.webmanifest` 推奨）、会場マップに対応
 - TIMETABLE / FILES / BOOKS の3画面と、スマートフォン向けのスワイプ操作
 - 当日は該当する日付タブを初期表示し、現在の進行位置へ自動スクロール
@@ -32,10 +34,10 @@
 
 ## 新しいイベントを追加する
 
+着手前に、似た名称（全国算数／算数サマーフェス）や年度違いの取り違えを避けるため、`python scripts/find_event.py "<キーワード>"` で id・ファイルパスを確定します（`--current` / `--upcoming` で今日基準の現行イベントも確認可）。
+
 1. `events/<id>.json` を作成する。`<id>` は半角英数・ハイフン・アンダースコアのみ。**ルートの `id` フィールドをファイル名と同じ値にする**（既存を複製した場合は書き換え忘れに注意。ファイル名との不一致は `scripts/validate_events.py` がエラー検出）。
 2. `events.json` の `events[]` に開発・検証用の索引を1件追加する。
-
-> 似た名称（全国算数／算数サマーフェス）や年度違いの取り違えを避けるため、編集対象は `python scripts/find_event.py "<キーワード>"` で id・ファイルパスを確定してから着手できます（`--current` / `--upcoming` で今日基準の現行イベントも確認可）。
 3. イベント別マニフェスト（`events/<id>.webmanifest`）とアイコン、会場マップを追加する。マニフェストは data URI 動的生成にフォールバックできるが、iOS では `scope` の扱いが不安定になり外部リンクから PWA へ戻りにくくなるため、**実体ファイルの用意を推奨**（`eventInfo.manifestPath` で参照）。
 4. `/?id=<id>` をローカルで確認し、チラシ等の QR コードに設定する。
 
@@ -58,9 +60,25 @@ Excel取込ではURL台帳も自動更新されます。`events.json` を手動�
 python scripts/generate_event_url_index.py
 ```
 
-第37回全国算数授業研究大会の「事後アンケート（参加者全員）」と「当日資料一式（PDF）」は、公開URLの確定後に追加する保留項目です。仮URLのまま公開しない運用とします。
+## データの扱い
 
-## ローカル確認
+- イベント情報は `events/<id>.json` に置き、**サイトの利用者もそのまま取得できます**。公開承認済みの情報（問い合わせ先を含む）だけを記載し、未発表のイベントを先行して入れません。
+- 参加者の個人情報は収集しません。フォームや配布資料は外部サービス（Google フォーム・Google ドライブ等）へのリンクとし、PWA 内では処理しません。
+- 端末に保存するのは、表示用のキャッシュ（Service Worker / Cache API）と表示設定（`localStorage` の `t-pod:*`）だけです。アクセス解析は入れていません。
+- 外部から読み込むもの: Tailwind CSS Play CDN（`cdn.tailwindcss.com`）、Google Fonts（Zen Kaku Gothic New・DotGothic16）、書影画像（東洋館出版社サイト・Amazon の画像配信）。
+- 参加者向けページは `noindex` を指定し、ルートURLからイベント一覧を公開しません。ただしリポジトリは公開なので、URL を知らなくても JSON は GitHub 上で閲覧できます。
+
+## 制限事項
+
+- LINE 内ブラウザでは「ホーム画面に追加」ができません（上記の `openExternalBrowser=1` で回避）。
+- 初回表示は Tailwind Play CDN の読み込みと実行時生成に最も時間がかかります（ビルド工程なしを優先した結果）。
+- `file://` で直接開くと動きません（下記「開発」を参照）。
+
+## 開発
+
+ビルド工程はありません。`main` の内容を GitHub Pages がそのまま配信します。シェル（HTML/JS/アセット）を変えたら `sw.js` の `CACHE_VERSION` を上げてください。
+
+### ローカル確認
 
 `file://` では fetch と Service Worker が動かないため、静的サーバを使用します。
 
@@ -136,9 +154,9 @@ python3 scripts/build_fuseneko.py --preview FN_HAPPY   # 表情を重ねて描�
 
 ## デプロイ
 
-GitHub の **Settings → Pages** で Source を `Deploy from a branch`、Branch を `main` / `/ (root)` に設定します。パスは相対指定のためサブパス配信にも対応します。
+GitHub の **Settings → Pages** で Source を `Deploy from a branch`、Branch を `main` / `/ (root)` に設定しています。独自ドメイン `events.toyokan.co.jp` は `CNAME` ファイルと DNS で割り当てています（`CNAME` を消すと公開URLが変わるので注意）。パスは相対指定のため、サブパス配信（`/t-pod/`）でも動きます。
 
-## License
+## ライセンス
 
 Proprietary（All rights reserved）。株式会社東洋館出版社に帰属し、オープンソースライセンスは付与していません。詳細は [LICENSE](LICENSE) を参照してください。
 
