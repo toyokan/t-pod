@@ -1,5 +1,7 @@
 # t-pod
 
+> **株式会社東洋館出版社の社内資産です。** GitHub Pages で公開するためにリポジトリを公開していますが、オープンソースではありません。無断での複製・改変・転用はお断りします（[LICENSE](LICENSE)）。外部からの Issue・Pull Request は受け付けていません。
+
 教育イベント・研究会向けのタイムテーブル PWA です。参加者はスマートフォンから、プログラム・配布資料・関連書籍を閲覧できます。
 
 ## 特徴
@@ -138,4 +140,6 @@ GitHub の **Settings → Pages** で Source を `Deploy from a branch`、Branch
 
 ## License
 
-[LICENSE](LICENSE) を参照してください。
+Proprietary（All rights reserved）。株式会社東洋館出版社に帰属し、オープンソースライセンスは付与していません。詳細は [LICENSE](LICENSE) を参照してください。
+
+リポジトリを公開していても、ここに置いたファイルと Git 履歴はすべて外部から閲覧できます。公開してよい情報だけをコミットしてください（判断基準は [公開範囲の検討メモ](docs/repository-visibility-review.md)）。
