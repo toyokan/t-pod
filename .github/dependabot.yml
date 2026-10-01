@@ -1,0 +1,19 @@
+# 依存の更新提案。PR とビルドを増やしすぎないよう、月1回・種類ごとに1つの PR にまとめる。
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
+    open-pull-requests-limit: 2
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: monthly
+    groups:
+      pip:
+        patterns: ["*"]
+    open-pull-requests-limit: 2
