@@ -33,6 +33,8 @@ EVENTS_DIR = ROOT / "events"
 ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 TIME_RE = re.compile(r"^(?:[01]?\d|2[0-3]):[0-5]\d$")
+# 会場IDが参加者向けの表記ではなく内部コード（英小文字始まりの ASCII のみ。gym / r1-1 など）か
+ROOM_CODE_RE = re.compile(r"[a-z][a-z0-9_-]*")
 ROOM_COLORS = {"blue", "blueDeep", "green", "greenDeep", "orange", "orangeDeep", "purple", "purpleDeep", "yellow", "yellowDeep"}
 NOTICE_LEVELS = {"important", "info"}
 WEEKDAYS = ("月", "火", "水", "木", "金", "土", "日")
@@ -207,6 +209,13 @@ def validate_event_data(
         if room_id in room_ids:
             validator.error(f"{loc}.id", "会場IDが重複しています")
         room_ids.add(room_id)
+        # タイムテーブルの会場チップには name ではなく id がそのまま出る（items[].room を表示するため）。
+        # `gym`・`r1-1` のような内部コードにすると参加者の画面に記号が出る（2026-10-04 志算研で実際に起きた）。
+        if room_id and ROOM_CODE_RE.fullmatch(room_id):
+            validator.warn(
+                f"{loc}.id",
+                f"「{room_id}」がそのまま会場チップに表示されます。参加者に見せる表記（例: 1階・6-1教室／体育館）にしてください",
+            )
         validator.require_str(room, "name", loc)
         color = validator.require_str(room, "color", loc)
         if color and color not in ROOM_COLORS:

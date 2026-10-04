@@ -146,6 +146,7 @@
 
 ## 新しいイベントの追加手順（コードは触らない）
 1. `events/<新id>.json` を作成（既存を複製して中身を書き換え／企画書テキストから生成）。`<新id>` は半角英数・ハイフン・アンダースコアのみ。**複製時はルートの `id` を必ず新 id に書き換える**（`events/<id>.json` のファイル名・`events.json` の id と一致必須。ズレは `scripts/validate_events.py` が ERROR で検出）。
+   **`rooms[].id` は会場チップにそのまま表示される**（`name` は出ない）ので、`gym`・`r1-1` のような内部コードではなく参加者に見せる表記（例: `1階・6-1教室`／`体育館`）にする。内部コードは `validate_events.py` が WARN で知らせる。
 2. `events.json` の `events[]` に1エントリ追記（`id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate`）。
 3. **会場マップ（イベント別・任意）**: `eventInfo.venue.mapImage` で指定。会場はイベント毎に異なるため以下を使い分ける。
    - リポジトリ内の図: `assets/venue-map-<id>.svg`（または `.png` / `.jpg`）として置き、`mapImage` に相対パス指定（アイコンの `icon-<id>.svg` と同じイベント別命名で統一）。

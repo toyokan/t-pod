@@ -1650,3 +1650,14 @@ Codex 側で選べる版に依存するため据え置いた。
 **取り入れなかったもの**: `CHANGELOG.md`／Releases（t-pod は `progress.md` が同じ役目を持つ）、Issue テンプレート
 （外部からの Issue を受け付けない運用）、秘密情報スキャン（API キー等を扱わない）、`paths-ignore`（*.md だけの
 変更でも `_config.yml` の検査を走らせたい）。
+
+### 追加（同日）
+
+- **URL 台帳の扱い**: 台帳そのもの（`docs/event-url-index.md`）はリポジトリに残す（公開リポジトリなので隠しきれず、
+  運用上も必要）。ただし **README のような入口の浅い階層からは直接リンクしない**方針にし、README の 2 箇所の
+  リンクを「`docs/` 配下・生成コマンド」の案内に置き換えた。公開サイト（Pages）からは引き続き `_config.yml` で外す。
+- **会場IDが内部コードのとき `validate_events.py` が WARN を出す**（英小文字始まりの ASCII のみ＝`gym`・`r1-1` など）。
+  会場チップには `name` ではなく `id` が出るため、志算研で最初に `r1-1`／`gym` と振って直す手間がかかった。
+  現行 7 イベントは警告 0 件。テストで「内部コード 8 件→8 警告／表示用の表記→0 件」を固定した。
+- シバン付きのスクリプト（`scripts/*.py`・`setup_codex_cloud.sh`・`template/make_template.py`）に実行権限を付けた
+  （`./scripts/find_event.py …` で直接実行できるように）。

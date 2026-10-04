@@ -28,7 +28,7 @@
 | `/` | LINEまたはQRコードからのアクセス案内と、東洋館出版社公式LINEの友だち追加ボタン |
 | `/?id=2026-zensanken-37` | 指定イベントのプログラム・資料・書籍 |
 
-作成済みイベントの本番URLは、[開発者向けイベントURL台帳](docs/event-url-index.md)で確認できます。
+作成済みイベントの本番URLは、開発者向けのURL台帳（`docs/` 配下。`python scripts/generate_event_url_index.py` で生成）にまとめています。README からは直接リンクしません。
 
 **LINE公式アカウントのキーワード応答に貼るリンクは、台帳の「LINE配信用URL」列（`?id=<id>&openExternalBrowser=1`）を使ってください。** LINEが送ったリンクはそのままだとLINE内ブラウザで開き、そこではAndroidの「ホーム画面に追加」プロンプトが発火せず、iOSの共有シートにも「ホーム画面に追加」が出ません。`openExternalBrowser=1` を付けると端末のChrome / Safariで直接開くため、追加の導線がそのまま機能します。付け忘れてLINE内ブラウザで開かれた場合に備えて、アプリ側にも開き直しの案内（バナー→モーダル）を用意しています。
 
@@ -141,7 +141,6 @@ python3 scripts/build_fuseneko.py --preview FN_HAPPY   # 表情を重ねて描�
 ## ドキュメント
 
 - [要件・データ仕様・運用ルール](docs/requirements.md)
-- [開発者向けイベントURL台帳](docs/event-url-index.md)
 - [開発経緯・現状・残課題](progress.md)
 - [Excel 入力ひな形の記入・変換手順](template/README.md)
 - [イベントJSON Schema](template/event-data.schema.json)
