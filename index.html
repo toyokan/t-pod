@@ -65,6 +65,8 @@
        イベントページでは applyAppIdentity() が logoMain に基づく専用アイコンに動的差し替えする。 -->
   <link rel="icon" type="image/jpeg" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=32&width=32" />
   <link rel="apple-touch-icon" href="https://www.toyokan.co.jp/cdn/shop/files/logo_icon_5d362f00-a0a1-4cf8-b314-7a7caa0843e6.jpg?crop=center&height=180&width=180" />
+  <!-- 標準名（Chrome は apple- 接頭辞版を非推奨として警告する）。iOS は apple- 版しか読まないので両方置く -->
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
@@ -95,7 +97,9 @@
        マスコットの組み立て前に必要なので defer は付けない。SW がプリキャッシュする。 -->
   <script src="assets/fuseneko/fuseneko-grid.js"></script>
   <script>
-    tailwind.config = {
+    // CDN が読めなかった回（会場の回線・フィルタ）は tailwind が未定義になる。
+    // 素で代入すると ReferenceError がコンソールに残るだけで実害は無いが、紛らわしいので守る。
+    if (window.tailwind) tailwind.config = {
   theme: {
     extend: {
       colors: {
@@ -1577,6 +1581,12 @@
     // 古い実行のコールバックを黙らせる——放っておくと両方が描画し、showLinePromo() が
     // 二重に走ってスクロールリスナと 30 秒タイマーが 2 本ずつ張られる（ポップアップが 2 回開く）。
     let initRun = 0;
+    // 表示中イベントの取り直し（init() が中身を差し込む）。一覧モードでは何もしない
+    let revalidateEvent = () => {};
+    let revalidating = false;
+    let lastEventCheck = 0;
+    // 前面に戻るたびに取りに行くと、タブを行き来するだけで通信が走る。この間隔を空ける
+    const REVALIDATE_ON_SHOW_MS = 3 * 60 * 1000;
     let bootstrapped = false; // 一度きりの結線（SW 登録・インストール導線）が済んだか
     async function init() {
       const run = ++initRun;
@@ -1637,9 +1647,18 @@
         if (shown) {
           scheduleSilentRerender();
         } else {
-          setMode("event");
-          renderAll();
-          showLinePromo();
+          // 描けないデータ（壊れた JSON を配ってしまった等）で例外になると、ここは
+          // then の第 1 引数なので onFail に回らず、骨組みを消した真っ白な画面だけが残る
+          try {
+            setMode("event");
+            renderAll();
+            showLinePromo();
+          } catch (e) {
+            console.warn("描画に失敗", e);
+            DATA = null;
+            showLoadError();
+            return;
+          }
         }
         shown = text;
       };
@@ -1653,6 +1672,25 @@
         else showLoadError();
       };
       fetchEventText(id).then(onFresh, onFail);
+      lastEventCheck = Date.now();
+
+      // 開いたままの画面を、前面に戻ったとき・回線が戻ったときに取り直す。
+      // 会場ではホーム画面のアプリを朝に開いて一日そのまま使う人が多く、iOS は裏から戻しても
+      // 再読み込みしないので、当日の差し替え（教室変更など）が次に起動し直すまで届かなかった。
+      // 届いた分は初回と同じ onFresh を通るので、差分判定・静かな再描画・バナーの後始末は共通。
+      // 失敗しても画面は据え置き（表示済みならオフラインバナーだけ出す）。
+      revalidateEvent = () => {
+        if (!alive() || revalidating) return;
+        revalidating = true;
+        lastEventCheck = Date.now();
+        fetchEventText(id)
+          .then(onFresh, (err) => {
+            if (!alive()) return;
+            console.warn(err);
+            if (shown) markNetworkStale();
+          })
+          .finally(() => { revalidating = false; });
+      };
 
       // 締め切り: 表示できるものが無いまま待たせ続けない／
       // 表示済みなら「まだ取れていない」ことだけ知らせて描画は据え置く
@@ -3767,7 +3805,11 @@
       panel.addEventListener("touchcancel", () => { tracking = false; }, { passive: true });
     })();
 
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) updateNowMarker(false); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) return;
+      updateNowMarker(false);
+      if (Date.now() - lastEventCheck >= REVALIDATE_ON_SHOW_MS) revalidateEvent();
+    });
 
     // ---- オフライン表示バナー ----
     // navigator.onLine は「リンクがあるか」しか見ない。会場のキャプティブポータルや
@@ -3779,7 +3821,8 @@
     function updateOnlineStatus() {
       $("offlineBanner").classList.toggle("hidden", navigator.onLine !== false && !netStale);
     }
-    window.addEventListener("online", updateOnlineStatus);
+    // 回線が戻ったら、取れなかった分をすぐ取り直す（バナーを消せるのは実際に取れたときだけ）
+    window.addEventListener("online", () => { updateOnlineStatus(); if (netStale) revalidateEvent(); });
     window.addEventListener("offline", updateOnlineStatus);
     updateOnlineStatus();
 

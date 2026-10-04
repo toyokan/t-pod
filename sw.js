@@ -19,7 +19,7 @@
  * 注意: アプリのロジック更新時は CACHE_VERSION を上げること。
  */
 
-const CACHE_VERSION = "v129";
+const CACHE_VERSION = "v130";
 // シェル（HTML/JS/アセット）。版ごとに作り直す
 const SHELL_CACHE = `t-pod-${CACHE_VERSION}`;
 // 版に依存しない長寿命キャッシュ。events/<id>.json・フォント実体・Tailwind を入れる
@@ -176,18 +176,34 @@ async function cacheFirst(request, cacheName) {
 // **中断はしない**——AbortSignal で切るとバックグラウンドのキャッシュ更新まで
 // 殺してしまい、次回も遅いままになる。race で表示だけ先行させ、
 // ネットワークは走らせ続けてキャッシュを温める。
-function networkWithTimeout(request, cacheName, ms) {
+// key はキャッシュの読み書きに使うキー（既定は request そのもの）。
+function networkWithTimeout(request, cacheName, ms, key = request) {
   const net = fetch(request).then((res) => {
-    putLater(request, res, cacheName);
+    putLater(key, res, cacheName);
     return res;
   });
   // race で捨てられた側の拒否が unhandledrejection にならないようにする
   net.catch(() => {});
-  return caches.match(request).then((cached) => {
+  return caches.match(key).then((cached) => {
     if (!cached) return net.catch(() => fallbackShell(request));
     const timer = new Promise((resolve) => setTimeout(() => resolve(cached), ms));
-    return Promise.race([net.catch(() => cached), timer]);
+    // サーバ側の一時的な障害（5xx）は、手元に正常な版があるならそちらを見せる
+    const fresh = net.then((res) => (res.status >= 500 ? cached : res), () => cached);
+    return Promise.race([fresh, timer]);
   });
+}
+
+// ナビゲーションのキャッシュキー。クエリと断片を落とす。
+// シェルの HTML は ?id に関わらず同じ（イベント色は handleNavigate が後から差し込む）なので、
+// クエリごとに別キーにすると、初めて開く URL では手元に同じ HTML があっても当たらない。
+// 会場では LINE の `?id=…&openExternalBrowser=1` や QR の URL が人ごとに違い、
+// まさに初回の 1 枚がネットワーク待ち（遅い回線では十数秒）になっていた。
+// あわせて、URL の種類だけ同じ HTML を抱え込むことも無くなる。
+function navigationKey(request) {
+  const url = new URL(request.url);
+  url.search = "";
+  url.hash = "";
+  return url.href;
 }
 
 // events/<id>.json は index.html 側がキャッシュ優先＋再検証を持っている。
@@ -276,7 +292,7 @@ async function getBrandColorCached(id) {
 // 色が無ければ 171KB のバッファと書き換えを丸ごと飛ばせる＝ストリーミングが生きる。
 async function handleNavigate(request) {
   const color = await getBrandColorCached(getEventId(request.url));
-  const response = await networkWithTimeout(request, SHELL_CACHE, NET_TIMEOUT_MS);
+  const response = await networkWithTimeout(request, SHELL_CACHE, NET_TIMEOUT_MS, navigationKey(request));
   if (!color || !response || !response.ok) return response;
   try {
     const html = await response.clone().text();
