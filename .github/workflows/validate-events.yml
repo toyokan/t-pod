@@ -4,13 +4,20 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+# 同じブランチへ続けて push したら古い実行は止める（edi-tool/.github の CI テンプレートと同じ）
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v7

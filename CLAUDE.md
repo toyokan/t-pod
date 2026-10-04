@@ -128,6 +128,7 @@
 | `events/<id>.json` | 各イベントの全情報（`eventInfo`/`rooms`/`sessions`/`books`） | ✅ ここを追加・編集 |
 | `sw.js` | Service Worker（Network First） | ⚠️ 変更時は `CACHE_VERSION` を上げる |
 | `manifest.json` | PWA 汎用シェル（インストール名・色） | △ 任意 |
+| `_config.yml` | GitHub Pages（Jekyll）の `exclude`。開発用の文書・スクリプトを公開サイトへ出さない | ⚠️ 開発用のファイル・ディレクトリを足したら追記（`tests/test_shell_source.py` が検査） |
 | `assets/` | アイコン・会場マップ（SVG） | △ 任意 |
 | `assets/fuseneko/fuseneko-grid.js` | ふせんネコの造形（**唯一の定義**） | ⚠️ 造形を変えるときだけ。SVG 資産の再生成が要る |
 | `assets/fuseneko/fuseneko-*.svg` | 配布用 SVG（生成物） | ⛔ 手で編集しない。`python3 scripts/build_fuseneko.py` で作る |

@@ -1624,3 +1624,29 @@ Codex 側で選べる版に依存するため据え置いた。
 配信バイト列が固定されている保証が無く、ハッシュが合わなくなった瞬間に全ページが無装飾になる。作業環境から
 `cdn.tailwindcss.com` が遮断されていてハッシュの実測もできないため、引き続き見送り（本来の解決は CLAUDE.md の
 「ローカルビルドの生成物をコミットする」方式）。
+
+## 2026-10-04 — 参考リポジトリ（edi-tool/.github）の体裁に合わせた整備
+
+社内の静的ツール群の共通テンプレート（`edi-tool/.github` の `PRINCIPLES.md`・CI テンプレート・PR テンプレート・
+`check-static.mjs`）と、同じ社内の `edi-tool/teacher-event-publisher` の CI を参照し、t-pod に足りないものを入れた。
+
+- **開発用ファイルが公開サイトに出ていた**（いちばん大きい問題）。GitHub Pages（Deploy from a branch）は Jekyll で
+  ビルドされるが、`_config.yml` が無く何も除外していなかったため、`progress.md`・`CLAUDE.md`・`AGENTS.md`・
+  `README.md`・`docs/`（**開発者向けの URL 台帳 `docs/event-url-index.md` を含む**）・`scripts/`・`tests/`・
+  `template/`（入力シートの xlsx）の **26 ファイル**が `https://events.toyokan.co.jp/progress.md` のように配信されていた。
+  リポジトリ自体は Pages のために public なので秘密が漏れたわけではないが、「URL 台帳は公開画面に出さない」
+  方針（2026-07-17）と食い違っていた。`_config.yml` の `exclude` で外した。
+  手元で Jekyll（4.4.1）でビルドして比較し、**外れたのは上の 26 件だけ**、`index.html`・`sw.js`・`manifest.json`・
+  イベント JSON は**バイト単位で同一**であることを確認した（GitHub Pages は Jekyll 3 系だが `exclude` の挙動は同じ）。
+  開発用のファイルを足したときの取りこぼしは `test_pages_build_excludes_development_files` が検出する。
+- **PR テンプレートを追加**（`.github/pull_request_template.md`）。edi-tool の雛形を元に、t-pod 固有の確認項目
+  （対象イベントの特定・終了済みイベントを触らない・`CACHE_VERSION`・開催当日のシェル変更）を足した。
+- **CI**: テンプレートに合わせて `concurrency`（同じブランチの古い実行を止める）・`workflow_dispatch`（手動実行）・
+  `timeout-minutes` を追加。Actions の版（`checkout@v7`／`setup-python@v7`）は 10/1 に更新済みで、参照先と同じ最新。
+- **静的チェックのテスト**: `check-static.mjs` と同じ観点（`lang="ja"`・viewport・title・`<img>` の alt・
+  相対参照の実在）を `tests/test_shell_source.py` に Python で移植した（t-pod は Node を使わないため）。
+  `index.html` と `dev/*.html` はすべて満たしていた。
+
+**取り入れなかったもの**: `CHANGELOG.md`／Releases（t-pod は `progress.md` が同じ役目を持つ）、Issue テンプレート
+（外部からの Issue を受け付けない運用）、秘密情報スキャン（API キー等を扱わない）、`paths-ignore`（*.md だけの
+変更でも `_config.yml` の検査を走らせたい）。

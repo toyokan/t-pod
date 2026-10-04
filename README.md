@@ -154,7 +154,7 @@ python3 scripts/build_fuseneko.py --preview FN_HAPPY   # 表情を重ねて描�
 
 ## デプロイ
 
-GitHub の **Settings → Pages** で Source を `Deploy from a branch`、Branch を `main` / `/ (root)` に設定しています。独自ドメイン `events.toyokan.co.jp` は `CNAME` ファイルと DNS で割り当てています（`CNAME` を消すと公開URLが変わるので注意）。パスは相対指定のため、サブパス配信（`/t-pod/`）でも動きます。
+GitHub の **Settings → Pages** で Source を `Deploy from a branch`、Branch を `main` / `/ (root)` に設定しています。独自ドメイン `events.toyokan.co.jp` は `CNAME` ファイルと DNS で割り当てています（`CNAME` を消すと公開URLが変わるので注意）。パスは相対指定のため、サブパス配信（`/t-pod/`）でも動きます。Pages は Jekyll でビルドされるので、開発用の文書・スクリプト（`progress.md`・`docs/`・`scripts/` など）は `_config.yml` の `exclude` で公開サイトから外しています。開発用のファイルを足したら `exclude` にも追記してください（テストが検出します）。
 
 ## ライセンス
 

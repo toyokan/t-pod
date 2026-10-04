@@ -1,6 +1,7 @@
 """汎用 UI シェルのソースレベルの回帰テスト。"""
 
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -64,6 +65,49 @@ class ShellSourceTest(unittest.TestCase):
         gate = source.index('const linksBlock = row.querySelector(".session-links");')
         guard = source.index("if (!card) return;")
         self.assertLess(gate, guard, "links のゲートが if (!card) return; より後ろにあります")
+
+
+    def test_static_html_basics(self):
+        """公開する HTML の基本要件（edi-tool/.github の check-static.mjs と同じ観点）。
+
+        lang・viewport・title があり、<img> には alt があり、相対参照のファイルが実在すること。
+        """
+        pages = [ROOT / "index.html", *sorted((ROOT / "dev").glob("*.html"))]
+        for page in pages:
+            with self.subTest(page=page.relative_to(ROOT).as_posix()):
+                html = page.read_text(encoding="utf-8")
+                self.assertRegex(html, r'<html[^>]*\blang="ja"')
+                self.assertRegex(html, r'<meta[^>]+name="viewport"')
+                self.assertRegex(html, r"<title>[^<]+</title>")
+                for tag in re.findall(r"<img\b[^>]*>", html):
+                    self.assertRegex(tag, r"\balt=", f"alt のない <img>: {tag[:80]}")
+                refs = re.findall(r'<script\b[^>]*\bsrc="([^"]+)"', html)
+                refs += [m.group(1) for tag in re.findall(r"<link\b[^>]*>", html)
+                         if (m := re.search(r'href="([^"]+)"', tag))]
+                for ref in refs:
+                    if re.match(r"^(https?:|data:|#|//)", ref):
+                        continue
+                    target = (page.parent / ref.split("?")[0].split("#")[0]).resolve()
+                    self.assertTrue(target.exists(), f"参照先のファイルがありません: {ref}")
+
+    def test_pages_build_excludes_development_files(self):
+        """開発用のファイルを公開サイトへ出さない（_config.yml の exclude）。
+
+        GitHub Pages は Jekyll でビルドされるので、exclude に無い *.md は HTML になって公開される。
+        配信が要るものだけを PUBLISHED に挙げ、それ以外のルート直下の追跡ファイルは exclude 済みであること。
+        """
+        published = {"index.html", "sw.js", "manifest.json", "events.json", "events", "assets", "dev",
+                     "CNAME", "LICENSE", "_config.yml"}
+        config = (ROOT / "_config.yml").read_text(encoding="utf-8")
+        excluded = {line.strip()[2:].strip().rstrip("/") for line in config.splitlines()
+                    if line.startswith("  - ")}
+        tracked = subprocess.run(["git", "ls-files"], cwd=ROOT, capture_output=True, text=True, check=True)
+        tops = {name.split("/", 1)[0].strip('"') for name in tracked.stdout.splitlines()}
+        for top in sorted(tops):
+            if top.startswith((".", "_")) or top in published:
+                continue  # Jekyll はドット・アンダースコア始まりを配信しない
+            with self.subTest(top=top):
+                self.assertIn(top, excluded, f"{top} が公開サイトに出ます。_config.yml の exclude に足してください")
 
 
 if __name__ == "__main__":
