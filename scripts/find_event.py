@@ -24,7 +24,7 @@ import argparse
 import json
 import sys
 import unicodedata
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -100,6 +100,18 @@ def start_event_date(entry: dict[str, Any]) -> date | None:
         return date.fromisoformat(str(entry.get("sortDate", "")))
     except ValueError:
         return None
+
+
+# 終了判定・「本日開催中」の基準日は日本時間で取る。クラウドの作業環境や CI は UTC で動くため、
+# date.today() のままだと JST 0:00〜9:00 の間は前日扱いになり、開催当日の朝に
+# 「本日開催中のイベントはありません」と誤答する（2026-10-04 志算研の当日朝に実際に起きた）。
+# 日本には夏時間が無いので固定オフセットで足り、zoneinfo / tzdata に依存しない。
+JST = timezone(timedelta(hours=9), "JST")
+
+
+def today_jst(now: datetime | None = None) -> date:
+    """日本時間の「今日」。now（タイムゾーン付き）を渡せば任意の時刻で確かめられる。"""
+    return (now or datetime.now(timezone.utc)).astimezone(JST).date()
 
 
 def is_ended(entry: dict[str, Any], today: date) -> bool:
@@ -180,7 +192,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    today = date.today()
+    today = today_jst()
     try:
         index = json.loads(EVENTS_INDEX.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as exc:
