@@ -77,17 +77,17 @@
     {
       "id": "1階・6-1教室",
       "name": "1階・6-1教室",
-      "color": "orange"
+      "color": "blue"
     },
     {
       "id": "1階・6-2教室",
       "name": "1階・6-2教室",
-      "color": "purple"
+      "color": "blue"
     },
     {
       "id": "1階・第2図工室",
       "name": "1階・第2図工室",
-      "color": "blueDeep"
+      "color": "blue"
     },
     {
       "id": "2階・1-4教室",
@@ -97,17 +97,17 @@
     {
       "id": "2階・1-3教室",
       "name": "2階・1-3教室",
-      "color": "greenDeep"
+      "color": "green"
     },
     {
       "id": "2階・1-2教室",
       "name": "2階・1-2教室",
-      "color": "blue"
+      "color": "green"
     },
     {
       "id": "2階・1-1教室",
       "name": "2階・1-1教室",
-      "color": "blueDeep"
+      "color": "green"
     },
     {
       "id": "体育館",
