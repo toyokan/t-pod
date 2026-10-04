@@ -6,6 +6,7 @@ import importlib.util
 import subprocess
 import sys
 import unittest
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 
@@ -69,6 +70,23 @@ class EventWorkbookTests(unittest.TestCase):
                 {},
                 "",
             )
+
+
+class FindEventTests(unittest.TestCase):
+    """find_event.py の基準日を確認する。"""
+
+    def test_today_is_taken_in_jst(self) -> None:
+        import find_event
+
+        # UTC 23:50 は日本時間で翌日 8:50。UTC の日付のままだと開催当日の朝を前日と取り違える。
+        self.assertEqual(
+            find_event.today_jst(datetime(2026, 10, 3, 23, 50, tzinfo=timezone.utc)),
+            date(2026, 10, 4),
+        )
+        self.assertEqual(
+            find_event.today_jst(datetime(2026, 10, 4, 14, 59, tzinfo=timezone.utc)),
+            date(2026, 10, 4),
+        )
 
 
 if __name__ == "__main__":
