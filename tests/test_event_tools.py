@@ -89,5 +89,36 @@ class FindEventTests(unittest.TestCase):
         )
 
 
+class RoomIdWarningTests(unittest.TestCase):
+    """会場IDはチップにそのまま出るので、内部コードなら警告する。"""
+
+    def _room_warnings(self, room_ids: list[str]) -> list[str]:
+        import json
+
+        import validate_events
+
+        data = json.loads((ROOT / "events" / "2026-shisanken-09.json").read_text(encoding="utf-8"))
+        old_ids = [r["id"] for r in data["rooms"]]
+        mapping = dict(zip(old_ids, room_ids, strict=True))
+        for room in data["rooms"]:
+            room["id"] = mapping[room["id"]]
+        for session in data["sessions"]:
+            for item in session.get("items", []):
+                if item.get("room") in mapping:
+                    item["room"] = mapping[item["room"]]
+        validator = validate_events.Validator()
+        validate_events.validate_event_data("2026-shisanken-09", data, {"id": "2026-shisanken-09"}, validator)
+        return [f.location for f in validator.findings if f.level == "WARN" and ".rooms[" in f.location]
+
+    def test_internal_codes_are_warned(self) -> None:
+        ids = ["r6-1", "r6-2", "zuko2", "r1-4", "r1-3", "r1-2", "r1-1", "gym"]
+        self.assertEqual(len(self._room_warnings(ids)), 8)
+
+    def test_display_labels_are_not_warned(self) -> None:
+        ids = ["1階・6-1教室", "1階・6-2教室", "1階・第2図工室", "2階・1-4教室",
+               "2階・1-3教室", "2階・1-2教室", "ICT教室", "体育館"]
+        self.assertEqual(self._room_warnings(ids), [])
+
+
 if __name__ == "__main__":
     unittest.main()

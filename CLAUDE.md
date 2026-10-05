@@ -128,6 +128,7 @@
 | `events/<id>.json` | 各イベントの全情報（`eventInfo`/`rooms`/`sessions`/`books`） | ✅ ここを追加・編集 |
 | `sw.js` | Service Worker（Network First） | ⚠️ 変更時は `CACHE_VERSION` を上げる |
 | `manifest.json` | PWA 汎用シェル（インストール名・色） | △ 任意 |
+| `_config.yml` | GitHub Pages（Jekyll）の `exclude`。開発用の文書・スクリプトを公開サイトへ出さない | ⚠️ 開発用のファイル・ディレクトリを足したら追記（`tests/test_shell_source.py` が検査） |
 | `assets/` | アイコン・会場マップ（SVG） | △ 任意 |
 | `assets/fuseneko/fuseneko-grid.js` | ふせんネコの造形（**唯一の定義**） | ⚠️ 造形を変えるときだけ。SVG 資産の再生成が要る |
 | `assets/fuseneko/fuseneko-*.svg` | 配布用 SVG（生成物） | ⛔ 手で編集しない。`python3 scripts/build_fuseneko.py` で作る |
@@ -145,6 +146,7 @@
 
 ## 新しいイベントの追加手順（コードは触らない）
 1. `events/<新id>.json` を作成（既存を複製して中身を書き換え／企画書テキストから生成）。`<新id>` は半角英数・ハイフン・アンダースコアのみ。**複製時はルートの `id` を必ず新 id に書き換える**（`events/<id>.json` のファイル名・`events.json` の id と一致必須。ズレは `scripts/validate_events.py` が ERROR で検出）。
+   **`rooms[].id` は会場チップにそのまま表示される**（`name` は出ない）ので、`gym`・`r1-1` のような内部コードではなく参加者に見せる表記（例: `1階・6-1教室`／`体育館`）にする。内部コードは `validate_events.py` が WARN で知らせる。
 2. `events.json` の `events[]` に1エントリ追記（`id` / `title` / `theme` / `dateRange` / `venueName` / `sortDate`）。
 3. **会場マップ（イベント別・任意）**: `eventInfo.venue.mapImage` で指定。会場はイベント毎に異なるため以下を使い分ける。
    - リポジトリ内の図: `assets/venue-map-<id>.svg`（または `.png` / `.jpg`）として置き、`mapImage` に相対パス指定（アイコンの `icon-<id>.svg` と同じイベント別命名で統一）。

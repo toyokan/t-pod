@@ -1,0 +1,16 @@
+# GitHub Pages（Deploy from a branch）は Jekyll でビルドされる。ここで exclude しないと、
+# 開発用の文書やスクリプトまで https://events.toyokan.co.jp/progress.html のように公開サイトへ出る
+# （*.md は HTML に変換され、*.py などはそのまま配信される）。
+# 配信するのは index.html / sw.js / manifest.json / events/ / assets/ / dev/ と CNAME だけでよい。
+# edi-tool の開発原則（edi-tool/.github の PRINCIPLES.md）「開発用ドキュメントは exclude で公開ビルドから外す」に合わせた。
+# 新しく開発用のファイル・ディレクトリを足したら、ここにも追記すること（tests/test_shell_source.py が検査する）。
+exclude:
+  - AGENTS.md
+  - CLAUDE.md
+  - README.md
+  - progress.md
+  - requirements-tools.txt
+  - docs/
+  - scripts/
+  - template/
+  - tests/
