@@ -22,6 +22,9 @@ WATCHED_FILE = REPO_ROOT / "events.json"
 # エージェントへ返す最大行数
 MAX_LINES = 20
 
+# apply_patch のパッチ本文でファイルパスを示す行頭
+PATCH_MARKERS = ("*** Add File: ", "*** Update File: ", "*** Delete File: ", "*** Move to: ")
+
 
 def read_hook_input() -> dict:
     """標準入力のフックJSONをUTF-8で読む。"""
@@ -34,16 +37,33 @@ def read_hook_input() -> dict:
         return {}
 
 
-def edited_path(payload: dict) -> Path | None:
-    """フック入力から編集対象のパスを取り出す。"""
+def patch_paths(patch: str) -> list[str]:
+    """apply_patch のパッチ本文から、追加・更新・削除・移動先のパスを取り出す。"""
+    paths = []
+    for line in patch.splitlines():
+        for marker in PATCH_MARKERS:
+            if line.startswith(marker):
+                paths.append(line[len(marker):].strip())
+    return paths
+
+
+def edited_paths(payload: dict) -> list[Path]:
+    """フック入力から編集対象のパスを取り出す。
+
+    Claude Code の Write/Edit は tool_input.file_path を持つ。Codex の apply_patch は
+    パスを持たず、tool_input.command のパッチ本文にだけ書かれている（相対パスは cwd 基準）。
+    """
     tool_input = payload.get("tool_input") or {}
     raw = tool_input.get("file_path") or tool_input.get("notebook_path")
-    if not raw:
-        return None
-    try:
-        return Path(raw).resolve()
-    except OSError:
-        return None
+    candidates = [raw] if raw else patch_paths(str(tool_input.get("command") or ""))
+    base = Path(payload.get("cwd") or Path.cwd())
+    paths = []
+    for candidate in candidates:
+        try:
+            paths.append((base / candidate).resolve())
+        except OSError:
+            continue
+    return paths
 
 
 def is_watched(path: Path) -> bool:
@@ -56,8 +76,7 @@ def is_watched(path: Path) -> bool:
 def main() -> int:
     """エントリポイント。常に exit 0（PostToolUseは処理を止められない）。"""
     payload = read_hook_input()
-    path = edited_path(payload)
-    if path is None or not is_watched(path) or not VALIDATOR.exists():
+    if not any(is_watched(path) for path in edited_paths(payload)) or not VALIDATOR.exists():
         return 0
 
     completed = subprocess.run(
