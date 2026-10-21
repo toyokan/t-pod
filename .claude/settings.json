@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -X utf8 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/validate_events_on_edit.py\"",
+            "timeout": 30,
+            "statusMessage": "イベントJSONを検証しています"
+          }
+        ]
+      }
+    ]
+  }
+}
