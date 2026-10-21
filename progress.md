@@ -1661,3 +1661,10 @@ Codex 側で選べる版に依存するため据え置いた。
   現行 7 イベントは警告 0 件。テストで「内部コード 8 件→8 警告／表示用の表記→0 件」を固定した。
 - シバン付きのスクリプト（`scripts/*.py`・`setup_codex_cloud.sh`・`template/make_template.py`）に実行権限を付けた
   （`./scripts/find_event.py …` で直接実行できるように）。
+
+## 2026-10-21 — エージェント向けガイドの一本化と、検証フックの Codex・クラウド対応
+
+- **ガイド**: `CLAUDE.md`（10/5 更新）と `AGENTS.md`（9/16 更新）が別々に育ち、Codex には 10 月の設計の決めごとが届いていなかった。`AGENTS.md` を共通の正本にし、`CLAUDE.md` は `@AGENTS.md` だけにした。領域ごとの詳しい決めごとは `docs/architecture/` へ原文のまま移した（毎回読み込む量 56KB → 13KB）。食い違っていた「`events.json` の索引を消してよいか」は、URL台帳の生成元なので**消さない**側を採った（#139）。
+- **Codex のフック**: `apply_patch` は編集先のパスを `tool_input.command` のパッチ本文にしか持たないため、`file_path` だけを見ていた検証が一度も走っていなかった。パッチ本文から拾うようにした。`.codex/hooks.json` の絶対パスもやめ、git のルートから解決する（#139）。
+- **Claude のフック**: Git 管理外の `settings.local.json` にしか無かったので `.claude/settings.json` へ移した（クラウドでも働く。#139）。`${CLAUDE_PROJECT_DIR}` が別フォルダを指すとスクリプトが見つからずブロッキングエラーになったので、Codex と同じく git のルートから解決する形にそろえた（#140）。
+- フックの定義が変わったため、Codex でこのリポジトリを開くと信頼の確認が改めて出る。
