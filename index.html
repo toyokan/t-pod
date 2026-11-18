@@ -557,8 +557,15 @@
     .view.is-dragging { transition: none !important; will-change: transform; }
     .view.is-drag-neighbor { display: block !important; position: absolute; inset: 0 0 auto; width: 100%; will-change: transform; }
     .view.is-drag-settling { transition: transform .18s cubic-bezier(.22,1,.36,1), opacity .18s ease-out !important; }
-    .datebtn[aria-pressed="true"] .datesub { opacity: .75; }
-    .datebtn[aria-pressed="false"] .datesub { opacity: .7; }
+    /* 日付タブの「8/4(火)」は 11px の本文なので AA 4.5:1 が要る。以前は opacity .75/.7 で
+       薄くしていたが、実測で選択中 3.70:1（amber）・非選択 3.28:1 と未達だった。
+       主従は字の大きさと太さ（ラベル 700 / 日付 500）で付けているので、色は薄めない
+       （不透明なら選択中 brand-800 が白地 5.5:1 以上、非選択 slate-600 がトラック上 5:1 以上）。 */
+    /* LINE 友だち追加ボタンの地。LINE の基調色 #06C755 に白文字は 2.26:1 で AA を大きく割る
+       （14px 太字は「大きい文字」に当たらないので 4.5:1 が要る）。色相を保ったまま暗くして
+       白文字 4.63:1 になる #04873A を使う（#06C755 の各成分 ×0.68）。
+       アイコンだけのタイル（ポップアップ上部）は文字を持たないので基調色のまま。 */
+    .line-cta { background: #04873a; }
     /* backdrop-filter 非対応時は不透明塗りへフォールバック */
     @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
       /* body.is-scrolled 側（詳細度 0,2,0）が後から background-color を透過値で上書きするので、
@@ -888,8 +895,7 @@
         <p class="text-sm text-slate-600 leading-relaxed mt-3">イベントページは、ご案内のLINEまたはQRコードからアクセスしてください。</p>
         <p class="text-xs text-slate-500 leading-relaxed mt-3">LINEのトーク画面から開いた場合は、右下の「⋯」からブラウザ（Chrome / Safari）で開き直すと、ホーム画面に追加できます。</p>
         <a href="https://page.line.me/bsi8018g?openQrModal=true" target="_blank" rel="noopener"
-          class="mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white shadow-sm active:scale-[.99] transition"
-          style="background:#06C755">
+          class="line-cta mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-sm text-white shadow-sm active:scale-[.99] transition">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
           東洋館出版社公式LINEを追加する
         </a>
@@ -1054,8 +1060,7 @@
         <p class="mt-2 text-sm text-slate-600 leading-relaxed">新刊・イベントのご案内を LINE でお送りします。よろしければ友だち追加をお願いします。</p>
         <div class="mt-6 space-y-2.5">
           <a id="linePopupCta" href="#" target="_blank" rel="noopener"
-             class="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white shadow-sm active:scale-[.99] transition"
-             style="background:#06C755">
+             class="line-cta flex items-center justify-center gap-2 w-full py-3 rounded-xl font-bold text-white shadow-sm active:scale-[.99] transition">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
             東洋館出版社公式LINEを追加する
           </a>
@@ -1735,8 +1740,9 @@
       $("errorMsg").textContent = notFound ? LOAD_ERROR_MSG.notFound : LOAD_ERROR_MSG.network;
       setMode("list");
       // ここは「存在しない id」だけでなく**通信失敗・タイムアウトでも通る**ので、
-      // 原因を断定しない中立の見出しにする（詳しい案内と導線は #errorBox が持つ）
-      setPageHeading("イベントを読み込めませんでした");
+      // 原因を断定しない中立の見出しにする（詳しい案内と導線は #errorBox が持つ）。
+      // サーバが 404 と答えたときだけは原因が確定しているので、見出しも本文に揃える
+      setPageHeading(notFound ? "イベントが見つかりません" : "イベントを読み込めませんでした");
       // イベントを読めなかったので、inline script が貼った events/<id>.webmanifest
       // （実体が無ければ 404）は残さず汎用へ戻す
       setManifestHref("manifest.json");
