@@ -23,6 +23,7 @@
   - イベント毎のブランド色は `events/<id>.json` の `eventInfo.brandColor` で指定（`applyBrandColor()` が `--brand` を上書き）。
   - **ブランド色ベタ塗り＋白文字を新規に増やさない**。新しい配色は既定の黄 `#ffd900` と amber `#f59e0b` の両方で 4.5:1 以上を実測する。
   - 本文フォントのウェイトは 400/500/700/900 の 4 種から増やさない。
+  - タップできる要素は 44×44px 以上（小さいピルは `.hit-44`）。フォーカスリングとアイコンだけの部品は白地 3:1 以上、11〜12px の文字を `opacity` で薄くしない。
   - アニメーションは `transform` / `opacity` のみ。タッチ／スクロール系リスナの `{ passive: true }` を崩さない。新しい演出は `prefers-reduced-motion` ブロックへ追記する。
   - 告知バナーを原寸のままリポジトリに置かない（`scripts/optimize_images.py`）。書影は `coverUrl()` を通す。新しい `<img>` には `loading="lazy"` と箱の確保を付ける。
 - **アイコン**: 絵文字は使わず **SVG（Lucide系）**。`ICONS` レジストリ + `icon(name, cls)` ヘルパ（`index.html`）。静的箇所（ボトムナビ・FAB・モーダル閉じる）はインラインSVG。
