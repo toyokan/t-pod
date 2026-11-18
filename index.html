@@ -355,7 +355,19 @@
     .scroll-x::-webkit-scrollbar { display: none; }
     html { scroll-behavior: smooth; }
     a, button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 4px; }
+    /* フォーカスリングは素の --brand ではなく brand-800 相当（48% 黒）で描く。
+       素の --brand だと既定の黄 #ffd900 は白地に 1.4:1、amber でも 2.1:1 しかなく、
+       キーボード・スイッチ操作でどこにいるか見えない（WCAG 1.4.11 は 3:1）。
+       48% は白地で黄 5.52:1、ブランド地のヘッダー上（お知らせボタン）でも濃色として読める。 */
+    :focus-visible { outline: 2px solid color-mix(in srgb, var(--brand) 48%, black); outline-offset: 2px; border-radius: 4px; }
+    /* 見た目は小さいまま、指の当たり判定だけ 44×44px まで広げる（Apple HIG / WCAG 2.5.8 の目安）。
+       ::after を中央に重ねるだけなので配置も描画も変わらない。::before/::after を自前で使う要素には付けない。 */
+    .hit-44 { position: relative; }
+    .hit-44::after {
+      content: ""; position: absolute; left: 50%; top: 50%;
+      width: max(100%, 44px); height: max(100%, 44px);
+      transform: translate(-50%, -50%);
+    }
     body { overscroll-behavior-y: contain; }
     body.modal-open { position: fixed; width: 100%; overflow: hidden; }
     body {
@@ -796,7 +808,7 @@
         </div>
         <!-- お知らせ（旧FABをヘッダーへ移設） -->
         <button id="noticeBtn" aria-label="お知らせを見る"
-          class="relative hidden flex-shrink-0 w-10 h-10 rounded-full bg-white/25 border border-white/30 items-center justify-center active:scale-95 transition">
+          class="relative hidden flex-shrink-0 w-11 h-11 rounded-full bg-white/25 border border-white/30 items-center justify-center active:scale-95 transition">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
           <span id="noticeBadge" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center font-black ring-2 ring-white"></span>
         </button>
@@ -836,8 +848,8 @@
         <div id="installTitle" class="text-sm font-bold text-brand-800 leading-tight">アプリとして追加</div>
         <div id="installDesc" class="text-[11px] text-slate-600 leading-tight mt-0.5">ホーム画面に追加するとすばやく開けます</div>
       </div>
-      <button id="installBtn" class="brand-bg flex-shrink-0 text-xs font-bold rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
-      <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-400 p-2.5 -m-1 active:scale-95 transition">
+      <button id="installBtn" class="hit-44 brand-bg flex-shrink-0 text-xs font-bold rounded-lg px-4 py-2.5 active:scale-95 transition">追加</button>
+      <button id="installDismiss" aria-label="閉じる" class="flex-shrink-0 text-slate-500 p-3 -m-1.5 active:scale-95 transition">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
@@ -847,11 +859,17 @@
   <main class="max-w-2xl mx-auto px-4 pt-4 pb-32">
 
     <!-- 読み込みエラー表示 -->
-    <div id="errorBox" role="alert" class="hidden bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
-      <p>データの読み込みに失敗しました。通信環境をご確認のうえ、再試行してください。</p>
-      <div class="mt-2 flex items-center gap-4">
-        <button type="button" id="errorRetry" class="text-brand-800 font-medium underline">再試行</button>
-        <a href="./" class="text-brand-800 font-medium underline">案内ページへ戻る</a>
+    <!-- 導線は下線テキスト（高さ 20px）ではなく 44px のボタンにする。会場で通信に失敗した人が
+         いちばん押したいのが「再試行」なので、指で確実に押せる大きさを優先する。
+         地はブランド色ベタ塗りにしない（白文字の AA 未達を増やさない方針）。白地＋濃色文字のボタン。 -->
+    <div id="errorBox" role="alert" class="hidden mb-4 bg-red-50 border border-red-300 text-red-700 rounded-xl p-4 text-sm">
+      <p id="errorMsg" class="leading-relaxed">データの読み込みに失敗しました。通信環境をご確認のうえ、再試行してください。</p>
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <button type="button" id="errorRetry" class="inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 rounded-xl bg-white border border-red-200 text-red-700 font-bold shadow-sm active:scale-95 transition">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          再試行
+        </button>
+        <a href="./" class="inline-flex items-center justify-center min-h-[44px] px-4 rounded-xl text-slate-700 font-medium underline underline-offset-2 active:scale-95 transition">案内ページへ戻る</a>
       </div>
     </div>
 
@@ -890,7 +908,7 @@
         <!-- 記号（▼）はフォントによって字形・字幅が揺れるので、他の静的箇所と同じくインライン SVG にする -->
         <!-- hidden の付け外しだけで出し入れするので、display は button に持たせず内側の span で組む
              （.hidden と .inline-flex はどちらも display なので、同居させると後勝ちで隠れなくなる） -->
-        <button id="jumpNow" class="hidden text-[11px] font-black grad-pill shadow-fab rounded-full pl-2.5 pr-3 py-1.5 active:scale-95 transition">
+        <button id="jumpNow" class="hit-44 hidden text-[11px] font-black grad-pill shadow-fab rounded-full pl-2.5 pr-3 py-1.5 active:scale-95 transition">
           <span class="flex items-center gap-1">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-3.5 h-3.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
             <span>いまの予定へ</span>
@@ -965,7 +983,7 @@
     <span id="mascotHold" class="flex-shrink-0 flex">
       <button id="mascotBtn" type="button" aria-label="ふせんネコ（タップで吹き出しを開閉）" title="ふせんネコ（タップで吹き出しを開閉）"
         aria-expanded="true" aria-controls="mascotBubble"
-        class="pointer-events-auto w-12 h-12 overflow-hidden active:scale-95 transition rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2">
+        class="pointer-events-auto w-12 h-12 overflow-hidden active:scale-95 transition rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-800 focus-visible:ring-offset-2">
         <!-- コマ送り（横）と呼吸（縦）は別要素に持たせる。同一要素では transform が競合するため -->
         <span id="mascotBob" class="block w-full h-full">
           <span id="mascotStrip" class="flex w-[1600%] h-full items-center"></span>
@@ -1008,9 +1026,12 @@
   <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" class="hidden fixed inset-0 z-40 flex items-end sm:items-center justify-center">
     <div id="modalBackdrop" class="absolute inset-0 bg-black/50"></div>
     <div id="modalPanel" class="relative bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto overscroll-contain shadow-2xl animate-in">
-      <div class="modal-glass-bar sticky top-0 bg-white/95 backdrop-blur flex items-center justify-between px-4 py-3 border-b border-slate-100">
+      <div class="modal-glass-bar sticky top-0 z-10 bg-white/95 backdrop-blur flex items-center justify-between px-4 pt-4 pb-3 sm:pt-3 border-b border-slate-100">
+        <!-- ボトムシートのつまみ。下へ払うと閉じられる（下の touch リスナ）ことを形で知らせる。
+             スマホ幅（ボトムシート表示）のときだけ出す。sm 以上は中央のダイアログなので不要 -->
+        <span class="sm:hidden absolute left-1/2 top-1.5 -ml-[18px] w-9 h-1 rounded-full bg-slate-300" aria-hidden="true"></span>
         <h3 id="modalTitle" class="font-bold text-slate-800"></h3>
-        <button id="modalClose" aria-label="閉じる" class="text-slate-400 hover:text-slate-600 rounded-lg p-2.5 -my-1.5 -mr-2 active:scale-95 transition">
+        <button id="modalClose" aria-label="閉じる" class="text-slate-500 hover:text-slate-700 rounded-lg p-3 -my-2 -mr-2.5 active:scale-95 transition">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
         </button>
       </div>
@@ -1022,7 +1043,7 @@
   <div id="linePopup" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
     <div id="linePopupBackdrop" class="absolute inset-0 bg-black/50"></div>
     <div id="linePopupPanel" class="relative bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl overflow-hidden shadow-2xl animate-in">
-      <button id="linePopupClose" aria-label="閉じる" class="absolute top-2 right-2 z-10 text-slate-400 hover:text-slate-600 rounded-lg p-2.5 active:scale-95 transition">
+      <button id="linePopupClose" aria-label="閉じる" class="absolute top-1.5 right-1.5 z-10 text-slate-500 hover:text-slate-700 rounded-lg p-3 active:scale-95 transition">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
       <div class="px-6 pt-8 pb-6 text-center">
@@ -1038,7 +1059,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
             東洋館出版社公式LINEを追加する
           </a>
-          <button id="linePopupLater" class="w-full py-2.5 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 transition">あとで</button>
+          <button id="linePopupLater" class="w-full py-3 rounded-xl text-sm font-medium text-slate-500 hover:bg-slate-50 transition">あとで</button>
         </div>
       </div>
     </div>
@@ -1669,7 +1690,7 @@
         $("skeleton").classList.add("hidden");
         // すでに表示できているならエラー画面は出さない。オフラインバナーに委ねる
         if (shown) markNetworkStale();
-        else showLoadError();
+        else showLoadError(err);
       };
       fetchEventText(id).then(onFresh, onFail);
       lastEventCheck = Date.now();
@@ -1702,7 +1723,16 @@
       }, shown ? REVALIDATE_MS : COLD_TIMEOUT_MS);
     }
 
-    function showLoadError() {
+    // 「イベントが無い（404）」と「通信に失敗した」は直し方が違う。前者に「通信環境を確認」と
+    // 出すと、つながっている人が再試行を繰り返すだけになるので、URL の確認へ誘導する。
+    // 404 と断定できるのはサーバが答えたときだけ（タイムアウト・オフラインは従来の文言）。
+    const LOAD_ERROR_MSG = {
+      notFound: "イベントが見つかりませんでした。QRコードやLINEで届いたURLが正しいか、もう一度お確かめください。",
+      network: "データの読み込みに失敗しました。通信環境をご確認のうえ、再試行してください。",
+    };
+    function showLoadError(err) {
+      const notFound = !!(err && /^HTTP 404\b/.test(String(err.message || "")));
+      $("errorMsg").textContent = notFound ? LOAD_ERROR_MSG.notFound : LOAD_ERROR_MSG.network;
       setMode("list");
       // ここは「存在しない id」だけでなく**通信失敗・タイムアウトでも通る**ので、
       // 原因を断定しない中立の見出しにする（詳しい案内と導線は #errorBox が持つ）
@@ -1854,14 +1884,17 @@
         const isToday = d.date === todayStr;
         const btn = el(
           "button",
-          "datebtn relative flex-1 min-w-0 px-2 py-2 rounded-full text-sm transition active:scale-[.98]",
+          "datebtn relative flex-1 min-w-0 min-h-[44px] px-2 py-2 rounded-full text-sm transition active:scale-[.98]",
           escapeHtml(d.label) +
             (d.date ? `<span class="datesub ml-1 text-[11px] font-medium">${escapeHtml(fmtMD(d.date, "/"))}${d.weekday ? "(" + escapeHtml(d.weekday) + ")" : ""}</span>` : "") +
             (isToday ? `<span class="inline-block align-middle w-1.5 h-1.5 rounded-full bg-brand-500 ml-1.5" aria-hidden="true"></span>` : "")
         );
         btn.type = "button";
         btn.dataset.dateId = d.id;
-        btn.onclick = () => setActiveDate(d.id);
+        btn.onclick = () => {
+          if (activeDateId !== d.id) haptic();
+          setActiveDate(d.id);
+        };
         tabs.appendChild(btn);
       });
       setActiveDate(activeDateId);
@@ -2942,7 +2975,7 @@
       if (desc) body.push(`<p class="text-xs text-slate-600 leading-relaxed mt-3">${escapeHtml(desc)}</p>`);
       if (url) {
         body.push(
-          `<a href="${escapeHtml(safeUrl(url))}" target="_blank" rel="noopener" class="grad-pill mt-4 inline-flex items-center justify-center gap-1.5 w-full text-sm font-bold rounded-full px-4 py-2.5 shadow-fab active:scale-[0.99] transition">` +
+          `<a href="${escapeHtml(safeUrl(url))}" target="_blank" rel="noopener" class="grad-pill mt-4 inline-flex items-center justify-center gap-1.5 w-full text-sm font-bold rounded-full px-4 py-3 shadow-fab active:scale-[0.99] transition">` +
             `<span>${escapeHtml(linkLabel)}</span>${icon("chevron", "w-4 h-4")}` +
           `</a>`
         );
@@ -3110,6 +3143,14 @@
     const reduceMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     let tabViewAnimation = null;
 
+    // 切り替えが確定した瞬間だけ、ごく短い触覚フィードバックを返す（ネイティブのタブバー・
+    // セグメントと同じ手ごたえ）。対応は Android の Chrome 系のみで、iOS Safari には
+    // vibrate が無いので何も起きない。ユーザー操作の直後でないとブラウザが黙って捨てるので、
+    // 呼ぶのはタップ・スワイプの確定時だけにする（静かな再描画からは呼ばない）。
+    function haptic() {
+      try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
+    }
+
     function animateTabView(view, direction) {
       if (!view || reduceMotionQuery.matches || typeof view.animate !== "function") return;
       if (tabViewAnimation) tabViewAnimation.cancel();
@@ -3157,6 +3198,7 @@
       });
       // Web Animations API で合成レイヤー上だけを動かす。強制レイアウトは発生させない
       if (from >= 0 && from !== to) {
+        haptic();
         animateTabView($("view-" + tab), to > from ? 1 : -1);
         staggerReveal($("view-" + tab));
       }
@@ -3569,6 +3611,8 @@
           cleanupDrag();
           if (commit && nextTab) {
             // ドラッグ自体が切替演出なので、setTab の追加スライドは抑止する
+            // （from === to になるので setTab 側の haptic も走らない。ここで 1 回だけ返す）
+            haptic();
             activeTab = nextTab;
             setTab(nextTab);
             if (linePromoTrigger) linePromoTrigger();
