@@ -4,6 +4,15 @@
   "siteUrl": "https://events.toyokan.co.jp/",
   "events": [
     {
+      "id": "2026-sanjuken-okinawa",
+      "title": "『算数授業研究』公開講座 in 沖縄 2026",
+      "theme": "子どもの問いからつくる探究的な学び",
+      "dateRange": "2026年11月28日(土) 09:00〜16:15",
+      "venueName": "八重瀬町立新城小学校",
+      "sortDate": "2026-11-28",
+      "brandColor": "#00707A"
+    },
+    {
       "id": "2026-shisanken-09",
       "title": "志の算数授業研究会 第９回 授業研究会",
       "theme": "探究へ導く教科書アレンジ",

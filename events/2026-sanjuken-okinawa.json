@@ -1,0 +1,355 @@
+{
+  "id": "2026-sanjuken-okinawa",
+  "eventInfo": {
+    "title": "『算数授業研究』公開講座 in 沖縄 2026",
+    "logoMain": "算授研 沖縄",
+    "logoSub": "算数授業研究 in 沖縄",
+    "iconLabel": "算授沖",
+    "brandColor": "#00707A",
+    "brandColor2": "#00525A",
+    "theme": "子どもの問いからつくる探究的な学び",
+    "venueName": "八重瀬町立新城小学校",
+    "dateRange": "2026年11月28日(土) 09:00〜16:15",
+    "manifestPath": "events/2026-sanjuken-okinawa.webmanifest",
+    "organizer": "東洋館出版社",
+    "coOrganizer": "筑波大学附属小学校算数部",
+    "cooperation": "八重瀬町立新城小学校",
+    "linePromo": false,
+    "dates": [
+      {
+        "id": "day1",
+        "label": "11月28日",
+        "date": "2026-11-28",
+        "weekday": "土",
+        "time": "09:00〜16:15"
+      }
+    ],
+    "notices": [
+      {
+        "title": "公開講座の概要",
+        "level": "info",
+        "body": "筑波大学附属小学校による『算数授業研究』公開講座を、沖縄県の八重瀬町立新城小学校で開催します。筑波大学附属小学校の大野桂先生・青山尚司先生と、宜野湾市教育委員会の比嘉和則先生による、4年生・5年生の算数の公開授業を実施します。\n各授業後には、授業者と沖縄の先生方による授業協議会を開催。授業で見られた子どもの姿をもとに、教材の捉え方や授業づくりについて議論を深めます。さらに、大野桂先生による講話も予定しています。公開授業・協議会・講話を通して、これからの算数授業についてじっくりと考える一日です。"
+      },
+      {
+        "title": "プログラムについて",
+        "level": "info",
+        "body": "各公開授業の単元名・授業協議会の登壇者は、決まり次第公開します。"
+      },
+      {
+        "title": "参加費",
+        "level": "important",
+        "body": "一般3,000円です。"
+      },
+      {
+        "title": "申込締切",
+        "level": "important",
+        "body": "申込締切は2026年11月26日(木)です。コンビニ決済を選択された場合は、お早めに入金をお願いいたします。"
+      },
+      {
+        "title": "個人情報について",
+        "level": "info",
+        "body": "お申込者のお名前とご注文番号は、共催の筑波大学附属小学校算数部（『算数授業研究』編集部）と、会場校の受付スタッフに共有します。電話番号、メールアドレス等の個人情報は、東洋館出版社以外には共有しません。"
+      },
+      {
+        "title": "キャンセルについて",
+        "level": "important",
+        "body": "開催日4営業日前の2026年11月24日(火)までにご連絡ください。それ以降のキャンセルには対応できません。コンビニ決済は入金後のキャンセル不可です。"
+      },
+      {
+        "title": "開催可否・中止時の対応",
+        "level": "important",
+        "body": "感染状況・荒天などの不測の事態により、児童を登校させられない場合があります。会場校の判断で模擬授業への代替または中止となる可能性があります。中止の場合は、2026年11月26日(木)12:00までにマイアカウントの購入済みコンテンツ画面で案内し、参加費を返金します。旅費・宿泊費等の補填はありません。あと払い（ペイディ）は注文取消し処理となります。"
+      },
+      {
+        "title": "資料PDF",
+        "level": "important",
+        "body": "資料PDFは、マイアカウント内の［購入済みコンテンツ］に2026年11月26日(木)公開予定です。PDFは印刷不可です。印刷した資料冊子は当日受付で配布します。"
+      },
+      {
+        "title": "当日の受付方法",
+        "level": "important",
+        "body": "八重瀬町立新城小学校の受付で、①「ご注文内容の確認」メール、②領収書、③注文番号と氏名、のいずれかをご提示ください。印刷・スマートフォンでの提示は問いません。コンビニ決済の場合は、レジで受け取るレシート（領収書）が領収書になります。"
+      },
+      {
+        "title": "持ち物",
+        "level": "important",
+        "body": "上履き（スリッパなど）、昼食をご持参ください。"
+      },
+      {
+        "title": "駐車場",
+        "level": "important",
+        "body": "新城小学校の運動場をご利用ください。満車の場合は、島尻教育会館（みなーの）の正面または裏側に駐車してください。"
+      },
+      {
+        "title": "那覇空港からのアクセス",
+        "level": "info",
+        "body": "公共交通機関（ゆいレール＋路線バス）の場合：\n1. ゆいレール「那覇空港駅」→「旭橋駅」（約11分）\n2. 旭橋駅から連絡通路で「那覇バスターミナル」へ\n3. 那覇バスターミナル（9番のりば）から琉球バス［50］百名線（東風平経由）→「新城小学校前」下車（約35〜45分）\n4. バス停から校門まで徒歩約1分\n合計所要時間：約1時間10分〜1時間20分（乗換待ち時間含む）"
+      },
+      {
+        "title": "会場校最寄りの宿泊施設",
+        "level": "info",
+        "body": "・YAESE HOTEL（ヤエセホテル）：八重瀬町（車で5〜6分）\n・ザ・サザンリンクスリゾートホテル：八重瀬町（車で10分）\n・ウェルネスリゾート沖縄 ユインチホテル南城：南城市（車で10〜15分）\n・南風原町、豊見城市、那覇市のホテル"
+      },
+      {
+        "title": "受付場所・当日のお問い合わせ",
+        "level": "important",
+        "body": "受付場所：八重瀬町立新城小学校（あらしろしょうがっこう／〒901-0503 沖縄県島尻郡八重瀬町新城1381）。大会当日のお問い合わせは八重瀬町立新城小学校（098-998-2203）へお願いします。"
+      },
+      {
+        "title": "お申し込み・領収書のお問い合わせ",
+        "level": "info",
+        "body": "緊急時を除き、メールでお問い合わせください。株式会社東洋館出版社（平日9:00〜17:30）／Mail: miyara@toyokan.co.jp"
+      }
+    ],
+    "forms": [
+      {
+        "label": "詳細・お申し込み",
+        "description": "東洋館出版社の商品ページからお申し込みください。申込締切：2026年11月26日(木)。",
+        "url": "https://www.toyokan.co.jp/products/koukaikouza-okinawa-20261128"
+      }
+    ],
+    "venue": {
+      "mapNote": "八重瀬町立新城小学校（〒901-0503 沖縄県島尻郡八重瀬町新城1381）。上履き（スリッパなど）・昼食をご持参ください。",
+      "resourceLinks": [
+        {
+          "label": "マイアカウント",
+          "description": "購入済みコンテンツ・注文履歴はこちらから確認できます。",
+          "url": "https://www.toyokan.co.jp/account"
+        },
+        {
+          "label": "Googleマップ",
+          "description": "八重瀬町立新城小学校の所在地をGoogleマップで確認できます。",
+          "url": "https://maps.app.goo.gl/TruEm4kud4QvujPC8"
+        }
+      ]
+    }
+  },
+  "rooms": [],
+  "sessions": [
+    {
+      "id": "d1-01",
+      "dateId": "day1",
+      "start": "08:35",
+      "end": "08:55",
+      "category": "受付",
+      "note": "参加者受付",
+      "items": []
+    },
+    {
+      "id": "d1-02",
+      "dateId": "day1",
+      "start": "09:00",
+      "end": "09:45",
+      "category": "公開授業I",
+      "note": "",
+      "items": [
+        {
+          "title": "4年「単元後日発表」",
+          "meta": [
+            "授業者：青山尚司（筑波附小）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-03",
+      "dateId": "day1",
+      "start": "09:50",
+      "end": "10:35",
+      "category": "授業協議会I",
+      "note": "",
+      "items": [
+        {
+          "title": "4年「単元後日発表」協議会",
+          "meta": [
+            "司会：大野桂",
+            "パネラー：沖縄の先生2名"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-04",
+      "dateId": "day1",
+      "start": "10:45",
+      "end": "11:30",
+      "category": "公開授業II",
+      "note": "",
+      "items": [
+        {
+          "title": "4年「共通する部分に注目して（消去算）」",
+          "meta": [
+            "授業者：比嘉和則（宜野湾市教育委員会）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-05",
+      "dateId": "day1",
+      "start": "11:35",
+      "end": "12:20",
+      "category": "授業協議会II",
+      "note": "",
+      "items": [
+        {
+          "title": "4年「共通する部分に注目して（消去算）」協議会",
+          "meta": [
+            "司会：沖縄の先生",
+            "パネラー：大野桂、青山尚司"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-06",
+      "dateId": "day1",
+      "start": "12:20",
+      "end": "13:30",
+      "category": "昼休み",
+      "note": "昼食はご持参ください",
+      "items": []
+    },
+    {
+      "id": "d1-07",
+      "dateId": "day1",
+      "start": "13:30",
+      "end": "14:15",
+      "category": "公開授業III",
+      "note": "",
+      "items": [
+        {
+          "title": "5年「面積（導入）」",
+          "meta": [
+            "授業者：大野桂（筑波附小）"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-08",
+      "dateId": "day1",
+      "start": "14:20",
+      "end": "15:05",
+      "category": "授業協議会III",
+      "note": "",
+      "items": [
+        {
+          "title": "5年「面積（導入）」協議会",
+          "meta": [
+            "司会：青山尚司",
+            "パネラー：沖縄の先生2名"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1-09",
+      "dateId": "day1",
+      "start": "15:15",
+      "end": "16:15",
+      "category": "講話",
+      "note": "",
+      "items": [
+        {
+          "title": "講話",
+          "meta": [
+            "講師：大野桂（筑波附小）"
+          ]
+        }
+      ]
+    }
+  ],
+  "books": [
+    {
+      "title": "算数授業研究 No.166　現場からひらく 次期学習指導要領を見据えた算数授業",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491064703_27788299-c8ea-4369-bcc2-891f5edec8cf.jpg?v=1788508388&width=1200",
+      "description": "次期学習指導要領を見据えた最新動向を、重要キーワード20から読み解く特集号。",
+      "url": "https://www.toyokan.co.jp/products/6470",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491064709"
+    },
+    {
+      "title": "算数授業研究 No.165　その授業、どうやって思い浮かんだのか？",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491064697.jpg?v=1783575324&width=1200",
+      "description": "全国学力調査や目の前の子どもの姿、日常の気付きなどから授業を教材化する過程に注目し、授業づくりの発想を探る。",
+      "url": "https://www.toyokan.co.jp/products/%E7%AE%97%E6%95%B0%E6%8E%88%E6%A5%AD%E7%A0%94%E7%A9%B6-no-165-%E3%81%9D%E3%81%AE%E6%8E%88%E6%A5%AD-%E3%81%A9%E3%81%86%E3%82%84%E3%81%A3%E3%81%A6%E6%80%9D%E3%81%84%E6%B5%AE%E3%81%8B%E3%82%93%E3%81%A0%E3%81%AE%E3%81%8B",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491064695"
+    },
+    {
+      "title": "算数授業研究 No.164　学年別 主要単元で見る授業づくりのコツ36",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/6468_1.jpg?v=1780971450&width=1200",
+      "description": "学年別主要単元の授業づくりのコツ36例を通して、見方・考え方を働かせる主体的な授業づくりを提案。",
+      "url": "https://www.toyokan.co.jp/products/6468?variant=51436442026217",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491064687"
+    },
+    {
+      "title": "算数授業研究 No.163　分野横断に導く「比べる」",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491058573_1.jpg?v=1775540026&width=1200",
+      "description": "「比べる」活動を軸に、領域をまたいで働く数学的な見方・考え方と分野横断の授業づくりを考える。",
+      "url": "https://www.toyokan.co.jp/products/5857?variant=50978580824297",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058571"
+    },
+    {
+      "title": "算数授業研究 No.162　探究的な学びのデザイン―算数授業の21事例",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/9784491058566_1_fcf84453-0641-4af0-9e44-9c0832781f56.jpg?v=1770267910&width=1200",
+      "description": "算数授業で探究的な学びを実現するための授業デザインを、実際の子どもの姿にもとづく21事例から考える。",
+      "url": "https://www.toyokan.co.jp/products/5856?variant=50575904145641",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058563"
+    },
+    {
+      "title": "算数授業研究 No.161　単元で育てる資質・能力―見方・考え方が貫く授業づくり",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5855_1.jpg?v=1765254543&width=1200",
+      "description": "１時間単位を超えて、単元を通して資質・能力を育てる教材研究と授業づくりを提案。",
+      "url": "https://www.toyokan.co.jp/products/5855?variant=49953383055593",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058555"
+    },
+    {
+      "title": "算数授業研究 No.160　よい発問よい声かけ",
+      "author": "筑波大学附属小学校算数部／編",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/files/5854_1.jpg?v=1761024247&width=1200",
+      "description": "子どもの協働的な学びを引き出す教師の発問・声かけをテーマに、授業改善の具体を探る。",
+      "url": "https://www.toyokan.co.jp/products/5854?variant=49346220490985",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491058547"
+    },
+    {
+      "title": "子どもに委ねる算数授業　――子どもの学力差に応じるビルドアップ型授業の新展望",
+      "author": "大野 桂／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-795531.jpg?v=1692938517&width=1200",
+      "description": "子ども自身が学びのスタートラインを見いだし決める、子ども主体のビルドアップ型問題解決授業を提案。",
+      "url": "https://www.toyokan.co.jp/products/4823?variant=44731951153385",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491048231"
+    },
+    {
+      "title": "すべての子どもの学力に応じる ビルドアップ型算数授業",
+      "author": "大野 桂／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://www.toyokan.co.jp/cdn/shop/products/product-937538.jpg?v=1692938207&width=1200",
+      "description": "学力差に左右されず全員の知識を積み上げる、新しい形の問題解決型「ビルドアップ型」算数授業を提案。",
+      "url": "https://www.toyokan.co.jp/products/3089",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491030898"
+    },
+    {
+      "title": "割合の見方・考え方を働かせる算数授業",
+      "author": "青山 尚司／著",
+      "publisher": "東洋館出版社",
+      "cover": "https://images-na.ssl-images-amazon.com/images/P/4491063451.09.LZZZZZZZ.jpg",
+      "description": "算数の最難単元「割合」を、２つの比べ方で「使える道具」に落とし込む。",
+      "url": "https://www.toyokan.co.jp/products/6345",
+      "amazon_url": "https://www.amazon.co.jp/dp/4491063451"
+    }
+  ]
+}
