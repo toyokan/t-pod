@@ -8,7 +8,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f8fafc",
-  "theme_color": "#00707A",
+  "theme_color": "#E11D48",
   "icons": [
     {
       "src": "../assets/icon-2026-sanjuken-okinawa.svg",
