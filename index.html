@@ -400,13 +400,18 @@
        以前は sticky のヘッダー自体を padding / font-size の transition で縮めていたが、
        レイアウトを毎フレーム組み直すうえ、縮んだぶん本文が跳ね上がっていた。
        いまは高さを一切変えず、動かすのは #compactBar の transform / opacity だけ。 */
+    /* 大小の切り替えはスクロール量に連動させる（iOS の Large Title と同じ）。
+       大きい見出しの行が沈みながら薄くなるのと入れ替わりに、細いバーが少し上から降りながら濃くなる。
+       値は JS（スクロール連動の IIFE）が毎フレーム transform / opacity に書く。
+       transition は「指に遅れずに、フレームの段差だけをならす」ための .12s の直線にとどめる。 */
     #compactBar {
-      transform: translate3d(0, -110%, 0);
+      transform: translate3d(0, -24px, 0) scale(.96);
       opacity: 0;
-      transition: transform .34s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+      transition: transform .12s linear, opacity .12s linear;
       pointer-events: none;
     }
-    #compactBar.is-shown { transform: none; opacity: 1; pointer-events: auto; }
+    #compactBar.is-shown { pointer-events: auto; }
+    #appHeader .hd-row { transform-origin: left center; transition: transform .12s linear, opacity .12s linear; }
     #compactBar .bar {
       margin-top: calc(env(safe-area-inset-top) + 6px);
       background: linear-gradient(145deg,
@@ -773,7 +778,7 @@
       .nav-brand-card { transition: none !important; transform: none !important; }
       html { scroll-behavior: auto; }
       #appHeader .hd { animation: none; }
-      #compactBar { transition: none; }
+      #compactBar, #appHeader .hd-row { transition: none; }
       #appHeader::before { transform: none !important; will-change: auto; }
       #appHeader .deco-right-lg, #appHeader .deco-right-sm { transform: none !important; will-change: auto; }
       /* コマ送りと呼吸を止めて 1 コマ目で静止させる（* の duration 短縮だけでは点滅して見えるため） */
@@ -3942,35 +3947,64 @@
       }, true);
     })();
 
-    // ---- スクロール連動：見出しが隠れたら細いバーを出す＋光レイヤー移動 ----
+    // ---- スクロール連動：大きい見出し ⇄ 細いバーの入れ替え＋光レイヤー移動 ----
     (function () {
       const header = $("appHeader");
       const bar = $("compactBar");
+      // 大きい見出しの 1 行目（タイトル＋ベル）。テーマのバナーは動かさない（読んでいる途中で薄くしない）
+      const row = $("eventTitle").closest(".hd > div");
+      row.classList.add("hd-row");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       let ticking = false;
       let lastProgress = -1;
+      let lastSwap = -1;
       let scrollIdleTimer = 0;
-      // 細いバーの出し入れ。見出し（#eventTitle）が画面の上へ完全に出たら出す。
-      // 大きい見出しはページ先頭で上端 56px の中に収まっているので、「バーの高さぶん内側」を
-      // 境界にすると先頭でもバーが出て見出しを覆ってしまう。境界は画面の上端そのものにする。
-      // 判定は IntersectionObserver に任せ、スクロールのたびに寸法を読まない。
-      // 出ていない間は inert でフォーカス・読み上げから外す（見えないボタンへ Tab で入らないように）
-      const setCompactBar = (show) => {
+      // 入れ替えの区間（ページ上端からの距離）。見出しの行が画面上端にかかり始めてから
+      // 抜けきるまでの約 50px で 0→1 に進める。寸法は毎フレーム読まず、見出しの大きさが
+      // 変わったとき（イベント名の差し替え・フォントの到着・画面回転）だけ測り直す
+      let swapStart = 0;
+      let swapEnd = 1;
+      const measure = () => {
+        const r = $("eventTitle").getBoundingClientRect();
+        const top = r.top + window.scrollY;
+        swapStart = Math.max(0, top - 4);
+        swapEnd = Math.max(swapStart + 24, r.bottom + window.scrollY + 12);
+        lastSwap = -1;
+      };
+      // 出ていない間は inert でフォーカス・読み上げから外す（見えないボタンへ Tab で入らないように）。
+      // 半分を越えたら「出ている」とみなす
+      let shown = null;
+      const setShown = (show) => {
+        if (show === shown) return;
+        shown = show;
         bar.classList.toggle("is-shown", show);
         bar.inert = !show;
         document.body.classList.toggle("is-scrolled", show);
       };
-      if ("IntersectionObserver" in window) {
-        new IntersectionObserver(
-          ([entry]) => setCompactBar(!entry.isIntersecting && entry.boundingClientRect.top < 0)
-        ).observe($("eventTitle"));
-      } else {
-        // 古い端末向け：スクロール量だけで判断する
-        window.addEventListener("scroll", () => setCompactBar(window.scrollY > 72), { passive: true });
-      }
+      const applySwap = (y) => {
+        let p = Math.min(1, Math.max(0, (y - swapStart) / (swapEnd - swapStart)));
+        // 動きを減らす設定では途中の状態を作らず、出す／消すの 2 値にする
+        if (reduceMotion) p = p >= 0.5 ? 1 : 0;
+        if (p === lastSwap) return;
+        lastSwap = p;
+        // 見出しの行は少し沈みながら縮んで薄くなり、細いバーは少し上から降りながら濃くなる。
+        // 薄くなる側を先に（0→0.6 で消える）、現れる側を後に（0.3→1 で出る）ずらして、
+        // 2 つの見出しが同じ濃さで重なる瞬間を作らない
+        const out = Math.min(1, p / 0.6);
+        const inn = Math.min(1, Math.max(0, (p - 0.3) / 0.7));
+        row.style.opacity = String(1 - out);
+        row.style.transform = reduceMotion ? "" : `translate3d(0, ${(out * 10).toFixed(1)}px, 0) scale(${(1 - 0.06 * out).toFixed(3)})`;
+        bar.style.opacity = String(inn);
+        bar.style.transform = reduceMotion ? "none" : `translate3d(0, ${(-24 * (1 - inn)).toFixed(1)}px, 0) scale(${(0.96 + 0.04 * inn).toFixed(3)})`;
+        setShown(p >= 0.5);
+      };
+      if ("ResizeObserver" in window) new ResizeObserver(() => { measure(); applySwap(window.scrollY); }).observe(header);
+      window.addEventListener("resize", measure, { passive: true });
+      measure();
       $("compactTitle").addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }));
       const update = () => {
         const y = window.scrollY;
+        applySwap(y);
         if (!reduceMotion) {
           const progress = Math.min(1, y / 180);
           if (progress !== lastProgress) {
