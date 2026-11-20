@@ -224,17 +224,6 @@
       box-shadow: 0 12px 28px -16px color-mix(in srgb, var(--brand) 65%, black), inset 0 1px rgba(255,255,255,.28);
       transition: box-shadow .2s ease;
     }
-    /* スクロール中／縮小時のみ、末端をわずかに透過して下のコンテンツをぼかし越しに見せる
-       （天面のヒーロー感は保ち、フロストはスクロール後だけ）。文字色は --brand-fg のまま＝可読性維持 */
-    #appHeader.is-compact, #appHeader.is-scrolling {
-      background: linear-gradient(145deg,
-        color-mix(in srgb, var(--brand) 74%, white) 0%,
-        color-mix(in srgb, var(--brand) 88%, transparent) 58%,
-        color-mix(in srgb, var(--brand) 80%, black) 100%);
-      -webkit-backdrop-filter: blur(8px) saturate(1.08);
-      backdrop-filter: blur(8px) saturate(1.08);
-      box-shadow: 0 10px 26px -18px color-mix(in srgb, var(--brand) 60%, black), inset 0 1px rgba(255,255,255,.24);
-    }
     /* 光だけを独立レイヤーにし、スクロール中は再描画の軽い transform で動かす */
     #appHeader::before {
       content: ""; position: absolute; inset: -36px; pointer-events: none;
@@ -398,13 +387,28 @@
     }
     /* 段落は最終行が極端に短くならないように整える（balance と違い長文でも安全） */
     p { text-wrap: pretty; }
-    /* スクロール時のヘッダー縮小（縦空間の確保）。縮小時はテーマ・副題を畳む */
-    #appHeader .hd { transition: padding .15s ease; }
-    #appHeader #eventTitle { transition: font-size .15s ease; }
-    #appHeader.is-compact .hd { padding-top: 0.5rem; padding-bottom: 0.5rem; }
-    #appHeader.is-compact #eventTitle { font-size: 1.125rem; }
-    #appHeader.is-compact #eventSubtitle { display: none; }
-    #appHeader.is-compact #themeBanner { display: none; }
+    /* ヘッダー（design-v2）：大きな見出しのヘッダーは本文と一緒に流れ、見出しが隠れたら
+       上端に細い #compactBar を滑り込ませる（iOS の Large Title と同じ考え方）。
+       以前は sticky のヘッダー自体を padding / font-size の transition で縮めていたが、
+       レイアウトを毎フレーム組み直すうえ、縮んだぶん本文が跳ね上がっていた。
+       いまは高さを一切変えず、動かすのは #compactBar の transform / opacity だけ。 */
+    #compactBar {
+      transform: translate3d(0, -110%, 0);
+      opacity: 0;
+      transition: transform .34s cubic-bezier(.22,1,.36,1), opacity .2s ease;
+      pointer-events: none;
+    }
+    #compactBar.is-shown { transform: none; opacity: 1; pointer-events: auto; }
+    #compactBar .bar {
+      background: linear-gradient(145deg,
+        color-mix(in srgb, var(--brand) 78%, white) 0%,
+        var(--brand) 58%,
+        color-mix(in srgb, var(--brand) 86%, black) 100%);
+      color: var(--brand-fg);
+      box-shadow: 0 10px 24px -14px color-mix(in srgb, var(--brand) 60%, black), inset 0 1px rgba(255,255,255,.28);
+    }
+    /* 初回表示だけ見出しが下からふわっと出る */
+    #appHeader .hd { animation: ttRise .5s cubic-bezier(.22,1,.36,1) both; }
     /* カードのフェードイン */
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     .animate-in { animation: fadeInUp .28s ease both; }
@@ -585,13 +589,6 @@
       .nav-glass, body.is-scrolled .nav-glass { background: #e2e8f0; }
       .modal-glass-bar { background: #fff; }
       .nav-brand-card { background: #fff; }
-      /* backdrop-filter 非対応時はフロストを使わず不透明塗りに戻す */
-      #appHeader.is-compact, #appHeader.is-scrolling {
-        background: linear-gradient(145deg,
-          color-mix(in srgb, var(--brand) 78%, white) 0%,
-          var(--brand) 58%,
-          color-mix(in srgb, var(--brand) 86%, black) 100%);
-      }
     }
     /* モーダルの閉じる演出 */
     @keyframes fadeOutDown { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px); } }
@@ -753,7 +750,8 @@
       .tab-indicator, .navpill, .view.is-drag-settling, #modalBackdrop, #linePopupBackdrop { transition: none !important; }
       .nav-brand-card { transition: none !important; transform: none !important; }
       html { scroll-behavior: auto; }
-      #appHeader .hd, #appHeader #eventTitle { transition: none; }
+      #appHeader .hd { animation: none; }
+      #compactBar { transition: none; }
       #appHeader::before { transform: none !important; will-change: auto; }
       #appHeader .deco-right-lg, #appHeader .deco-right-sm { transform: none !important; will-change: auto; }
       /* コマ送りと呼吸を止めて 1 コマ目で静止させる（* の duration 短縮だけでは点滅して見えるため） */
@@ -779,14 +777,6 @@
       }
       .nav-brand-card::before { background: rgba(255,255,255,.9); }
       .navbtn[aria-current] .navpill svg { filter: none; }
-      #appHeader.is-compact, #appHeader.is-scrolling {
-        background: linear-gradient(145deg,
-          color-mix(in srgb, var(--brand) 78%, white) 0%,
-          var(--brand) 58%,
-          color-mix(in srgb, var(--brand) 86%, black) 100%);
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-      }
     }
     /* 非力な端末（head の inline script が付ける .no-glass）。
        透明効果の設定とは別の理由＝描画コストで外すので、媒体クエリとは分けてある。
@@ -801,21 +791,14 @@
     html.no-glass #modalBackdrop, html.no-glass #linePopupBackdrop {
       -webkit-backdrop-filter: none; backdrop-filter: none;
     }
-    html.no-glass #appHeader.is-compact, html.no-glass #appHeader.is-scrolling {
-      background: linear-gradient(145deg,
-        color-mix(in srgb, var(--brand) 78%, white) 0%,
-        var(--brand) 58%,
-        color-mix(in srgb, var(--brand) 86%, black) 100%);
-      -webkit-backdrop-filter: none;
-      backdrop-filter: none;
-    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
   <div class="safe-area-top-bg" aria-hidden="true"></div>
 
-  <!-- ===== Sticky ヘッダー（テーマ・お知らせベルを統合） ===== -->
-  <header id="appHeader" class="sticky top-0 z-30 max-w-2xl mx-auto pt-safe text-brand-fg rounded-b-[32px] relative overflow-hidden">
+  <!-- ===== ヘッダー（テーマ・お知らせベルを統合） =====
+       design-v2：本文と一緒に流れる大きな見出し。見出しが上へ隠れたら #compactBar が代わりに出る -->
+  <header id="appHeader" class="relative z-10 max-w-2xl mx-auto pt-safe text-brand-fg rounded-b-[32px] overflow-hidden">
     <span class="deco deco-right-lg" style="top:-56px;right:-40px;width:170px;height:170px" aria-hidden="true"></span>
     <span class="deco deco-right-sm" style="top:26px;right:52px;width:56px;height:56px;background:rgba(255,255,255,.13)" aria-hidden="true"></span>
     <span class="deco" style="bottom:-70px;left:-30px;width:190px;height:190px;background:rgba(255,255,255,.1)" aria-hidden="true"></span>
@@ -823,7 +806,7 @@
       <div class="flex items-center justify-between gap-3">
         <div class="min-w-0">
           <h1 id="eventTitle" class="text-2xl font-black leading-tight tracking-tight">読み込み中…</h1>
-          <p id="eventSubtitle" class="text-[11px] font-bold opacity-85 mt-0.5"></p>
+          <p id="eventSubtitle" class="text-[11px] font-bold mt-0.5"></p>
         </div>
         <!-- お知らせ（旧FABをヘッダーへ移設） -->
         <button id="noticeBtn" aria-label="お知らせを見る"
@@ -837,6 +820,22 @@
       </div>
     </div>
   </header>
+
+  <!-- ===== 細いヘッダー（スクロールで見出しが隠れたときだけ上から滑り込む） =====
+       出ていない間は inert でフォーカス・読み上げの対象から外す（setCompactBar()）。
+       文字色はブランド面の規則どおり --brand-fg（.bar の CSS 側で指定） -->
+  <div id="compactBar" class="fixed top-0 inset-x-0 z-30 max-w-2xl mx-auto" inert>
+    <div class="bar pt-safe rounded-b-[22px]">
+      <div class="flex items-center justify-between gap-3 h-14 pl-5 pr-3">
+        <button type="button" id="compactTitle" class="min-w-0 flex-1 min-h-[44px] text-left text-[17px] font-black leading-tight truncate" aria-label="ページの先頭へ戻る"></button>
+        <button type="button" id="noticeBtnCompact" aria-label="お知らせを見る"
+          class="relative hidden flex-shrink-0 w-11 h-11 rounded-full bg-white/25 border border-white/30 items-center justify-center active:scale-95 transition">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+          <span id="noticeBadgeCompact" class="hidden absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] min-w-[18px] h-[18px] px-1 rounded-full items-center justify-center font-black ring-2 ring-white"></span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== オフライン表示バナー（通信断のとき表示） ===== -->
   <div id="offlineBanner" class="hidden max-w-2xl mx-auto mt-2 px-3" role="status">
@@ -1571,8 +1570,10 @@
       const isEvent = mode === "event";
       $("dateTabs").classList.toggle("hidden", !isEvent);
       document.getElementById("bottomNav").classList.toggle("hidden", !isEvent);
-      $("noticeBtn").classList.toggle("hidden", !isEvent);
-      $("noticeBtn").classList.toggle("flex", isEvent);
+      ["noticeBtn", "noticeBtnCompact"].forEach((id) => {
+        $(id).classList.toggle("hidden", !isEvent);
+        $(id).classList.toggle("flex", isEvent);
+      });
       $("view-list").classList.toggle("hidden", isEvent);
       $("view-program").classList.toggle("hidden", !isEvent);
       // マスコットはイベントページ限定。表示開始は setupMascot()（データ取得後）が行う
@@ -1818,6 +1819,7 @@
     // 「読み込み中…」が残り、真下のエラー表示と食い違って見える
     function setPageHeading(text, subtitle = "") {
       $("eventTitle").textContent = text;
+      $("compactTitle").textContent = text;
       $("eventSubtitle").textContent = subtitle;
       document.title = text;
     }
@@ -1844,6 +1846,7 @@
       if (isHexColor(info.brandColor2)) document.documentElement.style.setProperty("--brand-2", info.brandColor2.trim());
       else document.documentElement.style.removeProperty("--brand-2");
       $("eventTitle").textContent = info.logoMain || info.title || "イベント";
+      $("compactTitle").textContent = $("eventTitle").textContent;
       $("eventSubtitle").textContent = info.title || info.logoSub || info.subtitle || "";
       const sig = identitySig(info);
       if (sig !== lastIdentitySig) {
@@ -3154,15 +3157,18 @@
 
     function renderNoticeBadge() {
       const notices = (DATA.eventInfo && DATA.eventInfo.notices) || [];
-      const badge = $("noticeBadge");
       const read = getReadNotices();
       const unread = notices.filter((n) => !read.has(noticeSig(n))).length;
-      const wasHidden = badge.classList.contains("hidden");
-      badge.textContent = String(unread);
-      badge.classList.toggle("hidden", unread === 0);
-      badge.classList.toggle("flex", unread > 0);
-      // 未読が新たに出たときだけ pop を1回再生
-      if (unread > 0 && wasHidden) { badge.classList.remove("pop-in"); void badge.offsetWidth; badge.classList.add("pop-in"); }
+      // 大きいヘッダーと細いバーの 2 つのベルに同じ件数を出す
+      ["noticeBadge", "noticeBadgeCompact"].forEach((id) => {
+        const badge = $(id);
+        const wasHidden = badge.classList.contains("hidden");
+        badge.textContent = String(unread);
+        badge.classList.toggle("hidden", unread === 0);
+        badge.classList.toggle("flex", unread > 0);
+        // 未読が新たに出たときだけ pop を1回再生
+        if (unread > 0 && wasHidden) { badge.classList.remove("pop-in"); void badge.offsetWidth; badge.classList.add("pop-in"); }
+      });
     }
 
     // 主催・共催・協力・後援（指定があるものだけ行を出す）。値は文字列 or 文字列配列
@@ -3913,22 +3919,35 @@
       }, true);
     })();
 
-    // ---- スクロール連動のヘッダー縮小＋光レイヤー移動 ----
+    // ---- スクロール連動：見出しが隠れたら細いバーを出す＋光レイヤー移動 ----
     (function () {
       const header = $("appHeader");
+      const bar = $("compactBar");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      let compact = false;
       let ticking = false;
       let lastProgress = -1;
       let scrollIdleTimer = 0;
+      // 細いバーの出し入れ。見出し（#eventTitle）が画面の上へ完全に出たら出す。
+      // 大きい見出しはページ先頭で上端 56px の中に収まっているので、「バーの高さぶん内側」を
+      // 境界にすると先頭でもバーが出て見出しを覆ってしまう。境界は画面の上端そのものにする。
+      // 判定は IntersectionObserver に任せ、スクロールのたびに寸法を読まない。
+      // 出ていない間は inert でフォーカス・読み上げから外す（見えないボタンへ Tab で入らないように）
+      const setCompactBar = (show) => {
+        bar.classList.toggle("is-shown", show);
+        bar.inert = !show;
+        document.body.classList.toggle("is-scrolled", show);
+      };
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(
+          ([entry]) => setCompactBar(!entry.isIntersecting && entry.boundingClientRect.top < 0)
+        ).observe($("eventTitle"));
+      } else {
+        // 古い端末向け：スクロール量だけで判断する
+        window.addEventListener("scroll", () => setCompactBar(window.scrollY > 72), { passive: true });
+      }
+      $("compactTitle").addEventListener("click", () => window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }));
       const update = () => {
         const y = window.scrollY;
-        const next = compact ? y > 8 : y > 48;
-        if (next !== compact) {
-          compact = next;
-          header.classList.toggle("is-compact", compact);
-          document.body.classList.toggle("is-scrolled", compact);
-        }
         if (!reduceMotion) {
           const progress = Math.min(1, y / 180);
           if (progress !== lastProgress) {
@@ -3953,6 +3972,7 @@
       update();
     })();
     $("noticeBtn").addEventListener("click", openNotices);
+    $("noticeBtnCompact").addEventListener("click", openNotices);
     $("modalClose").addEventListener("click", closeModal);
     $("modalBackdrop").addEventListener("click", closeModal);
     document.addEventListener("keydown", (e) => {
