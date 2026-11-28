@@ -3099,9 +3099,17 @@
     function renderNextEvent() {
       const box = $("nextEvent");
       box.innerHTML = "";
-      const ne = (DATA.eventInfo && DATA.eventInfo.nextEvent) || null;
+      const raw = (DATA.eventInfo && DATA.eventInfo.nextEvent) || null;
+      // 1件ならオブジェクト、複数（例: オンライン講座と次の公開講座）なら配列で書ける。
+      const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      box.classList.toggle("space-y-4", list.length > 1);
+      list.forEach((ne) => {
+        if (ne && typeof ne === "object") renderNextEventCard(box, ne);
+      });
+    }
+
+    function renderNextEventCard(box, ne) {
       const trimmed = (v) => (typeof v === "string" ? v.trim() : "");
-      if (!ne) return;
       const title = trimmed(ne.title);
       const url = trimmed(ne.url);
       if (!title) return;
