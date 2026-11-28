@@ -127,6 +127,11 @@
           "url": "https://maps.app.goo.gl/TruEm4kud4QvujPC8"
         }
       ]
+    },
+    "bookSale": {
+      "url": "https://www.toyokan.co.jp/KO2026",
+      "label": "東洋館出版社 特設販売ページ",
+      "note": "本講座限定の割引販売はこちら"
     }
   },
   "rooms": [
