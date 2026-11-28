@@ -52,6 +52,19 @@ TARGETS = (
         "WEBP",
         82,
     ),
+    # 算授研 沖縄2026（開催中）: 次回案内 2 件（GGゼミ・福岡公開講座）のバナー。元は Peatix のカバー画像
+    (
+        "assets/next-event-2026-sanjuken-okinawa-gg.jpg",
+        "assets/next-event-2026-sanjuken-okinawa-gg.webp",
+        "WEBP",
+        82,
+    ),
+    (
+        "assets/next-event-2026-sanjuken-okinawa-fukuoka.jpg",
+        "assets/next-event-2026-sanjuken-okinawa-fukuoka.webp",
+        "WEBP",
+        82,
+    ),
     # 算数サマーフェス2026（終了済み）: JSON を触らない規約なので同名 PNG を上書きする
     (
         "assets/next-event-2026-math-summer-fes.png",
